@@ -6,7 +6,7 @@
 class TestOrm
 {
 public:
-    TestOrm() = default;
+    TestOrm();
 
 //    using KeyType = quint64;
 

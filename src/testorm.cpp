@@ -16,11 +16,26 @@ using namespace ranges;
 
 // TODO also investigate &&, when to use, I also see usage in for range loops for values silverqx
 
+TestOrm::TestOrm()
+    : m_em(Orm::EntityManager::create({
+        {"host",      qEnvironmentVariable("DB_HOST", "127.0.0.1")},
+        {"port",      qEnvironmentVariable("DB_PORT", "3306")},
+        {"database",  qEnvironmentVariable("DB_DATABASE", "")},
+        {"username",  qEnvironmentVariable("DB_USERNAME", "")},
+        {"password",  qEnvironmentVariable("DB_PASSWORD", "")},
+        {"charset",   qEnvironmentVariable("DB_CHARSET", "utf8mb4")},
+        {"collation", qEnvironmentVariable("DB_COLLATION", "utf8mb4_0900_ai_ci")},
+        {"prefix",    ""},
+        {"strict",    true},
+        {"options",   ""},
+    }))
+{}
+
 void TestOrm::run()
 {
 //    ctorAggregate();
 //    anotherTests();
-    testTinyOrm();
+//    testTinyOrm();
     testQueryBuilder();
 }
 
@@ -494,14 +509,14 @@ void TestOrm::testQueryBuilder()
 //    qt_noop();
 
     /* WHERE */
-//    auto [ok, c] = m_em.queryBuilder()->from("torrents")
-//             .where("name", "=", "test2", "and")
-//             .get({"id", "name"});
-//    qDebug() << "THIRD :" << c.executedQuery();
-//    while (c.next()) {
-//        qDebug() << "id :" << c.value("id") << "; name :" << c.value("name");
-//    }
-//    qt_noop();
+    auto [ok, c] = m_em.queryBuilder()->from("torrents")
+             .where("name", "=", "test2", "and")
+             .get({"id", "name"});
+    qDebug() << "THIRD :" << c.executedQuery();
+    while (c.next()) {
+        qDebug() << "id :" << c.value("id") << "; name :" << c.value("name");
+    }
+    qt_noop();
 
     /* also nested where */
 //    auto [ok, d] = m_em.queryBuilder()->from("torrents")
