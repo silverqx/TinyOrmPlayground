@@ -1,0 +1,21 @@
+{
+
+    "default": "mysql",
+
+    "connections": {
+
+        "sqlite": {
+            "driver": "sqlite",
+            "url": "",
+            "database": "database.sqlite",
+            "prefix": "",
+            "foreign_key_constraints": true
+        },
+        "mysql": {
+            "driver": "mysql",
+            "url": "xx",
+            "database": "database.mysql",
+            "prefix": ""
+        }
+    }
+}

@@ -1,7 +1,7 @@
 #ifndef TESTORM_H
 #define TESTORM_H
 
-#include "orm/entitymanager.hpp"
+#include "orm/databasemanager.hpp"
 
 class TestOrm
 {
@@ -17,8 +17,10 @@ private:
     void testTinyOrm();
     void testQueryBuilder();
     void ctorAggregate();
+    void jsonConfig();
+    void standardPaths();
 
-    Orm::EntityManager m_em;
+    Orm::DatabaseManager m_dm;
 };
 
 //struct AggTest

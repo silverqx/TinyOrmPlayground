@@ -1,23 +1,32 @@
 #include "testorm.hpp"
 
 #include <QDebug>
+#include <QStandardPaths>
 
+#include <fstream>
+#include <iomanip>
 #include <iostream>
-
 #include <optional>
+//#include <format>
+
+#include <range/v3/all.hpp>
+#include <nlohmann/json.hpp>
+
+#include <orm/ormtypes.hpp>
 #include "setting.hpp"
 #include "torrent.hpp"
-#include "torrentpreviewablefile.hpp"
 #include "torrentpeer.hpp"
-#include <orm/ormtypes.hpp>
-#include <range/v3/all.hpp>
+#include "torrentpreviewablefile.hpp"
 
 using namespace ranges;
+
+using json = nlohmann::json;
 
 // TODO also investigate &&, when to use, I also see usage in for range loops for values silverqx
 
 TestOrm::TestOrm()
-    : m_em(Orm::EntityManager::create({
+    : m_dm(Orm::DatabaseManager::create({
+        {"driver",    "QMYSQL"},
         {"host",      qEnvironmentVariable("DB_HOST", "127.0.0.1")},
         {"port",      qEnvironmentVariable("DB_PORT", "3306")},
         {"database",  qEnvironmentVariable("DB_DATABASE", "")},
@@ -27,7 +36,7 @@ TestOrm::TestOrm()
         {"collation", qEnvironmentVariable("DB_COLLATION", "utf8mb4_0900_ai_ci")},
         {"prefix",    ""},
         {"strict",    true},
-        {"options",   ""},
+        {"options",   QVariantHash()},
     }))
 {}
 
@@ -37,6 +46,8 @@ void TestOrm::run()
 //    anotherTests();
 //    testTinyOrm();
     testQueryBuilder();
+//    jsonConfig();
+//    standardPaths();
 }
 
 void TestOrm::anotherTests()
@@ -45,7 +56,18 @@ void TestOrm::anotherTests()
 //    printf("Decorated function name: %s\n", __FUNCDNAME__);
 //    printf("Function signature: %s\n", __FUNCSIG__);
 
-    qt_noop();
+    // formatting
+    // ---
+//    int num = 100;
+//    std::string s = "hello";
+
+//    printf("before: %i\n", num);
+////    printf("before: %f\n", num);
+//    printf("before: %s\n", s.c_str());
+
+//    std::string message = std::format("The answer is {}.", 42);
+
+//    qt_noop();
 }
 
 void TestOrm::testTinyOrm()
@@ -117,7 +139,7 @@ void TestOrm::testTinyOrm()
 //                       {"filepath", QStringLiteral("test7_file%1.mkv").arg(i)},
 //                       {"size", i}, {"progress", 50}});
 
-//    m_em.queryBuilder()->from("torrent_previewable_files")
+//    m_dm.query()->from("torrent_previewable_files")
 //            .insert(values);
 //    qt_noop();
 
@@ -484,7 +506,7 @@ void TestOrm::testQueryBuilder()
 //    qt_noop();
 
     /* distinct, limit, offset and ordering  */
-//    auto a = m_em.queryBuilder()->from("torrents")
+//    auto a = m_dm.query()->from("torrents")
 ////             .distinct()
 ////             .where("progress", ">", 100)
 ////             .limit(5)
@@ -501,7 +523,7 @@ void TestOrm::testQueryBuilder()
 //    }
 //    qt_noop();
 
-//    auto [ok, b] = m_em.queryBuilder()->from("torrents").get({"id, name"});
+//    auto [ok, b] = m_dm.query()->from("torrents").get({"id, name"});
 //    qDebug() << "SECOND :" << b.executedQuery();
 //    while (b.next()) {
 //        qDebug() << "id :" << b.value("id") << "; name :" << b.value("name");
@@ -509,17 +531,29 @@ void TestOrm::testQueryBuilder()
 //    qt_noop();
 
     /* WHERE */
-    auto [ok, c] = m_em.queryBuilder()->from("torrents")
-             .where("name", "=", "test2", "and")
-             .get({"id", "name"});
-    qDebug() << "THIRD :" << c.executedQuery();
-    while (c.next()) {
-        qDebug() << "id :" << c.value("id") << "; name :" << c.value("name");
-    }
-    qt_noop();
+//    auto [ok, c] = m_dm.query()->from("torrents")
+//             .where("name", "=", "test2", "and")
+//             .get({"id", "name"});
+//    qDebug() << "THIRD :" << c.executedQuery();
+//    while (c.next()) {
+//        qDebug() << "id :" << c.value("id") << "; name :" << c.value("name");
+//    }
+//    qt_noop();
+
+    /* WHERE - like */
+//    {
+//        auto [ok, c] = m_dm.query()->from("torrents")
+//                .where("name", "like", "%no peers", "and")
+//                .get({"id", "name"});
+//        qDebug() << "THIRD :" << c.executedQuery();
+//        while (c.next()) {
+//            qDebug() << "id :" << c.value("id") << "; name :" << c.value("name");
+//        }
+//        qt_noop();
+//    }
 
     /* also nested where */
-//    auto [ok, d] = m_em.queryBuilder()->from("torrents")
+//    auto [ok, d] = m_dm.query()->from("torrents")
 //             .where("name", "=", "aliens", "and")
 ////             .where("id", "=", 1, "and")
 ////             .where("id", "=", 262, "and")
@@ -543,7 +577,7 @@ void TestOrm::testQueryBuilder()
 //    qt_noop();
 
     // whereIn
-//    auto [ok_c1, c1] = m_em.queryBuilder()->from("torrents")
+//    auto [ok_c1, c1] = m_dm.query()->from("torrents")
 //             .where("name", "=", "Internat - S1", "and")
 //             .get({"id", "name"});
 //    qDebug() << "whereIn :" << c1.executedQuery();
@@ -554,7 +588,7 @@ void TestOrm::testQueryBuilder()
 
     /* where() - an array of basic where clauses */
 //    {
-//        auto [ok, query] = m_em.queryBuilder()->from("torrents")
+//        auto [ok, query] = m_dm.query()->from("torrents")
 //                .where({
 //                    {"size", 13, ">="},
 //                    {"progress", 500, ">="},
@@ -572,7 +606,7 @@ void TestOrm::testQueryBuilder()
 
     /* where() - an array of where clauses comparing two columns */
     {
-//        auto [ok, query] = m_em.queryBuilder()->from("torrents")
+//        auto [ok, query] = m_dm.query()->from("torrents")
 //                .whereColumn({
 //            {"size", "progress", ">"},
 ////            {"progress", "size", ">="},
@@ -589,7 +623,7 @@ void TestOrm::testQueryBuilder()
     }
 
     /* JOINs */
-//    auto e = m_em.queryBuilder()->from("torrents")
+//    auto e = m_dm.query()->from("torrents")
 //             .rightJoin("torrent_previewable_files", "torrents.id", "=", "torrent_id")
 //             .where("torrents.id", "=", 256)
 //             .get({"torrents.id", "name", "file_index", "filepath"});
@@ -600,7 +634,7 @@ void TestOrm::testQueryBuilder()
 //                 << "filepath :" << e.value("filepath");
 //    }
 
-//    auto e = m_em.queryBuilder()->from("torrents")
+//    auto e = m_dm.query()->from("torrents")
 //             .join("torrent_previewable_files", [](auto &join)
 //    {
 //        join.on("torrents.id", "=", "torrent_id")
@@ -617,7 +651,7 @@ void TestOrm::testQueryBuilder()
 //    qt_noop();
 
     /* first and find */
-//    auto f = m_em.queryBuilder()->from("torrents")
+//    auto f = m_dm.query()->from("torrents")
 //            .where("torrents.id", "=", 256)
 ////            .first({"id", "name"});
 //            .value("name");
@@ -626,14 +660,14 @@ void TestOrm::testQueryBuilder()
 //    qDebug() << "name:" << f;
 //    qt_noop();
 
-//    auto [ok, g] = m_em.queryBuilder()->from("torrents")
+//    auto [ok, g] = m_dm.query()->from("torrents")
 //            .find(256, {"id", "name"});
 //    qDebug() << "EIGTH :" << g.executedQuery();
 //    qDebug() << "id :" << g.value("id") << "; name :" << g.value("name");
 //    qt_noop();
 
     /* GROUP BY and HAVING */
-//    auto h = m_em.queryBuilder()->from("torrents")
+//    auto h = m_dm.query()->from("torrents")
 //             .groupBy({"status"})
 ////             .having("status", ">", 10)
 ////             .having("status", ">", "Paused")
@@ -646,7 +680,7 @@ void TestOrm::testQueryBuilder()
 //    }
 
     /* INSERTs */
-//    auto id_i = m_em.queryBuilder()->table("torrents").insertGetId(
+//    auto id_i = m_dm.query()->from("torrents").insertGetId(
 //                    {{"name", "first"}, {"progress", 300}, {"eta", 8000000}, {"size", 2048},
 //                     {"seeds", 0}, {"total_seeds", 0}, {"leechers", 0}, {"total_leechers", 0},
 //                     {"remaining", 1024},
@@ -660,14 +694,14 @@ void TestOrm::testQueryBuilder()
 
     // Empty attributes
 //    {
-//        auto id = m_em.queryBuilder()->table("settings").insertGetId({});
+//        auto id = m_dm.query()->from("settings").insertGetId({});
 //        qDebug() << "Insert - empty attributes";
 //        qDebug() << "last id :" << id;
 //        qt_noop();
 //    }
 
 //    const auto id_i = 278;
-//    auto [ok_j, j] = m_em.queryBuilder()->table("torrent_previewable_files").insert({
+//    auto [ok_j, j] = m_dm.query()->from("torrent_previewable_files").insert({
 //        {{"torrent_id", id_i}, {"file_index", 0}, {"filepath", "abc.mkv"}, {"size", 2048},
 //            {"progress", 10}},
 //        {{"torrent_id", id_i}, {"file_index", 1}, {"filepath", "xyz.mkv"}, {"size", 1024},
@@ -679,7 +713,7 @@ void TestOrm::testQueryBuilder()
 //    }
 //    qt_noop();
 
-//    auto [ok_k, k] = m_em.queryBuilder()->table("torrent_previewable_files").insert({
+//    auto [ok_k, k] = m_dm.query()->from("torrent_previewable_files").insert({
 //        {"torrent_id", id_i}, {"file_index", 2}, {"filepath", "qrs.mkv"}, {"size", 3074},
 //        {"progress", 20}});
 //    qDebug() << "TWELVE :" << k->executedQuery();
@@ -690,7 +724,7 @@ void TestOrm::testQueryBuilder()
 //    qt_noop();
 
 //    const auto id_l = 1;
-//    auto [ok_l, l] = m_em.queryBuilder()->table("torrent_previewable_files").insertOrIgnore({
+//    auto [ok_l, l] = m_dm.query()->from("torrent_previewable_files").insertOrIgnore({
 //        {{"torrent_id", id_l}, {"file_index", 2}, {"filepath", "qrs.mkv"}, {"size", 3074},
 //            {"progress", 20}},
 //        {{"torrent_id", id_l}, {"file_index", 3}, {"filepath", "ghi.mkv"}, {"size", 3074},
@@ -706,14 +740,14 @@ void TestOrm::testQueryBuilder()
 //    qt_noop();
 
     /* UPDATEs */
-//    auto [affected_m, m] = m_em.queryBuilder()->table("torrents")
+//    auto [affected_m, m] = m_dm.query()->from("torrents")
 //            .where("id", "=", 277)
 //            .update({{"name", "first1"}, {"progress", 350}});
 //    qDebug() << "THIRTEEN :" << m.executedQuery();
 //    qDebug() << "affected rows :" << affected_m;
 //    qt_noop();
 
-//    auto [affected_n, n] = m_em.queryBuilder()->table("torrents")
+//    auto [affected_n, n] = m_dm.query()->from("torrents")
 //            .join("torrent_previewable_files", "torrents.id", "=",
 //                  "torrent_previewable_files.torrent_id")
 //            .where("torrents.id", "=", 277)
@@ -737,7 +771,7 @@ void TestOrm::testQueryBuilder()
 //    qDebug() << "userType :" << x.userType();
 //    qt_noop();
 
-//    auto [affected_o, o] = m_em.queryBuilder()->table("torrents")
+//    auto [affected_o, o] = m_dm.query()->from("torrents")
 //            .where("id", "=", 277)
 //            .update({{"name", QVariant::fromValue(Expression("first"))}, {"progress", 350}});
 ////            .update({{"name", x}, {"progress", 350}});
@@ -746,7 +780,7 @@ void TestOrm::testQueryBuilder()
 //    qt_noop();
 
     /* INCREMENT / DECREMENT */
-//    auto [affected_p, p] = m_em.queryBuilder()->table("torrents")
+//    auto [affected_p, p] = m_dm.query()->from("torrents")
 //            .whereEq("id", 277)
 ////            .increment("progress", 1);
 //            .decrement("progress", 1, {
@@ -757,14 +791,14 @@ void TestOrm::testQueryBuilder()
 //    qt_noop();
 
     /* DELETEs */
-//    auto [affected_q, q] = m_em.queryBuilder()->table("torrent_previewable_files")
+//    auto [affected_q, q] = m_dm.query()->from("torrent_previewable_files")
 //            .whereEq("id", 107)
 //            .remove();
 //    qDebug() << "SEVENTEEN :" << q.executedQuery();
 //    qDebug() << "affected rows :" << affected_q;
 //    qt_noop();
 
-//    auto [affected_r, r] = m_em.queryBuilder()->table("torrents")
+//    auto [affected_r, r] = m_dm.query()->from("torrents")
 //            .join("torrent_previewable_files", "torrents.id", "=",
 //                  "torrent_previewable_files.torrent_id")
 //            .whereEq("torrents.id", 7)
@@ -775,7 +809,7 @@ void TestOrm::testQueryBuilder()
 //    qt_noop();
 
     /* TRUNCATE */
-//    auto [ok_s, s] = m_em.queryBuilder()->table("xxx")
+//    auto [ok_s, s] = m_dm.query()->from("xxx")
 //            .truncate();
 //    qDebug() << "NINETEEN :" << s.executedQuery();
 //    ok_s ? qDebug() << "truncate was successful"
@@ -809,5 +843,138 @@ void TestOrm::ctorAggregate()
 //        std::move(va.begin(), va.end(), std::back_inserter(vo));
 //        ranges::move(std::move(va), ranges::back_inserter(vo));
 //        qt_noop();
+    //    }
+}
+
+void TestOrm::jsonConfig()
+{
+//    {
+//        auto j = R"(
+//{
+//    "default": "mysql",
+
+//    "connections": {
+
+//        "sqlite": {
+//            "driver": "sqlite",
+//            "url": "",
+//            "database": "database.sqlite",
+//            "prefix": "",
+//            "foreign_key_constraints": true
+//        },
+//        "mysql": {
+//            "driver": "mysql",
+//            "url": "xx",
+//            "database": "database.mysql",
+//            "prefix": ""
+//        }
 //    }
+//}
+//)"_json;
+
+//        std::string s = j.dump();
+
+//        std::cout << j.dump(4) << std::endl;
+//    }
+
+    {
+        auto s = R"(
+{
+    "default": "mysql",
+
+    "connections": {
+
+        "sqlite": {
+            "driver": "sqlite",
+            "url": "",
+            "database": "database.sqlite",
+            "prefix": "",
+            "foreign_key_constraints": true
+        },
+        "mysql": {
+            "driver": "mysql",
+            "url": "xx",
+            "database": "database.mysql",
+            "prefix": ""
+        }
+    }
+}
+)";
+
+        auto j = json::parse(s);
+//        std::string s = j.dump();
+
+//        std::cout << j.dump(4) << std::endl;
+
+//        std::cout << j["default"].get<std::string>();
+//        std::cout << j["connections"]["mysql"]["database"].get<std::string>();
+
+        std::cout << j["connections"]["mysql"]["database"];
+        std::cout << j["/connections/mysql/database"_json_pointer];
+
+        auto x = j["connections"]["mysql"]["database"];
+        std::cout << j["/connections/mysql/database"_json_pointer];
+
+//        qDebug() << QString::fromStdString(j["default"].get<std::string>());
+
+//        for (auto &[key, value] : j.items()) {
+//            std::cout << key << " : " << value << "\n";
+//        }
+
+        qt_noop();
+    }
+
+    // read a JSON file
+//    std::ifstream i("config_test.json");
+//    json j;
+//    i >> j;
+
+//    // write prettified JSON to another file
+//    std::ofstream o("pretty.json");
+//    o << std::setw(4) << j << std::endl;
+
+    qt_noop();
+}
+
+void TestOrm::standardPaths()
+{
+    qDebug() << QStandardPaths::displayName(QStandardPaths::AppDataLocation);
+    qDebug() << QStandardPaths::displayName(QStandardPaths::AppLocalDataLocation);
+    qDebug() << QStandardPaths::displayName(QStandardPaths::ApplicationsLocation);
+
+    qDebug() << QStandardPaths::findExecutable("php");
+
+    qDebug() << "\nAppDataLocation:";
+    qDebug() << QStandardPaths::standardLocations(QStandardPaths::AppDataLocation);
+    qDebug() << QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
+
+    qDebug() << "\nAppLocalDataLocation:";
+    qDebug() << QStandardPaths::standardLocations(QStandardPaths::AppLocalDataLocation);
+    qDebug() << QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation);
+
+    qDebug() << "\nAppConfigLocation:";
+    qDebug() << QStandardPaths::standardLocations(QStandardPaths::AppConfigLocation);
+    qDebug() << QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation);
+
+    qDebug() << "\nGenericConfigLocation:";
+    qDebug() << QStandardPaths::standardLocations(QStandardPaths::GenericConfigLocation);
+    qDebug() << QStandardPaths::writableLocation(QStandardPaths::GenericConfigLocation);
+
+    qDebug() << "\nGenericDataLocation:";
+    qDebug() << QStandardPaths::standardLocations(QStandardPaths::GenericDataLocation);
+    qDebug() << QStandardPaths::writableLocation(QStandardPaths::GenericDataLocation);
+
+    qDebug() << "\nGenericCacheLocation:";
+    qDebug() << QStandardPaths::standardLocations(QStandardPaths::GenericCacheLocation);
+    qDebug() << QStandardPaths::writableLocation(QStandardPaths::GenericCacheLocation);
+
+    qDebug() << "\nCacheLocation:";
+    qDebug() << QStandardPaths::standardLocations(QStandardPaths::CacheLocation);
+    qDebug() << QStandardPaths::writableLocation(QStandardPaths::CacheLocation);
+
+    qDebug() << "\nTempLocation:";
+    qDebug() << QStandardPaths::standardLocations(QStandardPaths::TempLocation);
+    qDebug() << QStandardPaths::writableLocation(QStandardPaths::TempLocation);
+
+    qt_noop();
 }
