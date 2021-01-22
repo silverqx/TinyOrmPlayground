@@ -65,7 +65,7 @@ private:
     };
 
     /*! The connection name for the model. */
-//    QString u_connection {"crystal"};
+    QString u_connection {"crystal"};
 };
 
 // TODO finish this, move to base class and test eg in qvector, qhash, etc silverqx

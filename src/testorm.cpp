@@ -23,19 +23,47 @@ using namespace ranges;
 using json = nlohmann::json;
 
 TestOrm::TestOrm()
+//    : m_dm(Orm::DatabaseManager::create({
+//        {"driver",    "QMYSQL"},
+//        {"host",      qEnvironmentVariable("DB_HOST", "127.0.0.1")},
+//        {"port",      qEnvironmentVariable("DB_PORT", "3306")},
+//        {"database",  qEnvironmentVariable("DB_DATABASE", "")},
+//        {"username",  qEnvironmentVariable("DB_USERNAME", "")},
+//        {"password",  qEnvironmentVariable("DB_PASSWORD", "")},
+//        {"charset",   qEnvironmentVariable("DB_CHARSET", "utf8mb4")},
+//        {"collation", qEnvironmentVariable("DB_COLLATION", "utf8mb4_0900_ai_ci")},
+//        {"prefix",    ""},
+//        {"strict",    true},
+//        {"options",   QVariantHash()},
+//    }))
     : m_dm(Orm::DatabaseManager::create({
-        {"driver",    "QMYSQL"},
-        {"host",      qEnvironmentVariable("DB_HOST", "127.0.0.1")},
-        {"port",      qEnvironmentVariable("DB_PORT", "3306")},
-        {"database",  qEnvironmentVariable("DB_DATABASE", "")},
-        {"username",  qEnvironmentVariable("DB_USERNAME", "")},
-        {"password",  qEnvironmentVariable("DB_PASSWORD", "")},
-        {"charset",   qEnvironmentVariable("DB_CHARSET", "utf8mb4")},
-        {"collation", qEnvironmentVariable("DB_COLLATION", "utf8mb4_0900_ai_ci")},
-        {"prefix",    ""},
-        {"strict",    true},
-        {"options",   QVariantHash()},
-    }))
+        {"tinyorm_default", {
+             {"driver",    "QMYSQL"},
+             {"host",      qEnvironmentVariable("DB_HOST", "127.0.0.1")},
+             {"port",      qEnvironmentVariable("DB_PORT", "3306")},
+             {"database",  qEnvironmentVariable("DB_DATABASE", "")},
+             {"username",  qEnvironmentVariable("DB_USERNAME", "")},
+             {"password",  qEnvironmentVariable("DB_PASSWORD", "")},
+             {"charset",   qEnvironmentVariable("DB_CHARSET", "utf8mb4")},
+             {"collation", qEnvironmentVariable("DB_COLLATION", "utf8mb4_0900_ai_ci")},
+             {"prefix",    ""},
+             {"strict",    true},
+             {"options",   QVariantHash()},
+        }},
+        {"crystal", {
+             {"driver",    "QMYSQL"},
+             {"host",      qEnvironmentVariable("DB_HOST", "127.0.0.1")},
+             {"port",      qEnvironmentVariable("DB_PORT", "3306")},
+             {"database",  qEnvironmentVariable("DB_DATABASE", "")},
+             {"username",  qEnvironmentVariable("DB_USERNAME", "")},
+             {"password",  qEnvironmentVariable("DB_PASSWORD", "")},
+             {"charset",   qEnvironmentVariable("DB_CHARSET", "utf8mb4")},
+             {"collation", qEnvironmentVariable("DB_COLLATION", "utf8mb4_0900_ai_ci")},
+             {"prefix",    ""},
+             {"strict",    true},
+             {"options",   QVariantHash()},
+        }},
+    }, "tinyorm_default"))
 {}
 
 void TestOrm::run()
@@ -93,6 +121,40 @@ void TestOrm::testTinyOrm()
         auto torrents = torrent.query()->get();
 
         for (auto &t : torrents)
+            qDebug() << "id :" << t.getAttribute("id").toULongLong() << ";"
+                     << "name :" << t.getAttribute("name").toString();
+
+        qt_noop();
+    }
+    {
+        for (auto &t : Torrent::all())
+            qDebug() << "id :" << t.getAttribute("id").toULongLong() << ";"
+                     << "name :" << t.getAttribute("name").toString();
+
+        qt_noop();
+    }
+
+    /* Model::where() */
+    {
+        for (auto &t : Torrent::where("id", ">", 3)->get())
+            qDebug() << "id :" << t.getAttribute("id").toULongLong() << ";"
+                     << "name :" << t.getAttribute("name").toString();
+
+        qt_noop();
+    }
+
+    /* Model::whereEq() */
+    {
+        auto t = Torrent::whereEq("id", 4)->get().first();
+        qDebug() << "id :" << t.getAttribute("id").toULongLong() << ";"
+                 << "name :" << t.getAttribute("name").toString();
+
+        qt_noop();
+    }
+
+    /* Model::where() vector */
+    {
+        for (auto &t : Torrent::where({{"id", 4}})->get())
             qDebug() << "id :" << t.getAttribute("id").toULongLong() << ";"
                      << "name :" << t.getAttribute("name").toString();
 
@@ -247,41 +309,42 @@ void TestOrm::testTinyOrm()
 //    }
 
     /* Model::find(id) */
-//    {
-//        const auto id = 3;
-//        auto torrentFile = TorrentPreviewableFile().find(id);
+    {
+        const auto id = 3;
+        auto torrentFile = TorrentPreviewableFile::find(id);
 
-//        qDebug() << "torrentFile id :" << id;
-//        qDebug() << torrentFile->getAttribute("filepath");
-//        qt_noop();
-//    }
+        qDebug() << "torrentFile id :" << id;
+        qDebug() << torrentFile->getAttribute("filepath").toString();
+
+        qt_noop();
+    }
 
     /* Model::findWhere(id) */
-//    {
-//        auto torrentFile = TorrentPreviewableFile().whereEq("id", 3)->first();
-//        auto torrentFile1 = TorrentPreviewableFile().firstWhere("id", "=", 4);
-//        auto torrentFile2 = TorrentPreviewableFile().firstWhereEq("id", 5);
+    {
+        auto torrentFile = TorrentPreviewableFile::whereEq("id", 3)->first();
+        auto torrentFile1 = TorrentPreviewableFile::firstWhere("id", "=", 4);
+        auto torrentFile2 = TorrentPreviewableFile::firstWhereEq("id", 5);
 
-//        qt_noop();
-//    }
+        qt_noop();
+    }
 
     /* Model::firstOrNew() */
-//    {
-//        auto torrent = Torrent().firstOrNew(
-//                           {{"id", 10}},
+    {
+        auto torrent = Torrent::firstOrNew(
+                           {{"id", 10}},
 
-//                           {{"name", "test10"},
-//                            {"size", 20},
-//                            {"progress", 800},
-//                            {"id", 15}
-//                           });
+                           {{"name", "test10"},
+                            {"size", 20},
+                            {"progress", 800},
+                            {"id", 15}
+                           });
 
-//        qt_noop();
-//    }
+        qt_noop();
+    }
 
     /* Model::firstOrCreate() */
 //    {
-//        auto torrent = Torrent().firstOrCreate(
+//        auto torrent = Torrent::firstOrCreate(
 //                           {{"name", "test10"}},
 
 //                           {{"size", 20},
@@ -410,8 +473,7 @@ void TestOrm::testTinyOrm()
 
     /* eager/lazy load - getRelation(), getRelationValue() and with() */
     {
-        Torrent t;
-        auto torrent = t.find(2);
+        auto torrent = Torrent::find(2);
 
         // eager load
 //        {
