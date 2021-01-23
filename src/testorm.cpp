@@ -146,8 +146,10 @@ void TestOrm::testTinyOrm()
     /* Model::whereEq() */
     {
         auto t = Torrent::whereEq("id", 4)->get().first();
-        qDebug() << "id :" << t.getAttribute("id").toULongLong() << ";"
-                 << "name :" << t.getAttribute("name").toString();
+        qDebug() << "id :" << t["id"].toULongLong() << ";"
+                 << "name :" << t["name"].toString();
+//        qDebug() << "id :" << t.getAttribute("id").toULongLong() << ";"
+//                 << "name :" << t.getAttribute("name").toString();
 
         qt_noop();
     }
