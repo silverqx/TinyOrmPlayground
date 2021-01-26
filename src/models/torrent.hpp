@@ -39,6 +39,11 @@ public:
     }
 
 private:
+    /*! The name of the "created at" column. */
+    inline static const QString &CREATED_AT = QStringLiteral("created_at");
+    /*! The name of the "updated at" column. */
+    inline static const QString &UPDATED_AT = QStringLiteral("updated_at");
+
     /*! The visitor to obtain a type for Related template parameter. */
     void relationVisitor(const QString &relation)
     {
@@ -66,6 +71,12 @@ private:
 
     /*! The connection name for the model. */
     QString u_connection {"crystal"};
+
+
+    /*! Indicates if the model should be timestamped. */
+//    bool u_timestamps = true;
+    /*! The storage format of the model's date columns. */
+//    QString u_dateFormat {"yyyy-MM-dd HH:mm:ss"};
 };
 
 // TODO finish this, move to base class and test eg in qvector, qhash, etc silverqx

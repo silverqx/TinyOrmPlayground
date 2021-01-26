@@ -40,6 +40,9 @@ private:
     QVector<Orm::WithItem> u_with {
 //        {"torrentFile"},
     };
+
+    /*! Indicates if the model should be timestamped. */
+    bool u_timestamps = false;
 };
 
 #endif // TORRENTPREVIEWABLEFILEPROPERTY_H
