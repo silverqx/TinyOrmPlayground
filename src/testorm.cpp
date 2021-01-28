@@ -13,6 +13,7 @@
 #include <range/v3/all.hpp>
 
 #include <orm/ormtypes.hpp>
+#include "models/filepropertyproperty.hpp"
 #include "models/setting.hpp"
 #include "models/torrent.hpp"
 #include "models/torrentpeer.hpp"
@@ -102,9 +103,11 @@ void TestOrm::anotherTests()
 
     // __FUNCTION__
     // ---
-    printf("Function name: %s\n", __FUNCTION__);
+    printf("Function name __FUNCTION__: %s\n", __FUNCTION__);
+    printf("Function name __func__: %s\n", __func__);
     printf("Decorated function name: %s\n", __FUNCDNAME__);
-    printf("Function signature: %s\n", __FUNCSIG__);
+    // GCC : __PRETTY_FUNCTION__ ; MSVC : __FUNCSIG__
+    printf("Function signature: %s\n", Q_FUNC_INFO);
     qt_noop();
 
     // formatting
@@ -620,32 +623,83 @@ void TestOrm::testTinyOrm()
 //    }
 
     /* Timestamps - update, select w/o updated_at column */
-    {
-        qDebug() << "\n\nTimestamps - update, select w/o updated_at column\n---";
-        auto torrent = Torrent::whereEq("id", 2)->first({"id", "name", "progress"});
+//    {
+//        qDebug() << "\n\nTimestamps - update, select w/o updated_at column\n---";
+//        auto torrent = Torrent::whereEq("id", 2)->first({"id", "name", "progress"});
 
-        qDebug() << "progress before :" << torrent->getAttribute("progress");
-        torrent->setAttribute("progress", torrent->getAttribute("progress").toUInt() + 1);
+//        qDebug() << "progress before :" << torrent->getAttribute("progress");
+//        torrent->setAttribute("progress", torrent->getAttribute("progress").toUInt() + 1);
 
-        const auto &updatedAt = torrent->getUpdatedAtColumn();
-        qDebug() << updatedAt << "before :" << torrent->getAttribute(updatedAt).toDateTime();
+//        const auto &updatedAt = torrent->getUpdatedAtColumn();
+//        qDebug() << updatedAt << "before :" << torrent->getAttribute(updatedAt).toDateTime();
 
-        torrent->save();
-        qDebug() << "progress after :" << torrent->getAttribute("progress");
-        qDebug() << updatedAt << "after :" << torrent->getAttribute(updatedAt).toDateTime();
-        qt_noop();
-    }
+//        torrent->save();
+//        qDebug() << "progress after :" << torrent->getAttribute("progress");
+//        qDebug() << updatedAt << "after :" << torrent->getAttribute(updatedAt).toDateTime();
+//        qt_noop();
+//    }
 
     /* Timestamps - update, u_timestamps = false */
+//    {
+//        qDebug() << "\n\nTimestamps - update, u_timestamps = false\n---";
+//        auto fileProperty = TorrentPreviewableFileProperty::find(2);
+
+//        qDebug() << "size before :" << fileProperty->getAttribute("size");
+//        fileProperty->setAttribute("size", fileProperty->getAttribute("size").toUInt() + 1);
+
+//        fileProperty->save();
+//        qDebug() << "size after :" << fileProperty->getAttribute("size");
+//        qt_noop();
+//    }
+
+    /* Touching Parent Timestamps */
     {
-        qDebug() << "\n\nTimestamps - update, u_timestamps = false\n---";
-        auto torrent = TorrentPreviewableFileProperty::find(2);
+        qDebug() << "\n\nTouching Parent Timestamps\n---";
+        auto filePropertyProperty = FilePropertyProperty::find(4);
 
-        qDebug() << "size before :" << torrent->getAttribute("size");
-        torrent->setAttribute("size", torrent->getAttribute("size").toUInt() + 1);
+        qDebug() << "value before :" << filePropertyProperty->getAttribute("value");
+        filePropertyProperty->setAttribute("value", filePropertyProperty->getAttribute("value").toUInt() + 1);
 
-        torrent->save();
-        qDebug() << "size after :" << torrent->getAttribute("size");
+        const auto &updatedAtFilePropertyProperty = filePropertyProperty->getUpdatedAtColumn();
+        qDebug() << "FilePropertyProperty" << updatedAtFilePropertyProperty << "before :"
+                 << filePropertyProperty->getAttribute(updatedAtFilePropertyProperty).toDateTime();
+
+        auto fileProperty = TorrentPreviewableFileProperty::find(3);
+        const auto &updatedAtFileProperty = fileProperty->getUpdatedAtColumn();
+        qDebug() << "TorrentPreviewableFileProperty" << updatedAtFileProperty << "before :"
+                 << fileProperty->getAttribute(updatedAtFileProperty).toDateTime();
+
+        auto torrentFile = TorrentPreviewableFile::find(4);
+        const auto &updatedAtTorrentFile = torrentFile->getUpdatedAtColumn();
+        qDebug() << "TorrentPreviewableFile" << updatedAtTorrentFile << "before :"
+                 << torrentFile->getAttribute(updatedAtTorrentFile).toDateTime();
+
+        auto torrent = Torrent::find(3);
+        const auto &updatedAtTorrent = torrent->getUpdatedAtColumn();
+        qDebug() << "Torrent" << updatedAtTorrent << "before :"
+                 << torrent->getAttribute(updatedAtTorrent).toDateTime();
+
+        filePropertyProperty->save();
+
+        qDebug() << "value after :" << filePropertyProperty->getAttribute("value");
+
+        // Fetch fresh model
+        auto filePropertyProperty1 = FilePropertyProperty::find(4);
+        qDebug() << "FilePropertyProperty" << updatedAtFilePropertyProperty << "after :"
+                 << filePropertyProperty1->getAttribute(updatedAtFilePropertyProperty).toDateTime();
+
+        fileProperty = TorrentPreviewableFileProperty::find(3);
+        qDebug() << "TorrentPreviewableFileProperty" << updatedAtFileProperty << "after :"
+                 << fileProperty->getAttribute(updatedAtFileProperty).toDateTime();
+
+        torrentFile = TorrentPreviewableFile::find(4);
+        qDebug() << "TorrentPreviewableFile" << updatedAtTorrentFile << "after :"
+                 << torrentFile->getAttribute(updatedAtTorrentFile).toDateTime();
+
+        torrent = Torrent::find(3);
+        qDebug() << "Torrent" << updatedAtTorrent << "after :"
+                 << torrent->getAttribute(updatedAtTorrent).toDateTime();
+
         qt_noop();
     }
 

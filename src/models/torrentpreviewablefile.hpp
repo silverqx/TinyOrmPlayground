@@ -54,6 +54,9 @@ private:
 //        {"torrent.torrentPeer"},
 //        {"fileProperty"},
     };
+
+    /*! All of the relationships to be touched. */
+    QStringList u_touches {"torrent"};
 };
 
 #endif // TORRENTPREVIEWABLEFILES_H

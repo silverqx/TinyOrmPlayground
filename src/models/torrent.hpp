@@ -72,11 +72,12 @@ private:
     /*! The connection name for the model. */
     QString u_connection {"crystal"};
 
-
     /*! Indicates if the model should be timestamped. */
 //    bool u_timestamps = true;
     /*! The storage format of the model's date columns. */
 //    QString u_dateFormat {"yyyy-MM-dd HH:mm:ss"};
+    /*! All of the relationships to be touched. */
+//    QStringList u_touches {"relation_name"};
 };
 
 // TODO finish this, move to base class and test eg in qvector, qhash, etc silverqx
