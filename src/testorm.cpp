@@ -606,51 +606,51 @@ void TestOrm::testTinyOrm()
     }
 
     /* Timestamps - update */
-//    {
-//        qDebug() << "\n\nTimestamps - update\n---";
-//        auto torrent = Torrent::find(2);
+    {
+        qDebug() << "\n\nTimestamps - update\n---";
+        auto torrent = Torrent::find(2);
 
-//        qDebug() << "progress before :" << torrent->getAttribute("progress");
-//        torrent->setAttribute("progress", torrent->getAttribute("progress").toUInt() + 1);
+        qDebug() << "progress before :" << torrent->getAttribute("progress");
+        torrent->setAttribute("progress", torrent->getAttribute("progress").toUInt() + 1);
 
-//        const auto &updatedAt = torrent->getUpdatedAtColumn();
-//        qDebug() << updatedAt << "before :" << torrent->getAttribute(updatedAt).toDateTime();
+        const auto &updatedAt = torrent->getUpdatedAtColumn();
+        qDebug() << updatedAt << "before :" << torrent->getAttribute(updatedAt).toDateTime();
 
-//        torrent->save();
-//        qDebug() << "progress after :" << torrent->getAttribute("progress");
-//        qDebug() << updatedAt << "after :" << torrent->getAttribute(updatedAt).toDateTime();
-//        qt_noop();
-//    }
+        torrent->save();
+        qDebug() << "progress after :" << torrent->getAttribute("progress");
+        qDebug() << updatedAt << "after :" << torrent->getAttribute(updatedAt).toDateTime();
+        qt_noop();
+    }
 
     /* Timestamps - update, select w/o updated_at column */
-//    {
-//        qDebug() << "\n\nTimestamps - update, select w/o updated_at column\n---";
-//        auto torrent = Torrent::whereEq("id", 2)->first({"id", "name", "progress"});
+    {
+        qDebug() << "\n\nTimestamps - update, select w/o updated_at column\n---";
+        auto torrent = Torrent::whereEq("id", 2)->first({"id", "name", "progress"});
 
-//        qDebug() << "progress before :" << torrent->getAttribute("progress");
-//        torrent->setAttribute("progress", torrent->getAttribute("progress").toUInt() + 1);
+        qDebug() << "progress before :" << torrent->getAttribute("progress");
+        torrent->setAttribute("progress", torrent->getAttribute("progress").toUInt() + 1);
 
-//        const auto &updatedAt = torrent->getUpdatedAtColumn();
-//        qDebug() << updatedAt << "before :" << torrent->getAttribute(updatedAt).toDateTime();
+        const auto &updatedAt = torrent->getUpdatedAtColumn();
+        qDebug() << updatedAt << "before :" << torrent->getAttribute(updatedAt).toDateTime();
 
-//        torrent->save();
-//        qDebug() << "progress after :" << torrent->getAttribute("progress");
-//        qDebug() << updatedAt << "after :" << torrent->getAttribute(updatedAt).toDateTime();
-//        qt_noop();
-//    }
+        torrent->save();
+        qDebug() << "progress after :" << torrent->getAttribute("progress");
+        qDebug() << updatedAt << "after :" << torrent->getAttribute(updatedAt).toDateTime();
+        qt_noop();
+    }
 
     /* Timestamps - update, u_timestamps = false */
-//    {
-//        qDebug() << "\n\nTimestamps - update, u_timestamps = false\n---";
-//        auto fileProperty = TorrentPreviewableFileProperty::find(2);
+    {
+        qDebug() << "\n\nTimestamps - update, u_timestamps = false\n---";
+        auto fileProperty = TorrentPreviewableFileProperty::find(2);
 
-//        qDebug() << "size before :" << fileProperty->getAttribute("size");
-//        fileProperty->setAttribute("size", fileProperty->getAttribute("size").toUInt() + 1);
+        qDebug() << "size before :" << fileProperty->getAttribute("size");
+        fileProperty->setAttribute("size", fileProperty->getAttribute("size").toUInt() + 1);
 
-//        fileProperty->save();
-//        qDebug() << "size after :" << fileProperty->getAttribute("size");
-//        qt_noop();
-//    }
+        fileProperty->save();
+        qDebug() << "size after :" << fileProperty->getAttribute("size");
+        qt_noop();
+    }
 
     /* Touching Parent Timestamps */
     {
@@ -704,22 +704,59 @@ void TestOrm::testTinyOrm()
     }
 
     /* Timestamps - insert */
-//    {
-//        qDebug() << "\n\nTimestamps - insert\n---";
-//        TorrentPreviewableFile torrentFiles;
-//        torrentFiles.setAttribute("torrent_id", 2);
-//        torrentFiles.setAttribute("file_index", 2);
-//        torrentFiles.setAttribute("filepath", "test2_file3.mkv");
-//        torrentFiles.setAttribute("size", 1000);
-//        torrentFiles.setAttribute("progress", 50);
+    {
+        qDebug() << "\n\nTimestamps - insert\n---";
+        const auto torrentId = 2;
+        TorrentPreviewableFile torrentFile;
+        torrentFile.setAttribute("torrent_id", torrentId);
+        torrentFile.setAttribute("file_index", 2);
+        torrentFile.setAttribute("filepath", "test2_file3.mkv");
+        torrentFile.setAttribute("size", 1000);
+        torrentFile.setAttribute("progress", 50);
 
-//        auto result = torrentFiles.save();
-//        const auto &createdAt = torrentFiles.getCreatedAtColumn();
-//        qDebug() << createdAt << "after :" << torrentFiles.getAttribute(createdAt).toDateTime();
-//        const auto &updatedAt = torrentFiles.getUpdatedAtColumn();
-//        qDebug() << updatedAt << "after :" << torrentFiles.getAttribute(updatedAt).toDateTime();
-//        qt_noop();
-//    }
+        auto result = torrentFile.save();
+        const auto &createdAt = torrentFile.getCreatedAtColumn();
+        qDebug() << createdAt << "after :" << torrentFile.getAttribute(createdAt).toDateTime();
+        const auto &updatedAt = torrentFile.getUpdatedAtColumn();
+        qDebug() << updatedAt << "after :" << torrentFile.getAttribute(updatedAt).toDateTime();
+        qt_noop();
+
+        qDebug() << "called remove():" << torrentFile.remove();
+
+        qDebug() << "TorrentPreviewableFile" << updatedAt << "after remove:"
+                 << torrentFile.getAttribute(updatedAt).toDateTime();
+
+        auto torrent = Torrent::find(torrentId);
+        const auto &torrentUpdatedAt = torrent->getUpdatedAtColumn();
+        qDebug() << "Torrent" << torrentUpdatedAt << "after remove:"
+                 << torrent->getAttribute(torrentUpdatedAt).toDateTime();
+
+        qt_noop();
+    }
+
+    /* Increment/Decrement in TinyBuilder */
+    {
+        qDebug() << "\n\nIncrement/Decrement in TinyBuilder\n---";
+
+        auto torrent = Torrent::find(4);
+
+        const auto &updatedAt = torrent->getUpdatedAtColumn();
+        qDebug() << "size before:" << torrent->getAttribute("size").toUInt();
+        qDebug() << updatedAt << "before:"
+                 << torrent->getAttribute(updatedAt).toDateTime();
+        qDebug() << "progress before:"
+                 << (*torrent)["progress"].toUInt();
+
+        Torrent::whereEq("id", 4)->increment("size", 2, {{"progress", 444}});
+
+        torrent = Torrent::find(4);
+        qDebug() << "size after:" << torrent->getAttribute("size").toUInt();
+        qDebug() << updatedAt << "after:"
+                 << torrent->getAttribute(updatedAt).toDateTime();
+        qDebug() << "progress after:"
+                 << (*torrent)["progress"].toUInt();
+        qt_noop();
+    }
 
     qt_noop();
 }
