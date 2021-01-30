@@ -6,11 +6,10 @@
 class TestOrm
 {
 public:
-    TestOrm();
-
 //    using KeyType = quint64;
 
-    void run();
+    TestOrm &connectToDatabase();
+    TestOrm &run();
 
 private:
     void anotherTests();
@@ -20,7 +19,7 @@ private:
     void jsonConfig();
     void standardPaths();
 
-    Orm::DatabaseManager m_dm;
+    std::unique_ptr<Orm::DatabaseManager> m_dm;
 };
 
 //struct AggTest

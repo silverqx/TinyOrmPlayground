@@ -23,8 +23,10 @@ using namespace ranges;
 
 using json = nlohmann::json;
 
-TestOrm::TestOrm()
-//    : m_dm(Orm::DatabaseManager::create({
+TestOrm &TestOrm::connectToDatabase()
+{
+    // Create a default database connection
+//    m_db = Orm::DatabaseManager::create({
 //        {"driver",    "QMYSQL"},
 //        {"host",      qEnvironmentVariable("DB_HOST", "127.0.0.1")},
 //        {"port",      qEnvironmentVariable("DB_PORT", "3306")},
@@ -36,8 +38,11 @@ TestOrm::TestOrm()
 //        {"prefix",    ""},
 //        {"strict",    true},
 //        {"options",   QVariantHash()},
-//    }))
-    : m_dm(Orm::DatabaseManager::create({
+//    });
+
+    /* Create two database connections, tinyorm_default, and crystal, and make
+       tinyorm_default default database connection. */
+    m_dm = Orm::DatabaseManager::create({
         {"tinyorm_default", {
              {"driver",    "QMYSQL"},
              {"host",      qEnvironmentVariable("DB_HOST", "127.0.0.1")},
@@ -64,10 +69,12 @@ TestOrm::TestOrm()
              {"strict",    true},
              {"options",   QVariantHash()},
         }},
-    }, "tinyorm_default"))
-{}
+    }, "tinyorm_default");
 
-void TestOrm::run()
+    return *this;
+}
+
+TestOrm &TestOrm::run()
 {
 //    ctorAggregate();
     anotherTests();
@@ -75,6 +82,8 @@ void TestOrm::run()
     testQueryBuilder();
 //    jsonConfig();
 //    standardPaths();
+
+    return *this;
 }
 
 void TestOrm::anotherTests()
