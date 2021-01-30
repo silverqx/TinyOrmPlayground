@@ -56,6 +56,11 @@ private:
     /*! The table associated with the model. */
     QString u_table {"torrents"};
 
+    /*! Indicates if the IDs are auto-incrementing. */
+//    bool u_incrementing = true;
+    /*! The primary key for the model. */
+//    QString u_primaryKey {"id"};
+
     /*! Map of relation names to methods. */
     QHash<QString, std::any> u_relations {
         {"torrentFiles", &Torrent::torrentFiles},
