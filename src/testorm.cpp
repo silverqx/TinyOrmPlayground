@@ -385,6 +385,32 @@ void TestOrm::testTinyOrm()
         qt_noop();
     }
 
+    /* Model::findOrNew() - found */
+    {
+        qDebug() << "\n\nModel::findOrNew() - found\n---";
+
+        auto torrent = Torrent::findOrNew(3, {"id", "name"});
+
+        Q_ASSERT(torrent.exists);
+        Q_ASSERT(torrent["name"] == "test3");
+
+        qt_noop();
+    }
+
+    /* Model::findOrNew() - not found */
+    {
+        qDebug() << "\n\nModel::findOrNew() - not found\n---";
+
+        auto torrent = Torrent::findOrNew(999999);
+
+        Q_ASSERT(!torrent.exists);
+        Q_ASSERT(torrent["id"] == QVariant());
+        Q_ASSERT(torrent["name"] == QVariant());
+        Q_ASSERT(torrent.getAttributes().isEmpty());
+
+        qt_noop();
+    }
+
     /* Model::findWhere(id) */
     {
         qDebug() << "\n\nModel::findWhere(id)\n---";
@@ -818,6 +844,67 @@ void TestOrm::testTinyOrm()
 
         qDebug() << "progress after:"
                  << Torrent::find(3)->getAttribute("progress").toUInt();
+        qt_noop();
+    }
+
+    /* Model::isClean()/isDirty() */
+    {
+        qDebug() << "\n\nModel::isClean()/isDirty()\n---";
+
+        auto torrent = Torrent::find(3);
+
+        Q_ASSERT(torrent->isClean());
+        Q_ASSERT(!torrent->isDirty());
+        Q_ASSERT(torrent->isClean("name"));
+        Q_ASSERT(!torrent->isDirty("name"));
+
+        torrent->setAttribute("name", "test3 dirty");
+
+        Q_ASSERT(!torrent->isClean());
+        Q_ASSERT(torrent->isDirty());
+        Q_ASSERT(!torrent->isClean("name"));
+        Q_ASSERT(torrent->isDirty("name"));
+        Q_ASSERT(torrent->isClean("size"));
+        Q_ASSERT(!torrent->isDirty("size"));
+
+        torrent->save();
+
+        Q_ASSERT(torrent->isClean());
+        Q_ASSERT(!torrent->isDirty());
+        Q_ASSERT(torrent->isClean("name"));
+        Q_ASSERT(!torrent->isDirty("name"));
+        Q_ASSERT(torrent->isClean("size"));
+        Q_ASSERT(!torrent->isDirty("size"));
+
+        torrent->setAttribute("name", "test3");
+        torrent->save();
+
+        qt_noop();
+    }
+
+    /* Model::wasChanged() */
+    {
+        qDebug() << "\n\nModel::wasChanged()\n---";
+
+        auto torrent = Torrent::find(3);
+
+        Q_ASSERT(!torrent->wasChanged());
+        Q_ASSERT(!torrent->wasChanged("name"));
+
+        torrent->setAttribute("name", "test3 changed");
+
+        Q_ASSERT(!torrent->wasChanged());
+        Q_ASSERT(!torrent->wasChanged("name"));
+
+        torrent->save();
+
+        Q_ASSERT(torrent->wasChanged());
+        Q_ASSERT(torrent->wasChanged("name"));
+        Q_ASSERT(!torrent->wasChanged("size"));
+
+        torrent->setAttribute("name", "test3");
+        torrent->save();
+
         qt_noop();
     }
 
