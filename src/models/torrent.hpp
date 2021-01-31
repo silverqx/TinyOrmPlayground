@@ -18,7 +18,8 @@ public:
     /*! The "type" of the primary key ID. */
     using KeyType = quint64;
 
-    explicit Torrent(const QVector<Orm::AttributeItem> &attributes = {});
+    using BaseModel::BaseModel;
+//    explicit Torrent(const QVector<Orm::AttributeItem> &attributes = {});
 
     /*! Get the previewable files associated with the torrent. */
     std::unique_ptr<

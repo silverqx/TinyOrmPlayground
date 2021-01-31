@@ -4,6 +4,7 @@
 
 #include "testorm.hpp"
 
+// TODO investigate ctrl+shift+alt+b build errors about can not delete TinyOrmPlayground.vc.pdb, .ilk, TinyOrmPlayground_pch.pch and similar silverqx
 int main(int, char *[])
 {
     SetConsoleOutputCP(CP_UTF8);

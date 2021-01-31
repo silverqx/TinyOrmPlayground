@@ -723,6 +723,7 @@ void TestOrm::testTinyOrm()
         torrentFile.setAttribute("size", 1000);
         torrentFile.setAttribute("progress", 50);
 
+        [[maybe_unused]]
         auto result = torrentFile.save();
         const auto &createdAt = torrentFile.getCreatedAtColumn();
         qDebug() << createdAt << "after :" << torrentFile.getAttribute(createdAt).toDateTime();
@@ -743,9 +744,9 @@ void TestOrm::testTinyOrm()
         qt_noop();
     }
 
-    /* Increment/Decrement in TinyBuilder */
+    /* TinyBuilder::increment()/decrement() */
     {
-        qDebug() << "\n\nIncrement/Decrement in TinyBuilder\n---";
+        qDebug() << "\n\nTinyBuilder::increment()/decrement()\n---";
 
         auto torrent = Torrent::find(4);
 
@@ -759,11 +760,64 @@ void TestOrm::testTinyOrm()
         Torrent::whereEq("id", 4)->increment("size", 2, {{"progress", 444}});
 
         torrent = Torrent::find(4);
-        qDebug() << "size after:" << torrent->getAttribute("size").toUInt();
-        qDebug() << updatedAt << "after:"
+        qDebug() << "size after increment:" << torrent->getAttribute("size").toUInt();
+        qDebug() << updatedAt << "after increment:"
                  << torrent->getAttribute(updatedAt).toDateTime();
-        qDebug() << "progress after:"
+        qDebug() << "progress after increment:"
                  << (*torrent)["progress"].toUInt();
+
+        Torrent::whereEq("id", 4)->decrement("size", 2, {{"progress", 400}});
+
+        torrent = Torrent::find(4);
+        qDebug() << "size after decrement:" << torrent->getAttribute("size").toUInt();
+        qDebug() << updatedAt << "after decrement:"
+                 << torrent->getAttribute(updatedAt).toDateTime();
+        qDebug() << "progress after decrement:"
+                 << (*torrent)["progress"].toUInt();
+        qt_noop();
+    }
+
+    /* Model::create() */
+    {
+        qDebug() << "\n\nModel::create()\n---";
+
+        auto torrent = Torrent::create({
+            {"name",     "test100"},
+            {"size",     100},
+            {"progress", 333},
+            {"added_on", QDateTime::currentDateTime()},
+            {"hash",     "1009e3af2768cdf52ec84c1f320333f68401dc6e"},
+        });
+
+        torrent.setAttribute("name", "test100 create");
+        torrent.save();
+
+        torrent.remove();
+
+        qt_noop();
+    }
+
+    /* TinyBuilder::update() */
+    {
+        qDebug() << "\n\nTinyBuilder::update()\n---";
+
+        Torrent::whereEq("id", 3)
+                ->update({{"progress", 333}});
+
+        qDebug() << "progress after:"
+                 << (*Torrent::find(3))["progress"].toUInt();
+        qt_noop();
+    }
+
+    /* Model::update() */
+    {
+        qDebug() << "\n\nModel::update()\n---";
+
+        Torrent::find(3)
+                ->update({{"progress", 300}});
+
+        qDebug() << "progress after:"
+                 << Torrent::find(3)->getAttribute("progress").toUInt();
         qt_noop();
     }
 
