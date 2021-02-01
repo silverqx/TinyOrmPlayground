@@ -3,16 +3,19 @@
 #include <QDebug>
 #include <QStandardPaths>
 
+//#include <format>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
 #include <optional>
-//#include <format>
 
 #include <nlohmann/json.hpp>
 #include <range/v3/all.hpp>
 
 #include <orm/ormtypes.hpp>
+#include <orm/tiny/modelnotfounderror.hpp>
+
+#include "common.hpp"
 #include "models/filepropertyproperty.hpp"
 #include "models/setting.hpp"
 #include "models/torrent.hpp"
@@ -392,7 +395,7 @@ void TestOrm::testTinyOrm()
         auto torrent = Torrent::findOrNew(3, {"id", "name"});
 
         Q_ASSERT(torrent.exists);
-        Q_ASSERT(torrent["name"] == "test3");
+        Q_ASSERT(torrent["name"] == QVariant("test3"));
 
         qt_noop();
     }
@@ -411,12 +414,63 @@ void TestOrm::testTinyOrm()
         qt_noop();
     }
 
-    /* Model::findWhere(id) */
+    /* Model::findOrFail() - found */
     {
-        qDebug() << "\n\nModel::findWhere(id)\n---";
-        auto torrentFile = TorrentPreviewableFile::whereEq("id", 3)->first();
-        auto torrentFile1 = TorrentPreviewableFile::firstWhere("id", "=", 4);
-        auto torrentFile2 = TorrentPreviewableFile::firstWhereEq("id", 5);
+        qDebug() << "\n\nModel::findOrFail() - found\n---";
+
+        auto torrent = Torrent::findOrFail(3, {"id", "name"});
+
+        Q_ASSERT(torrent.exists);
+        Q_ASSERT(torrent["id"] == QVariant(3));
+        Q_ASSERT(torrent["name"] == QVariant("test3"));
+
+        qt_noop();
+    }
+
+    /* Model::findOrFail() - not found, fail */
+    {
+        qDebug() << "\n\nModel::findOrFail() - not found, fail\n---";
+
+        TINY_VERIFY_EXCEPTION_THROWN(Torrent::findOrFail(999999),
+                                     Orm::Tiny::ModelNotFoundError);
+
+        qt_noop();
+    }
+
+    /* Model::whereEq()/firstWhere()/firstWhereEq() */
+    {
+        qDebug() << "\n\nModel::whereEq()/firstWhere()/firstWhereEq()\n---";
+
+        auto torrentFile3 = TorrentPreviewableFile::whereEq("id", 3)->first();
+        Q_ASSERT(torrentFile3->exists);
+        Q_ASSERT((*torrentFile3)["id"] == QVariant(3));
+        Q_ASSERT((*torrentFile3)["filepath"] == QVariant("test2_file2.mkv"));
+
+        auto torrentFile4 = TorrentPreviewableFile::firstWhere("id", "=", 4);
+        Q_ASSERT(torrentFile4->exists);
+        Q_ASSERT((*torrentFile4)["id"] == QVariant(4));
+        Q_ASSERT((*torrentFile4)["filepath"] == QVariant("test3_file1.mkv"));
+
+        auto torrentFile5 = TorrentPreviewableFile::firstWhereEq("id", 5);
+        Q_ASSERT(torrentFile5->exists);
+        Q_ASSERT((*torrentFile5)["id"] == QVariant(5));
+        Q_ASSERT((*torrentFile5)["filepath"] == QVariant("test4_file1.mkv"));
+
+        qt_noop();
+    }
+
+    /* Model::where() - vector */
+    {
+        qDebug() << "\n\nModel::where() - vector\n---";
+
+        auto torrentFile3 = TorrentPreviewableFile::where(
+                                {{"id", 3},
+                                 {"filepath", "test2_file2.mkv"}})
+                            ->first();
+
+        Q_ASSERT(torrentFile3->exists);
+        Q_ASSERT((*torrentFile3)["id"] == QVariant(3));
+        Q_ASSERT((*torrentFile3)["filepath"] == QVariant("test2_file2.mkv"));
 
         qt_noop();
     }
@@ -433,7 +487,7 @@ void TestOrm::testTinyOrm()
                            });
 
         Q_ASSERT(torrent.exists);
-        Q_ASSERT(torrent["name"] == "test3");
+        Q_ASSERT(torrent["name"] == QVariant("test3"));
 
         qt_noop();
     }
@@ -470,7 +524,7 @@ void TestOrm::testTinyOrm()
                            });
 
         Q_ASSERT(torrent.exists);
-        Q_ASSERT(torrent["name"] == "test3");
+        Q_ASSERT(torrent["name"] == QVariant("test3"));
 
         qt_noop();
     }
@@ -494,6 +548,32 @@ void TestOrm::testTinyOrm()
         Q_ASSERT(torrent["hash"] == QVariant("5979e3af2768cdf52ec84c1f320333f68401dc6e"));
 
         torrent.remove();
+
+        qt_noop();
+    }
+
+    /* TinyBuilder::firstOrFail() - found */
+    {
+        qDebug() << "\n\nTinyBuilder::firstOrFail() - found\n---";
+
+        auto torrent = Torrent::whereEq("id", 3)->firstOrFail({"id", "name"});
+
+        Q_ASSERT(torrent.exists);
+        Q_ASSERT(torrent["id"] == QVariant(3));
+        Q_ASSERT(torrent["name"] == QVariant("test3"));
+        Q_ASSERT(torrent["size"] == QVariant());
+        Q_ASSERT(torrent.getAttributes().size() == 2);
+
+        qt_noop();
+    }
+
+    /* TinyBuilder::firstOrFail() - not found, fail */
+    {
+        qDebug() << "\n\nTinyBuilder::firstOrFail() - not found, fail\n---";
+
+        TINY_VERIFY_EXCEPTION_THROWN(
+                    Torrent::whereEq("id", 999999)->firstOrFail(),
+                    Orm::Tiny::ModelNotFoundError);
 
         qt_noop();
     }
