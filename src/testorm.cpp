@@ -421,39 +421,82 @@ void TestOrm::testTinyOrm()
         qt_noop();
     }
 
-    /* Model::firstOrNew() */
+    /* Model::firstOrNew() - found */
     {
-        qDebug() << "\n\nModel::firstOrNew()\n---";
+        qDebug() << "\n\nModel::firstOrNew() - found\n---";
+        auto torrent = Torrent::firstOrNew(
+                           {{"id", 3}},
+
+                           {{"name", "test3"},
+                            {"size", 13},
+                            {"progress", 300}
+                           });
+
+        Q_ASSERT(torrent.exists);
+        Q_ASSERT(torrent["name"] == "test3");
+
+        qt_noop();
+    }
+
+    /* Model::firstOrNew() - not found */
+    {
+        qDebug() << "\n\nModel::firstOrNew() - not found\n---";
         auto torrent = Torrent::firstOrNew(
                            {{"id", 10}},
 
                            {{"name", "test10"},
                             {"size", 20},
-                            {"progress", 800},
-                            {"id", 15}
+                            {"progress", 800}
                            });
+
+        Q_ASSERT(!torrent.exists);
+        Q_ASSERT(torrent["id"] != QVariant());
+        Q_ASSERT(torrent["name"] == QVariant("test10"));
+        Q_ASSERT(torrent["size"] == QVariant(20));
+        Q_ASSERT(torrent["progress"] == QVariant(800));
 
         qt_noop();
     }
 
-    /* Model::firstOrCreate() */
-//    {
-//        auto torrent = Torrent::firstOrCreate(
-//                           {{"name", "test10"}},
+    /* Model::firstOrCreate() - found */
+    {
+        qDebug() << "\n\nModel::firstOrCreate() - found\n---";
+        auto torrent = Torrent::firstOrCreate(
+                           {{"name", "test3"}},
 
-//                           {{"size", 20},
-//                            {"progress", 800},
-//                            {"hash", "0679e3af2768cdf52ec84c1f320333f68401dc6e"},
-////                            {"id", 15},
-//                           });
+                           {{"size", 13},
+                            {"progress", 300},
+                            {"hash", "3579e3af2768cdf52ec84c1f320333f68401dc6e"},
+                           });
 
-//        if (!torrent.exists)
-//            // TODO next throw exception really needed here silverqx
-//            qDebug() << "Torrent was not created successfuly, name :"
-//                     << torrent.getAttribute("name").toString();
+        Q_ASSERT(torrent.exists);
+        Q_ASSERT(torrent["name"] == "test3");
 
-//        qt_noop();
-//    }
+        qt_noop();
+    }
+
+    /* Model::firstOrCreate() - not found */
+    {
+        qDebug() << "\n\nModel::firstOrCreate() - not found\n---";
+        auto torrent = Torrent::firstOrCreate(
+                           {{"name", "test50"}},
+
+                           {{"size", 50},
+                            {"progress", 550},
+                            {"hash", "5979e3af2768cdf52ec84c1f320333f68401dc6e"},
+                           });
+
+        Q_ASSERT(torrent.exists);
+        Q_ASSERT(torrent["id"] != QVariant());
+        Q_ASSERT(torrent["name"] == QVariant("test50"));
+        Q_ASSERT(torrent["size"] == QVariant(50));
+        Q_ASSERT(torrent["progress"] == QVariant(550));
+        Q_ASSERT(torrent["hash"] == QVariant("5979e3af2768cdf52ec84c1f320333f68401dc6e"));
+
+        torrent.remove();
+
+        qt_noop();
+    }
 
     /* hash which manages insertion order */
 //    {
