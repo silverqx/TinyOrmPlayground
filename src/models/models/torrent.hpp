@@ -3,7 +3,7 @@
 
 #include "orm/tiny/basemodel.hpp"
 
-#include "forwards.hpp"
+#include "models/forwards.hpp"
 
 #include "models/torrentpeer.hpp"
 #include "models/torrentpreviewablefile.hpp"

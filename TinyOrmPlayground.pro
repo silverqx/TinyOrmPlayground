@@ -75,9 +75,6 @@ INCLUDEPATH += $$quote($$PWD/../../TinyOrm/TinyOrm/include)
 win32-g++* {
 }
 else:win32-msvc* {
-    # range-v3
-    INCLUDEPATH += $$quote(E:/c/qMedia/vcpkg/installed/x64-windows/include)
-
     CONFIG(release, debug|release) {
         LIBS += $$quote(-L$$PWD/../../TinyOrm/TinyOrm-builds/build-TinyOrm-Desktop_Qt_5_15_2_MSVC2019_64bit-Release/src/release/)
     }
