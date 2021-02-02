@@ -1031,6 +1031,123 @@ void TestOrm::testTinyOrm()
         qt_noop();
     }
 
+    /* Model::fresh() */
+    {
+        qDebug() << "\n\nModel::fresh()\n---";
+
+        Torrent t;
+        Q_ASSERT(t.fresh() == std::nullopt);
+
+        auto torrent = Torrent::find(3);
+        auto fresh = torrent->fresh();
+        Q_ASSERT(&*torrent != &*fresh);
+
+        qt_noop();
+    }
+
+    /* Model::refresh() - only attributes check */
+    {
+        qDebug() << "\n\nModel::refresh() - only attributes check\n---";
+
+        Torrent t;
+        Q_ASSERT(&t.refresh() == &t);
+
+        auto torrent = Torrent::find(3);
+        auto original = torrent->getAttribute("name").toString();
+
+        torrent->setAttribute("name", "test3 refresh");
+        auto &refreshed = torrent->refresh();
+        Q_ASSERT(&*torrent == &refreshed);
+        Q_ASSERT(torrent->getAttribute("name") == QVariant(original));
+
+        qt_noop();
+    }
+
+    /* Model::load() */
+    {
+        qDebug() << "\n\nModel::load()\n---";
+
+        auto torrent = Torrent::find(2);
+
+        Q_ASSERT(torrent->getRelations().isEmpty());
+
+        torrent->load({{"torrentFiles"}, {"torrentPeer"}});
+
+        const auto &relations = torrent->getRelations();
+        Q_ASSERT(relations.size() == 2);
+        Q_ASSERT(relations.contains("torrentFiles"));
+        Q_ASSERT(relations.contains("torrentPeer"));
+
+        qt_noop();
+    }
+
+    /* Model::refresh() - only relations check */
+    {
+        qDebug() << "\n\nModel::refresh() - only relations check\n---";
+
+        Torrent t;
+        Q_ASSERT(&t.refresh() == &t);
+
+        auto torrent = Torrent::find(3);
+
+        auto &relations = torrent->getRelations();
+        Q_ASSERT(relations.isEmpty());
+
+        // Validate original attribute values in relations
+        auto filesOriginal =
+                torrent->getRelationValue<TorrentPreviewableFile>("torrentFiles");
+        auto filepathOriginal =
+                filesOriginal.first()->getAttribute("filepath");
+        auto peerOriginal =
+                torrent->getRelationValue<TorrentPeer, Orm::One>("torrentPeer");
+        auto seedsOriginal =
+                peerOriginal->getAttribute("seeds");
+        Q_ASSERT(relations.size() == 2);
+        Q_ASSERT(filepathOriginal == QVariant("test3_file1.mkv"));
+        Q_ASSERT(seedsOriginal == QVariant(3));
+
+        // Change attributes in relations
+        filesOriginal.first()->setAttribute("filepath", "test3_file1-refresh.mkv");
+        peerOriginal->setAttribute("seeds", 33);
+
+        // Validate changed attributes in relations
+        auto filepathOriginalChanged =
+                torrent->getRelationValue<TorrentPreviewableFile>("torrentFiles")
+                .first()->getAttribute("filepath");
+        auto seedsOriginalChanged =
+                torrent->getRelationValue<TorrentPeer, Orm::One>("torrentPeer")
+                ->getAttribute("seeds");
+        Q_ASSERT(filepathOriginalChanged == QVariant("test3_file1-refresh.mkv"));
+        Q_ASSERT(seedsOriginalChanged == QVariant(33));
+
+        uintptr_t relationFilesKeyOriginal =
+                reinterpret_cast<uintptr_t>(&relations.find("torrentFiles").key());
+        uintptr_t relationFilesValueOriginal =
+                reinterpret_cast<uintptr_t>(&relations.find("torrentFiles").value());
+
+        torrent->refresh();
+
+        Q_ASSERT(relations.size() == 2);
+        /* Values in the QHash container can't be the same, because they were
+           moved from the Model copy in the Model::load() method. */
+        Q_ASSERT(relationFilesKeyOriginal
+                 != reinterpret_cast<uintptr_t>(&relations.find("torrentFiles").key()));
+        Q_ASSERT(relationFilesValueOriginal
+                 != reinterpret_cast<uintptr_t>(&relations.find("torrentFiles").value()));
+
+        // Validate refreshed attributes in relations
+        auto filesRefreshed =
+                torrent->getRelationValue<TorrentPreviewableFile>("torrentFiles");
+        auto filepathRefreshed = filesRefreshed.first()->getAttribute("filepath");
+        auto peerRefreshed =
+                torrent->getRelationValue<TorrentPeer, Orm::One>("torrentPeer");
+        auto seedsRefreshed = peerRefreshed->getAttribute("seeds");
+        Q_ASSERT(filepathOriginal == filepathRefreshed);
+        Q_ASSERT(seedsOriginal == seedsRefreshed);
+
+        qt_noop();
+    }
+
     qt_noop();
 }
 
