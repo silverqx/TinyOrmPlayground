@@ -1148,6 +1148,20 @@ void TestOrm::testTinyOrm()
         qt_noop();
     }
 
+    /* Model::is()/isNot() */
+    {
+        qDebug() << "\n\nModel::is()/isNot()\n---";
+
+        auto torrent31 = Torrent::find(3);
+        auto torrent32 = Torrent::find(3);
+        auto torrent4 = Torrent::find(4);
+
+        Q_ASSERT(torrent31->is(torrent32));
+        Q_ASSERT(torrent31->isNot(torrent4));
+
+        qt_noop();
+    }
+
     qt_noop();
 }
 
