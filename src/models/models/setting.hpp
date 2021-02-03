@@ -16,6 +16,11 @@ private:
 
     /*! Indicates if the IDs are auto-incrementing. */
     bool u_incrementing = false;
+
+#ifdef PROJECT_TINYORM_TEST
+    /*! The connection name for the model. */
+    QString u_connection {"tinyorm_mysql_tests"};
+#endif
 };
 
 #endif // SETTING_H

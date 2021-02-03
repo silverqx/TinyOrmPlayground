@@ -76,7 +76,11 @@ private:
     };
 
     /*! The connection name for the model. */
+#ifdef PROJECT_TINYORM_TEST
+    QString u_connection {"tinyorm_mysql_tests"};
+#else
     QString u_connection {"crystal"};
+#endif
 
     /*! Indicates if the model should be timestamped. */
 //    bool u_timestamps = true;

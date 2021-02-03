@@ -404,7 +404,7 @@ void TestOrm::testTinyOrm()
     {
         qDebug() << "\n\nModel::findOrNew() - not found\n---";
 
-        auto torrent = Torrent::findOrNew(999999);
+        auto torrent = Torrent::findOrNew(999999, {"id", "name"});
 
         Q_ASSERT(!torrent.exists);
         Q_ASSERT(torrent["id"] == QVariant());
