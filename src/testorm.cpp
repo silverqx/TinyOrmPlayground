@@ -367,7 +367,7 @@ void TestOrm::testTinyOrm()
 
     /* Model::save() update - failed */
 //    {
-//        auto torrentFile = TorrentPreviewableFile().query()->where("id", "=", 1012).first();
+//        auto torrentFile = TorrentPreviewableFile().query()->where("id", "=", 8).first();
 
 //        torrentFile->setAttribute("file_indexx", 11);
 
@@ -727,9 +727,10 @@ void TestOrm::testTinyOrm()
 
                 auto fileProperty = file->getRelationValue<TorrentPreviewableFileProperty, Orm::One>("fileProperty");
 
-                qDebug().nospace().noquote()
-                        << fileProperty->getAttribute("name").toString()
-                        << "(" << fileProperty->getAttribute("id").toString() << ")";
+                if (fileProperty)
+                    qDebug().nospace().noquote()
+                            << fileProperty->getAttribute("name").toString()
+                            << "(" << fileProperty->getAttribute("id").toString() << ")";
                 qt_noop();
             }
         }
@@ -864,11 +865,11 @@ void TestOrm::testTinyOrm()
     /* Timestamps - insert */
     {
         qDebug() << "\n\nTimestamps - insert\n---";
-        const auto torrentId = 2;
+        const auto torrentId = 4;
         TorrentPreviewableFile torrentFile;
         torrentFile.setAttribute("torrent_id", torrentId);
-        torrentFile.setAttribute("file_index", 2);
-        torrentFile.setAttribute("filepath", "test2_file3.mkv");
+        torrentFile.setAttribute("file_index", 1);
+        torrentFile.setAttribute("filepath", "test4_file2.mkv");
         torrentFile.setAttribute("size", 1000);
         torrentFile.setAttribute("progress", 50);
 

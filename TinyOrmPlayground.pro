@@ -67,6 +67,19 @@ win32-msvc* {
     QMAKE_LFLAGS_RELEASE += /OPT:REF /OPT:ICF=5
 }
 
+# My variables
+# ---
+
+TINY_QT_VERSION_UNDERSCORED = $$replace(QT_VERSION, \., _)
+CONFIG(release, debug|release) {
+    TINY_RELEASE_TYPE = release
+    TINY_RELEASE_TYPE_CAMEL = Release
+}
+else:CONFIG(debug, debug|release) {
+    TINY_RELEASE_TYPE = debug
+    TINY_RELEASE_TYPE_CAMEL = Debug
+}
+
 # Dependencies include and library paths
 # ---
 
@@ -75,15 +88,9 @@ INCLUDEPATH += $$quote($$PWD/../../TinyOrm/TinyOrm/include)
 win32-g++* {
 }
 else:win32-msvc* {
-    CONFIG(release, debug|release) {
-        LIBS += $$quote(-L$$PWD/../../TinyOrm/TinyOrm-builds/build-TinyOrm-Desktop_Qt_5_15_2_MSVC2019_64bit-Release/src/release/)
-    }
-    else:CONFIG(debug, debug|release) {
-        LIBS += $$quote(-L$$PWD/../../TinyOrm/TinyOrm-builds/build-TinyOrm-Desktop_Qt_5_15_2_MSVC2019_64bit-Debug/src/debug/)
-    }
+    LIBS += $$quote(-L$$PWD/../../TinyOrm/TinyOrm-builds/build-TinyOrm-Desktop_Qt_$${TINY_QT_VERSION_UNDERSCORED}_MSVC2019_64bit-$${TINY_RELEASE_TYPE_CAMEL}/src/$${TINY_RELEASE_TYPE}/)
 }
 else:unix {
-    LIBS += $$quote(-L$$PWD/../../TinyOrm/TinyOrm-builds/build-TinyOrm-Desktop_Qt_5_15_2_MSVC2019_64bit-Debug/src/)
 }
 
 LIBS += -lTinyOrm0
