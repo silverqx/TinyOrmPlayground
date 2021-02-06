@@ -23,7 +23,7 @@ int main(int, char *[])
     }  catch (const std::exception &e) {
         // TODO future decide how qCritical()/qFatal() really works, also regarding to the Qt Creator's settings 'Ignore first chance access violations' and similar silverqx
         // TODO future alse how to correctly setup this in prod/dev envs. silverqx
-        qCritical() << e.what();
+        qCritical().nospace() << "\n\nCaught Exception:\n" << e.what();
     }
 
     qDebug() << "\n";
