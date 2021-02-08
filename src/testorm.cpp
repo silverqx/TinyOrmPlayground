@@ -646,7 +646,7 @@ void TestOrm::testTinyOrm()
 //        auto torrent = t.find(2);
 //        // eager load
 //        auto files = torrent->getRelation<TorrentPreviewableFile>("torrentFiles");
-//        auto file = files.first();
+//        auto *file = files.first();
 //        auto *fileProperty = file->getRelation<TorrentPreviewableFileProperty, Orm::One>("fileProperty");
 //        // lazy load
 ////        auto files = torrent->getRelationValue<TorrentPreviewableFile>("torrentFiles");
