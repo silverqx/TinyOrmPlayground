@@ -19,7 +19,7 @@ private:
     void jsonConfig();
     void standardPaths();
 
-    std::unique_ptr<Orm::DatabaseManager> m_dm;
+    std::unique_ptr<Orm::DatabaseManager> m_db;
 };
 
 //struct AggTest

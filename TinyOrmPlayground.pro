@@ -21,6 +21,13 @@ CONFIG(release, debug|release) {
     DEFINES += QT_NO_DEBUG_OUTPUT
 }
 
+# TinyOrmPlayground defines
+# ---
+
+DEFINES += PROJECT_TINYORMPLAYGROUND
+# Log queries with time measurement, used only when viewing source code
+DEFINES += TINYORM_DEBUG_SQL
+
 # Qt defines
 # ---
 

@@ -2,6 +2,8 @@
 
 #include <qt_windows.h>
 
+#include <orm/utils/type.hpp>
+
 #include "testorm.hpp"
 
 // TODO investigate ctrl+shift+alt+b build errors about can not delete TinyOrmPlayground.vc.pdb, .ilk, TinyOrmPlayground_pch.pch and similar silverqx
@@ -23,7 +25,10 @@ int main(int, char *[])
     }  catch (const std::exception &e) {
         // TODO future decide how qCritical()/qFatal() really works, also regarding to the Qt Creator's settings 'Ignore first chance access violations' and similar silverqx
         // TODO future alse how to correctly setup this in prod/dev envs. silverqx
-        qCritical().nospace() << "\n\nCaught Exception:\n" << e.what();
+        qCritical().nospace().noquote()
+                << "\n\nCaught '"
+                << Orm::Utils::Type::classPureBasename(e)
+                << "' Exception:\n" << e.what();
     }
 
     qDebug() << "\n";
