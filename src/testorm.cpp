@@ -7,15 +7,12 @@
 #include <fstream>
 #include <iomanip>
 #include <iostream>
-#include <optional>
 
 #include <nlohmann/json.hpp>
 #include <range/v3/all.hpp>
 
 #include <orm/db.hpp>
-#include <orm/ormtypes.hpp>
 #include <orm/query/joinclause.hpp>
-#include <orm/tiny/modelnotfounderror.hpp>
 
 #include "common.hpp"
 #include "models/filepropertyproperty.hpp"
@@ -1695,7 +1692,7 @@ void TestOrm::jsonConfig()
 //    json j;
 //    i >> j;
 
-//    // write prettified JSON to another file
+    // write prettified JSON to another file
 //    std::ofstream o("pretty.json");
 //    o << std::setw(4) << j << std::endl;
 
