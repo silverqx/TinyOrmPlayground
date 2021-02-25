@@ -17,13 +17,19 @@
 #include "common.hpp"
 #include "models/filepropertyproperty.hpp"
 #include "models/setting.hpp"
+#include "models/tagged.hpp"
+#include "models/tagproperty.hpp"
 #include "models/torrent.hpp"
+#include "models/torrenteager.hpp"
 #include "models/torrentpeer.hpp"
 #include "models/torrentpreviewablefile.hpp"
 
 using namespace ranges;
 
 using json = nlohmann::json;
+
+using Orm::One;
+using Orm::Tiny::Relations::Pivot;
 
 TestOrm &TestOrm::connectToDatabase()
 {
@@ -161,17 +167,67 @@ void TestOrm::testTinyOrm()
     {
         qDebug() << "\n";
 
+        qt_noop();
+
+        {
+            auto x = Torrent::find(1);
+            TorrentPreviewableFile::find(1)->torrent()->save(*x);
+        }
+
+
 
         qt_noop();
 
+//        auto tag = Tag::find(2);
+//        auto torrents = tag->getRelationValue<Torrent>("torrents");
+//        auto pivot11 = torrents.first()->getRelation<Orm::Tiny::Relations::Pivot, Orm::One>("pivot");
+//        auto pivot21 = torrents.at(1)->getRelation<Orm::Tiny::Relations::Pivot, Orm::One>("pivot");
 
         qt_noop();
 
-//        while (users.next()) {
-////            qDebug() << "id :" << users.value("id").toULongLong() << ";"
-////                     << "name :" << users.value("name").toString();
-//            qDebug() << "id :" << users.value("id").toULongLong();
-//        }
+        auto x = Torrent::find(2);
+        auto tags = x->getRelation<Tag>("tags");
+        auto *pivot1 = tags.first()->getRelation<Tagged, One>("tagged");
+        auto *pivot2 = tags.at(1)->getRelation<Tagged, One>("tagged");
+        auto *pivot3 = tags.at(2)->getRelation<Tagged, One>("tagged");
+//        auto *pivot1 = tags.first()->getRelation<Pivot, One>("tagged");
+//        auto *pivot2 = tags.at(1)->getRelation<Pivot, One>("tagged");
+//        auto *pivot3 = tags.at(2)->getRelation<Pivot, One>("tagged");
+        qDebug() << pivot3->getAttribute("active").toBool();
+        qDebug() << pivot3->getAttribute("created_at").toDateTime();
+
+        auto *tagProperty = tags.first()->getRelation<TagProperty, One>("tagProperty");
+        qDebug() << "id :" << tagProperty->getAttribute("id").toULongLong() << ";"
+                 << "color :" << tagProperty->getAttribute("color").toString() << ";"
+                 << "position :" << tagProperty->getAttribute("position").toUInt();
+
+        qt_noop();
+
+        auto g = Tag::find(2);
+        auto torrents = g->getRelationValue<Torrent>("torrents");
+//        auto *pivot21 = torrents.first()->getRelation<Tagged, One>("pivot");
+//        auto *pivot22 = torrents.at(1)->getRelation<Tagged, One>("pivot");
+        auto *pivot21 = torrents.first()->getRelation<Pivot, One>("pivot");
+        auto *pivot22 = torrents.at(1)->getRelation<Pivot, One>("pivot");
+        qDebug() << pivot21->getAttribute("active").toBool();
+        qDebug() << pivot21->getAttribute("created_at").toDateTime();
+
+        auto *torrent1 = torrents.first();
+        torrent1->setAttribute("name", "xyz");
+
+        torrent1->refresh();
+
+        qt_noop();
+
+//        while (users.next())
+//            qDebug() << "id :" << users.value("id").toULongLong() << ";"
+//                     << "name :" << users.value("name").toString();
+////            qDebug() << "id :" << users.value("id").toULongLong();
+
+//        for (auto &user : users)
+//            qDebug() << "id :" << user.getAttribute("id").toULongLong();
+////            qDebug() << "id :" << user.getAttribute("id").toULongLong() << ";"
+////                     << "name :" << user.getAttribute("name").toString();
 
         qt_noop();
     }
@@ -1092,7 +1148,7 @@ void TestOrm::testTinyOrm()
 
         auto torrent = Torrent::find(2);
 
-        Q_ASSERT(torrent->getRelations().isEmpty());
+        Q_ASSERT(torrent->getRelations().empty());
 
         torrent->load({{"torrentFiles"}, {"torrentPeer"}});
 
@@ -1114,7 +1170,7 @@ void TestOrm::testTinyOrm()
         auto torrent = Torrent::find(3);
 
         auto &relations = torrent->getRelations();
-        Q_ASSERT(relations.isEmpty());
+        Q_ASSERT(relations.empty());
 
         // Validate original attribute values in relations
         auto filesOriginal =
@@ -1144,9 +1200,9 @@ void TestOrm::testTinyOrm()
         Q_ASSERT(seedsOriginalChanged == QVariant(33));
 
         uintptr_t relationFilesKeyOriginal =
-                reinterpret_cast<uintptr_t>(&relations.find("torrentFiles").key());
+                reinterpret_cast<uintptr_t>(&relations.find("torrentFiles")->first);
         uintptr_t relationFilesValueOriginal =
-                reinterpret_cast<uintptr_t>(&relations.find("torrentFiles").value());
+                reinterpret_cast<uintptr_t>(&relations.find("torrentFiles")->second);
 
         torrent->refresh();
 
@@ -1154,9 +1210,9 @@ void TestOrm::testTinyOrm()
         /* Values in the QHash container can't be the same, because they were
            moved from the Model copy in the Model::load() method. */
         Q_ASSERT(relationFilesKeyOriginal
-                 != reinterpret_cast<uintptr_t>(&relations.find("torrentFiles").key()));
+                 == reinterpret_cast<uintptr_t>(&relations.find("torrentFiles")->first));
         Q_ASSERT(relationFilesValueOriginal
-                 != reinterpret_cast<uintptr_t>(&relations.find("torrentFiles").value()));
+                 == reinterpret_cast<uintptr_t>(&relations.find("torrentFiles")->second));
 
         // Validate refreshed attributes in relations
         auto filesRefreshed =
