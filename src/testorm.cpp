@@ -167,55 +167,11 @@ void TestOrm::testTinyOrm()
     {
         qDebug() << "\n";
 
-        qt_noop();
-
-        {
-            auto x = Torrent::find(1);
-            TorrentPreviewableFile::find(1)->torrent()->save(*x);
-        }
-
-
 
         qt_noop();
 
-//        auto tag = Tag::find(2);
-//        auto torrents = tag->getRelationValue<Torrent>("torrents");
-//        auto pivot11 = torrents.first()->getRelation<Orm::Tiny::Relations::Pivot, Orm::One>("pivot");
-//        auto pivot21 = torrents.at(1)->getRelation<Orm::Tiny::Relations::Pivot, Orm::One>("pivot");
 
         qt_noop();
-
-        auto x = Torrent::find(2);
-        auto tags = x->getRelation<Tag>("tags");
-        auto *pivot1 = tags.first()->getRelation<Tagged, One>("tagged");
-        auto *pivot2 = tags.at(1)->getRelation<Tagged, One>("tagged");
-        auto *pivot3 = tags.at(2)->getRelation<Tagged, One>("tagged");
-//        auto *pivot1 = tags.first()->getRelation<Pivot, One>("tagged");
-//        auto *pivot2 = tags.at(1)->getRelation<Pivot, One>("tagged");
-//        auto *pivot3 = tags.at(2)->getRelation<Pivot, One>("tagged");
-        qDebug() << pivot3->getAttribute("active").toBool();
-        qDebug() << pivot3->getAttribute("created_at").toDateTime();
-
-        auto *tagProperty = tags.first()->getRelation<TagProperty, One>("tagProperty");
-        qDebug() << "id :" << tagProperty->getAttribute("id").toULongLong() << ";"
-                 << "color :" << tagProperty->getAttribute("color").toString() << ";"
-                 << "position :" << tagProperty->getAttribute("position").toUInt();
-
-        qt_noop();
-
-        auto g = Tag::find(2);
-        auto torrents = g->getRelationValue<Torrent>("torrents");
-//        auto *pivot21 = torrents.first()->getRelation<Tagged, One>("pivot");
-//        auto *pivot22 = torrents.at(1)->getRelation<Tagged, One>("pivot");
-        auto *pivot21 = torrents.first()->getRelation<Pivot, One>("pivot");
-        auto *pivot22 = torrents.at(1)->getRelation<Pivot, One>("pivot");
-        qDebug() << pivot21->getAttribute("active").toBool();
-        qDebug() << pivot21->getAttribute("created_at").toDateTime();
-
-        auto *torrent1 = torrents.first();
-        torrent1->setAttribute("name", "xyz");
-
-        torrent1->refresh();
 
         qt_noop();
 
@@ -1239,6 +1195,55 @@ void TestOrm::testTinyOrm()
         Q_ASSERT(torrent31->isNot(torrent4));
 
         qt_noop();
+    }
+
+    /* Many-to-Many Relationship */
+    {
+        qDebug() << "\n\nMany-to-Many Relationship\n---";
+
+        auto x = Torrent::find(2);
+        auto tags = x->getRelationValue<Tag>("tags");
+        auto *pivot1 = tags.first()->getRelation<Tagged, One>("tagged");
+        auto *pivot2 = tags.at(1)->getRelation<Tagged, One>("tagged");
+        auto *pivot3 = tags.at(2)->getRelation<Tagged, One>("tagged");
+//        auto *pivot1 = tags.first()->getRelation<Pivot, One>("tagged");
+//        auto *pivot2 = tags.at(1)->getRelation<Pivot, One>("tagged");
+//        auto *pivot3 = tags.at(2)->getRelation<Pivot, One>("tagged");
+        qDebug() << "Tagged Active :"
+                 << pivot3->getAttribute("active").toBool();
+        qDebug() << "Tagged created_at :"
+                 << pivot3->getAttribute("created_at").toDateTime();
+
+        auto *tagProperty = tags.first()->getRelation<TagProperty, One>("tagProperty");
+        qDebug() << "TagProperty:";
+        qDebug() << "id :" << tagProperty->getAttribute("id").toULongLong() << ";"
+                 << "color :" << tagProperty->getAttribute("color").toString() << ";"
+                 << "position :" << tagProperty->getAttribute("position").toUInt();
+
+        qt_noop();
+    }
+
+    /* Many-to-Many Relationship - Inverse side and refresh test */
+    {
+        qDebug() << "\n\nMany-to-Many Relationship - Inverse side and refresh test\n---";
+
+        qDebug() << "\nRefresh has to exclude pivot relations, to avoid exception.\n";
+
+        auto g = Tag::find(2);
+        auto torrents = g->getRelationValue<Torrent>("torrents");
+//        auto *pivot21 = torrents.first()->getRelation<Tagged, One>("pivot");
+//        auto *pivot22 = torrents.at(1)->getRelation<Tagged, One>("pivot");
+        auto *pivot21 = torrents.first()->getRelation<Pivot, One>("pivot");
+        auto *pivot22 = torrents.at(1)->getRelation<Pivot, One>("pivot");
+        qDebug() << "Pivot Active :"
+                 << pivot21->getAttribute("active").toBool();
+        qDebug() << "Pivot created_at :"
+                 << pivot21->getAttribute("created_at").toDateTime();
+
+        auto *torrent1 = torrents.first();
+        torrent1->setAttribute("name", "xyz");
+
+        torrent1->refresh();
     }
 
     qt_noop();
