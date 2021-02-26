@@ -173,6 +173,7 @@ void TestOrm::testTinyOrm()
 
         qt_noop();
 
+
         qt_noop();
 
 //        while (users.next())
@@ -1203,11 +1204,17 @@ void TestOrm::testTinyOrm()
 
         auto x = Torrent::find(2);
         auto tags = x->getRelationValue<Tag>("tags");
+        [[maybe_unused]]
         auto *pivot1 = tags.first()->getRelation<Tagged, One>("tagged");
+        [[maybe_unused]]
         auto *pivot2 = tags.at(1)->getRelation<Tagged, One>("tagged");
+        [[maybe_unused]]
         auto *pivot3 = tags.at(2)->getRelation<Tagged, One>("tagged");
+//        [[maybe_unused]]
 //        auto *pivot1 = tags.first()->getRelation<Pivot, One>("tagged");
+//        [[maybe_unused]]
 //        auto *pivot2 = tags.at(1)->getRelation<Pivot, One>("tagged");
+//        [[maybe_unused]]
 //        auto *pivot3 = tags.at(2)->getRelation<Pivot, One>("tagged");
         qDebug() << "Tagged Active :"
                  << pivot3->getAttribute("active").toBool();
@@ -1231,9 +1238,13 @@ void TestOrm::testTinyOrm()
 
         auto g = Tag::find(2);
         auto torrents = g->getRelationValue<Torrent>("torrents");
+//        [[maybe_unused]]
 //        auto *pivot21 = torrents.first()->getRelation<Tagged, One>("pivot");
+//        [[maybe_unused]]
 //        auto *pivot22 = torrents.at(1)->getRelation<Tagged, One>("pivot");
+        [[maybe_unused]]
         auto *pivot21 = torrents.first()->getRelation<Pivot, One>("pivot");
+        [[maybe_unused]]
         auto *pivot22 = torrents.at(1)->getRelation<Pivot, One>("pivot");
         qDebug() << "Pivot Active :"
                  << pivot21->getAttribute("active").toBool();
@@ -1244,6 +1255,67 @@ void TestOrm::testTinyOrm()
         torrent1->setAttribute("name", "xyz");
 
         torrent1->refresh();
+    }
+
+    /* BelongsTo::associate */
+    {
+        qDebug() << "\n\nBelongsTo::associate\n---";
+
+        TorrentPreviewableFile file {
+            {"file_index", 3},
+            {"filepath", "test5_file4.mkv"},
+            {"size", 3255},
+            {"progress", 115},
+            {"note", "associate"},
+        };
+
+        auto torrent = Torrent::find(5);
+
+        auto &fileRef = file.torrent()->associate(*torrent);
+        fileRef = file.torrent()->disassociate();
+        fileRef = file.torrent()->associate(*torrent);
+
+//        fileRef.save();
+        file.save();
+
+        [[maybe_unused]]
+        auto verifyTorrent5 = file.getRelation<Torrent, One>("torrent");
+
+        // Have to unset current relationship
+        fileRef = file.torrent()->associate(2);
+
+//        fileRef.save();
+        file.save();
+
+        [[maybe_unused]]
+        auto verifyTorrent4 = file.getRelation<Torrent, One>("torrent");
+
+        // Restore db
+        fileRef.remove();
+    }
+
+    /* BelongsTo::associate with an ID */
+    {
+        qDebug() << "\n\nBelongsTo::associate with an ID\n---";
+
+        TorrentPreviewableFile file {
+            {"file_index", 3},
+            {"filepath", "test5_file4.mkv"},
+            {"size", 3255},
+            {"progress", 115},
+            {"note", "associate"},
+        };
+
+        auto &fileRef = file.torrent()->associate(5);
+
+//        fileRef.save();
+        file.save();
+
+        [[maybe_unused]]
+        auto verifyTorrent = file.getRelation<Torrent, One>("torrent");
+
+        // Restore db
+        fileRef.remove();
     }
 
     qt_noop();
