@@ -29,6 +29,7 @@ using namespace ranges;
 using json = nlohmann::json;
 
 using Orm::One;
+using Orm::StatementsCounter;
 using Orm::Tiny::Relations::Pivot;
 
 TestOrm &TestOrm::connectToDatabase()
@@ -79,6 +80,14 @@ TestOrm &TestOrm::connectToDatabase()
         }},
     }, "tinyorm_default");
 
+    // Create connections, so I can enable counters
+    DB::connection("tinyorm_default");
+    DB::connection("crystal");
+
+    // Enable counters on all database connections
+    DB::enableAllElapsedCounters();
+    DB::enableAllStatementCounters();
+
     return *this;
 }
 
@@ -86,8 +95,8 @@ TestOrm &TestOrm::run()
 {
 //    ctorAggregate();
     anotherTests();
-    testTinyOrm();
     testQueryBuilder();
+    testTinyOrm();
 //    jsonConfig();
 //    standardPaths();
 
@@ -143,6 +152,9 @@ void TestOrm::anotherTests()
 
 void TestOrm::testTinyOrm()
 {
+    QElapsedTimer timer;
+    timer.start();
+
     qDebug().nospace()
             << "\n\n============="
             << "\n  BaseModel  "
@@ -170,9 +182,55 @@ void TestOrm::testTinyOrm()
 
         qt_noop();
 
+//        {
+//            qDebug() << "\n\nBelongsToMany::attach\n---";
+
+//            Tag tag100({{"name", "tag100"}});
+//            tag100.save();
+////            Tag tag101({{"name", "tag101"}});
+////            tag101.save();
+
+//            auto torrent5 = Torrent::find(5);
+
+//            torrent5->tags()->attach(tag100["id"],
+//                                     {{"active", 0}});
+////            torrent5->tags()->attach({tag100["id"], tag101["id"]},
+////                                     {{"active", 0}});
+
+//            tag100.remove();
+////            tag101.remove();
+
+//            qt_noop();
+//        }
+
+        /* BelongsToMany::attach with Pivot */
+//        {
+//            qDebug() << "\n\nBelongsToMany::attach with Pivot\n---";
+
+//            Torrent torrent100 {
+//                {"name", "test100"}, {"size", 100}, {"progress", 555},
+//                {"hash", "xyzhash100"}, {"note", "attach with pivot"},
+//            };
+//            torrent100.save();
+//            Torrent torrent101 {
+//                {"name", "test101"}, {"size", 101}, {"progress", 556},
+//                {"hash", "xyzhash101"}, {"note", "attach with pivot"},
+//            };
+//            torrent101.save();
+
+//            auto tag4 = Tag::find(4);
+
+//            tag4->torrents()->attach({torrent100["id"], torrent101["id"]},
+//                                     {{"active", 1}});
+
+//            torrent100.remove();
+//            torrent101.remove();
+
+//            qt_noop();
+//        }
+
 
         qt_noop();
-
 
         qt_noop();
 
@@ -916,7 +974,8 @@ void TestOrm::testTinyOrm()
         qDebug() << updatedAt << "after :" << torrentFile.getAttribute(updatedAt).toDateTime();
         qt_noop();
 
-        qDebug() << "called remove():" << torrentFile.remove();
+        const auto removeResult = torrentFile.remove();
+        qDebug() << "called remove():" << removeResult;
 
         qDebug() << "TorrentPreviewableFile" << updatedAt << "after remove:"
                  << torrentFile.getAttribute(updatedAt).toDateTime();
@@ -1292,6 +1351,8 @@ void TestOrm::testTinyOrm()
 
         // Restore db
         fileRef.remove();
+
+        qt_noop();
     }
 
     /* BelongsTo::associate with an ID */
@@ -1316,19 +1377,64 @@ void TestOrm::testTinyOrm()
 
         // Restore db
         fileRef.remove();
+
+        qt_noop();
     }
 
-    qt_noop();
-}
+    /* BelongsToMany::attach with Custom pivot */
+    {
+        qDebug() << "\n\nBelongsToMany::attach with Custom pivot\n---";
 
-//OtherTest::OtherTest(AggTest &a)
-//{
-//    name = a.name;
-//    value = a.value;
-//}
+        Tag tag100({{"name", "tag100"}});
+        tag100.save();
+        Tag tag101({{"name", "tag101"}});
+        tag101.save();
+
+        auto torrent5 = Torrent::find(5);
+
+        torrent5->tags()->attach({tag100["id"], tag101["id"]},
+                                 {{"active", 0}});
+
+        tag100.remove();
+        tag101.remove();
+
+        qt_noop();
+    }
+
+    /* BelongsToMany::attach with Pivot */
+    {
+        qDebug() << "\n\nBelongsToMany::attach with Pivot\n---";
+
+        Torrent torrent100 {
+            {"name", "test100"}, {"size", 100}, {"progress", 555},
+            {"hash", "xyzhash100"}, {"note", "attach with pivot"},
+        };
+        torrent100.save();
+        Torrent torrent101 {
+            {"name", "test101"}, {"size", 101}, {"progress", 556},
+            {"hash", "xyzhash101"}, {"note", "attach with pivot"},
+        };
+        torrent101.save();
+
+        auto tag4 = Tag::find(4);
+
+        tag4->torrents()->attach({torrent100["id"], torrent101["id"]},
+                                 {{"active", 1}});
+
+        torrent100.remove();
+        torrent101.remove();
+
+        qt_noop();
+    }
+
+    logQueryCounters(__FUNCTION__, timer.elapsed());
+}
 
 void TestOrm::testQueryBuilder()
 {
+    QElapsedTimer timer;
+    timer.start();
+
     qDebug().nospace()
             << "\n\n================"
             << "\n  QueryBuilder  "
@@ -1711,6 +1817,8 @@ void TestOrm::testQueryBuilder()
 //    ok_s ? qDebug() << "truncate was successful"
 //            : qDebug() << "truncate was unsuccessful";
     //    qt_noop();
+
+    logQueryCounters(__FUNCTION__, timer.elapsed());
 }
 
 void TestOrm::ctorAggregate()
@@ -1873,4 +1981,40 @@ void TestOrm::standardPaths()
     qDebug() << QStandardPaths::writableLocation(QStandardPaths::TempLocation);
 
     qt_noop();
+}
+
+void TestOrm::logQueryCounters(const char *func,
+                               const std::optional<qint64> elapsed) const
+{
+    qDebug() << "\n========";
+    qDebug().noquote().nospace() << "Function - " << func << "()";
+    qDebug() << "---";
+    qDebug().nospace() << "\n⚡ " << "Execution time : "
+                       << (elapsed ? *elapsed : -1) << "ms";
+
+    // Show statistics for every connection
+    const auto connections = DB::connectionNames();
+
+    for (const auto &connectionName : connections) {
+        auto &connection = dynamic_cast<Orm::DatabaseConnection &>(m_db->connection(connectionName));
+
+        qDebug().noquote().nospace() << "\nConnection name - '"
+                                     << connectionName << "'";
+        qDebug() << "---";
+
+        // Queries execution time
+        const auto elapsed = connection.takeElapsedCounter();
+        qDebug().nospace() << "⚡ " << "Queries execution time : "
+                           << elapsed << (elapsed > -1 ? "ms" : "");
+
+        // Executed statements counter
+        const auto statementsCounter = connection.takeStatementsCounter();
+
+        qDebug() << "⚖ Statement counters";
+        qDebug() << "  Normal      :" << statementsCounter.normal;
+        qDebug() << "  Affecting   :" << statementsCounter.affecting;
+        qDebug() << "  Transaction :" << statementsCounter.transactional;
+        qDebug() << "---";
+    }
+    qDebug() << "========";
 }

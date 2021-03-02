@@ -15,12 +15,6 @@ CONFIG -= c++11 app_bundle
 CONFIG(debug, debug|release): message( "Project is built in DEBUG mode." )
 CONFIG(release, debug|release): message( "Project is built in RELEASE mode." )
 
-# Disable debug output in release mode
-CONFIG(release, debug|release) {
-    message( "Disabling debug output." )
-    DEFINES += QT_NO_DEBUG_OUTPUT
-}
-
 # TinyOrmPlayground defines
 # ---
 
@@ -70,6 +64,7 @@ DEFINES += NOMINMAX
 win32-msvc* {
     # I don't use -MP flag, because using jom
     QMAKE_CXXFLAGS += -guard:cf -permissive- -Zc:ternary
+    QMAKE_CXXFLAGS_DEBUG += -bigobj
     QMAKE_LFLAGS += /guard:cf
     QMAKE_LFLAGS_RELEASE += /OPT:REF /OPT:ICF=5
 }
