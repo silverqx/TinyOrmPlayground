@@ -28,8 +28,10 @@ using namespace ranges;
 
 using json = nlohmann::json;
 
+using Orm::AttributeItem;
 using Orm::One;
 using Orm::StatementsCounter;
+using Orm::Tiny::ModelNotFoundError;
 using Orm::Tiny::Relations::Pivot;
 
 TestOrm &TestOrm::connectToDatabase()
@@ -106,7 +108,7 @@ TestOrm &TestOrm::run()
 void TestOrm::anotherTests()
 {
     // Ranges
-    QVector<Orm::AttributeItem> attributes {
+    QVector<AttributeItem> attributes {
         {"one", 1},
         {"two", 2},
         {"three", 3},
@@ -165,12 +167,12 @@ void TestOrm::testTinyOrm()
 //        auto files = a.query()->where("torrent_id", "=", 2).get();
 //////        auto files = a.query()->where("torrent_id", "=", 261).get();
 //////        auto torrent1 = files.first().getRelation<Torrent, QVector>("torrent");
-//        auto torrent1 = files.first().getRelation<Torrent, Orm::One>("torrent");
+//        auto torrent1 = files.first().getRelation<Torrent, One>("torrent");
 ////        qDebug() << torrent1->getAttribute("name");
-////        auto peer1 = torrent1->getRelation<TorrentPeer, Orm::One>("torrentPeer");
+////        auto peer1 = torrent1->getRelation<TorrentPeer, One>("torrentPeer");
 //////        auto torrent2 = files.first().getRelationValue<Torrent>("torrent");
-////        auto torrent3 = files.first().getRelationValue<Torrent, Orm::One>("torrent");
-////        auto torrent3 = a.getRelationValue<Torrent, Orm::One>("torrent");
+////        auto torrent3 = files.first().getRelationValue<Torrent, One>("torrent");
+////        auto torrent3 = a.getRelationValue<Torrent, One>("torrent");
 //////        qDebug() << torrent2;
 //////        qDebug() << torrent3.has_value();
 //        qt_noop();
@@ -182,52 +184,7 @@ void TestOrm::testTinyOrm()
 
         qt_noop();
 
-//        {
-//            qDebug() << "\n\nBelongsToMany::attach\n---";
-
-//            Tag tag100({{"name", "tag100"}});
-//            tag100.save();
-////            Tag tag101({{"name", "tag101"}});
-////            tag101.save();
-
-//            auto torrent5 = Torrent::find(5);
-
-//            torrent5->tags()->attach(tag100["id"],
-//                                     {{"active", 0}});
-////            torrent5->tags()->attach({tag100["id"], tag101["id"]},
-////                                     {{"active", 0}});
-
-//            tag100.remove();
-////            tag101.remove();
-
-//            qt_noop();
-//        }
-
-        /* BelongsToMany::attach with Pivot */
-//        {
-//            qDebug() << "\n\nBelongsToMany::attach with Pivot\n---";
-
-//            Torrent torrent100 {
-//                {"name", "test100"}, {"size", 100}, {"progress", 555},
-//                {"hash", "xyzhash100"}, {"note", "attach with pivot"},
-//            };
-//            torrent100.save();
-//            Torrent torrent101 {
-//                {"name", "test101"}, {"size", 101}, {"progress", 556},
-//                {"hash", "xyzhash101"}, {"note", "attach with pivot"},
-//            };
-//            torrent101.save();
-
-//            auto tag4 = Tag::find(4);
-
-//            tag4->torrents()->attach({torrent100["id"], torrent101["id"]},
-//                                     {{"active", 1}});
-
-//            torrent100.remove();
-//            torrent101.remove();
-
-//            qt_noop();
-//        }
+        qt_noop();
 
 
         qt_noop();
@@ -379,9 +336,9 @@ void TestOrm::testTinyOrm()
 
 //    Torrent b;
 //    auto torrents = b.query()->where("id", "=", 2).get();
-//    auto peer = torrents.first().getRelation<TorrentPeer, Orm::One>("torrentPeer");
-////////    auto peer = torrents.first().getRelationValue<TorrentPeer, Orm::One>("torrentPeer");
-////////    auto peer = b.getRelationValue<TorrentPeer, Orm::One>("torrentPeer");
+//    auto peer = torrents.first().getRelation<TorrentPeer, One>("torrentPeer");
+////////    auto peer = torrents.first().getRelationValue<TorrentPeer, One>("torrentPeer");
+////////    auto peer = b.getRelationValue<TorrentPeer, One>("torrentPeer");
 //////    qDebug() << "peers :" << !!peer;
 ////    auto files = torrents.first().getRelation<TorrentPreviewableFile>("torrentFiles");
 ////////    auto files = b.getRelationValue<TorrentPreviewableFile>("torrentFiles");
@@ -391,8 +348,8 @@ void TestOrm::testTinyOrm()
 //    {
 //        TorrentPreviewableFile a;
 //        auto files = a.query()->where("id", "=", 1005).get();
-//        auto torrent1 = files.first().getRelation<Torrent, Orm::One>("torrent");
-//        auto peer1 = torrent1->getRelation<TorrentPeer, Orm::One>("torrentPeer");
+//        auto torrent1 = files.first().getRelation<Torrent, One>("torrent");
+//        auto peer1 = torrent1->getRelation<TorrentPeer, One>("torrentPeer");
 //        auto file1 = files.first();
 //        auto res = file1.remove();
 //        qt_noop();
@@ -524,8 +481,7 @@ void TestOrm::testTinyOrm()
     {
         qDebug() << "\n\nModel::findOrFail() - not found, fail\n---";
 
-        TINY_VERIFY_EXCEPTION_THROWN(Torrent::findOrFail(999999),
-                                     Orm::Tiny::ModelNotFoundError);
+        TINY_VERIFY_EXCEPTION_THROWN(Torrent::findOrFail(999999), ModelNotFoundError);
 
         qt_noop();
     }
@@ -665,8 +621,7 @@ void TestOrm::testTinyOrm()
         qDebug() << "\n\nTinyBuilder::firstOrFail() - not found, fail\n---";
 
         TINY_VERIFY_EXCEPTION_THROWN(
-                    Torrent::whereEq("id", 999999)->firstOrFail(),
-                    Orm::Tiny::ModelNotFoundError);
+                    Torrent::whereEq("id", 999999)->firstOrFail(), ModelNotFoundError);
 
         qt_noop();
     }
@@ -674,7 +629,7 @@ void TestOrm::testTinyOrm()
     /* hash which manages insertion order */
 //    {
 //        QHash<QString *, std::reference_wrapper<QVariant>> hash;
-//        QVector<Orm::AttributeItem> vec;
+//        QVector<AttributeItem> vec;
 
 //        using namespace Orm;
 //        AttributeItem a {"a", "one"};
@@ -740,11 +695,11 @@ void TestOrm::testTinyOrm()
 //        // eager load
 //        auto files = torrent->getRelation<TorrentPreviewableFile>("torrentFiles");
 //        auto *file = files.first();
-//        auto *fileProperty = file->getRelation<TorrentPreviewableFileProperty, Orm::One>("fileProperty");
+//        auto *fileProperty = file->getRelation<TorrentPreviewableFileProperty, One>("fileProperty");
 //        // lazy load
 ////        auto files = torrent->getRelationValue<TorrentPreviewableFile>("torrentFiles");
 ////        auto *file = files.first();
-////        auto *fileProperty = file->getRelationValue<TorrentPreviewableFileProperty, Orm::One>("fileProperty");
+////        auto *fileProperty = file->getRelationValue<TorrentPreviewableFileProperty, One>("fileProperty");
 
 //        auto torrentName      = torrent->getAttribute("name").toString();
 //        auto filepath         = file->getAttribute("filepath").toString();
@@ -761,7 +716,7 @@ void TestOrm::testTinyOrm()
 //        {
 //            auto files = torrent->getRelation<TorrentPreviewableFile>("torrentFiles");
 //            auto file = files.first();
-//            auto *fileProperty = file->getRelation<TorrentPreviewableFileProperty, Orm::One>("fileProperty");
+//            auto *fileProperty = file->getRelation<TorrentPreviewableFileProperty, One>("fileProperty");
 //            qDebug() << torrent->getAttribute("name").toString();
 //            qDebug() << file->getAttribute("filepath").toString();
 //            qDebug() << fileProperty->getAttribute("name").toString();
@@ -797,7 +752,7 @@ void TestOrm::testTinyOrm()
 //                        << file->getAttribute("filepath").toString()
 //                        << "(" << file->getAttribute("id").toString() << ")";
 
-//                auto fileProperty = file->getRelation<TorrentPreviewableFileProperty, Orm::One>("fileProperty");
+//                auto fileProperty = file->getRelation<TorrentPreviewableFileProperty, One>("fileProperty");
 
 //                qDebug().nospace().noquote()
 //                        << fileProperty->getAttribute("name").toString()
@@ -818,7 +773,7 @@ void TestOrm::testTinyOrm()
                         << file->getAttribute("filepath").toString()
                         << "(" << file->getAttribute("id").toString() << ")";
 
-                auto fileProperty = file->getRelationValue<TorrentPreviewableFileProperty, Orm::One>("fileProperty");
+                auto fileProperty = file->getRelationValue<TorrentPreviewableFileProperty, One>("fileProperty");
 
                 if (fileProperty)
                     qDebug().nospace().noquote()
@@ -835,14 +790,14 @@ void TestOrm::testTinyOrm()
     {
         qDebug() << "\n\nModel::with() - One hasOne()\n---";
         auto torrents = Torrent().with("torrentPeer")->get();
-        auto peer = torrents[1].getRelation<TorrentPeer, Orm::One>("torrentPeer");
+        auto peer = torrents[1].getRelation<TorrentPeer, One>("torrentPeer");
         qDebug() << peer->getAttribute("id");
         qt_noop();
     }
     {
         qDebug() << "\n\nModel::with() - One belongsTo()\n---";
         auto files = TorrentPreviewableFile().with("torrent")->get();
-        auto torrent = files[1].getRelation<Torrent, Orm::One>("torrent");
+        auto torrent = files[1].getRelation<Torrent, One>("torrent");
         qDebug() << torrent->getAttribute("id");
         qt_noop();
     }
@@ -1194,7 +1149,7 @@ void TestOrm::testTinyOrm()
         auto filepathOriginal =
                 filesOriginal.first()->getAttribute("filepath");
         auto peerOriginal =
-                torrent->getRelationValue<TorrentPeer, Orm::One>("torrentPeer");
+                torrent->getRelationValue<TorrentPeer, One>("torrentPeer");
         auto seedsOriginal =
                 peerOriginal->getAttribute("seeds");
         Q_ASSERT(relations.size() == 2);
@@ -1210,7 +1165,7 @@ void TestOrm::testTinyOrm()
                 torrent->getRelationValue<TorrentPreviewableFile>("torrentFiles")
                 .first()->getAttribute("filepath");
         auto seedsOriginalChanged =
-                torrent->getRelationValue<TorrentPeer, Orm::One>("torrentPeer")
+                torrent->getRelationValue<TorrentPeer, One>("torrentPeer")
                 ->getAttribute("seeds");
         Q_ASSERT(filepathOriginalChanged == QVariant("test3_file1-refresh.mkv"));
         Q_ASSERT(seedsOriginalChanged == QVariant(33));
@@ -1235,7 +1190,7 @@ void TestOrm::testTinyOrm()
                 torrent->getRelationValue<TorrentPreviewableFile>("torrentFiles");
         auto filepathRefreshed = filesRefreshed.first()->getAttribute("filepath");
         auto peerRefreshed =
-                torrent->getRelationValue<TorrentPeer, Orm::One>("torrentPeer");
+                torrent->getRelationValue<TorrentPeer, One>("torrentPeer");
         auto seedsRefreshed = peerRefreshed->getAttribute("seeds");
         Q_ASSERT(filepathOriginal == filepathRefreshed);
         Q_ASSERT(seedsOriginal == seedsRefreshed);
@@ -1420,6 +1375,58 @@ void TestOrm::testTinyOrm()
 
         tag4->torrents()->attach({torrent100["id"], torrent101["id"]},
                                  {{"active", 1}});
+
+        torrent100.remove();
+        torrent101.remove();
+
+        qt_noop();
+    }
+
+    /* BelongsToMany::detach with Custom pivot */
+    {
+        qDebug() << "\n\nBelongsToMany::detach with Custom pivot\n---";
+
+        Tag tag100({{"name", "tag100"}});
+        tag100.save();
+        Tag tag101({{"name", "tag101"}});
+        tag101.save();
+
+        auto torrent5 = Torrent::find(5);
+
+        torrent5->tags()->attach({tag100, tag101},
+                                 {{"active", 0}});
+
+        auto affected = torrent5->tags()->detach({tag100, tag101});
+        qDebug() << "Detached affected :" << affected;
+
+        tag100.remove();
+        tag101.remove();
+
+        qt_noop();
+    }
+
+    /* BelongsToMany::detach with Pivot */
+    {
+        qDebug() << "\n\nBelongsToMany::detach with Pivot\n---";
+
+        Torrent torrent100 {
+            {"name", "test100"}, {"size", 100}, {"progress", 555},
+            {"hash", "xyzhash100"}, {"note", "detach with pivot"},
+        };
+        torrent100.save();
+        Torrent torrent101 {
+            {"name", "test101"}, {"size", 101}, {"progress", 556},
+            {"hash", "xyzhash101"}, {"note", "detach with pivot"},
+        };
+        torrent101.save();
+
+        auto tag4 = Tag::find(4);
+
+        tag4->torrents()->attach({torrent100, torrent101},
+                                 {{"active", 1}});
+
+        auto affected = tag4->torrents()->detach({torrent100, torrent101});
+        qDebug() << "Detach affected :" << affected;
 
         torrent100.remove();
         torrent101.remove();
@@ -1983,12 +1990,15 @@ void TestOrm::standardPaths()
     qt_noop();
 }
 
-void TestOrm::logQueryCounters(const char *func,
+void TestOrm::logQueryCounters(const QString &func,
                                const std::optional<qint64> elapsed) const
 {
-    qDebug() << "\n========";
+    const auto line = QString("-").repeated(13 + func.size());
+
+    qDebug().noquote().nospace() << "\n" << line;
     qDebug().noquote().nospace() << "Function - " << func << "()";
-    qDebug() << "---";
+    qDebug().noquote().nospace() << line;
+
     qDebug().nospace() << "\n⚡ " << "Execution time : "
                        << (elapsed ? *elapsed : -1) << "ms";
 
@@ -1996,7 +2006,7 @@ void TestOrm::logQueryCounters(const char *func,
     const auto connections = DB::connectionNames();
 
     for (const auto &connectionName : connections) {
-        auto &connection = dynamic_cast<Orm::DatabaseConnection &>(m_db->connection(connectionName));
+        auto &connection = DB::connection(connectionName);
 
         qDebug().noquote().nospace() << "\nConnection name - '"
                                      << connectionName << "'";
@@ -2016,5 +2026,5 @@ void TestOrm::logQueryCounters(const char *func,
         qDebug() << "  Transaction :" << statementsCounter.transactional;
         qDebug() << "---";
     }
-    qDebug() << "========";
+    qDebug().noquote() << line;
 }

@@ -21,7 +21,7 @@ private:
 
     /*! Log queries execution time counter and Query statements counter. */
     void logQueryCounters(
-            const char *func,
+            const QString &func,
             const std::optional<qint64> elapsed = std::nullopt) const;
 
     std::unique_ptr<Orm::DatabaseManager> m_db;
