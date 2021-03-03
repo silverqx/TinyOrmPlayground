@@ -1382,6 +1382,58 @@ void TestOrm::testTinyOrm()
         qt_noop();
     }
 
+    /* BelongsToMany::attach with Custom pivot and IDs with Attributes overload */
+    {
+        qDebug() << "\n\nBelongsToMany::attach with Custom pivot and "
+                    "IDs with Attributes overload\n---";
+
+        Tag tag100({{"name", "tag100"}});
+        tag100.save();
+        Tag tag101({{"name", "tag101"}});
+        tag101.save();
+
+        auto torrent5 = Torrent::find(5);
+
+        torrent5->tags()->attach({
+            {tag100["id"].value<quint64>(), {{"active", 0}}},
+            {tag101["id"].value<quint64>(), {{"active", 1}}}
+        });
+
+        tag100.remove();
+        tag101.remove();
+
+        qt_noop();
+    }
+
+    /* BelongsToMany::attach with Pivot and IDs with Attributes overload */
+    {
+        qDebug() << "\n\nBelongsToMany::attach with Pivot and "
+                    "IDs with Attributes overload\n---";
+
+        Torrent torrent100 {
+            {"name", "test100"}, {"size", 100}, {"progress", 555},
+            {"hash", "xyzhash100"}, {"note", "attach with pivot"},
+        };
+        torrent100.save();
+        Torrent torrent101 {
+            {"name", "test101"}, {"size", 101}, {"progress", 556},
+            {"hash", "xyzhash101"}, {"note", "attach with pivot"},
+        };
+        torrent101.save();
+
+        auto tag4 = Tag::find(4);
+
+        tag4->torrents()->attach({
+            {torrent100["id"].value<quint64>(), {{"active", 0}}},
+            {torrent101["id"].value<quint64>(), {{"active", 1}}},
+        });
+
+        torrent100.remove();
+        torrent101.remove();
+
+        qt_noop();
+    }
+
     /* BelongsToMany::detach with Custom pivot */
     {
         qDebug() << "\n\nBelongsToMany::detach with Custom pivot\n---";
