@@ -82,7 +82,7 @@ TestOrm &TestOrm::connectToDatabase()
         }},
     }, "tinyorm_default");
 
-    // Create connections, so I can enable counters
+    // Create connections eagerly, so I can enable counters
     DB::connection("tinyorm_default");
     DB::connection("crystal");
 
@@ -2115,60 +2115,84 @@ void TestOrm::standardPaths()
 void TestOrm::logQueryCounters(const QString &func,
                                const std::optional<qint64> elapsed) const
 {
+    // Header with the function execution time
     const auto line = QString("-").repeated(13 + func.size());
 
     qDebug().noquote().nospace() << "\n" << line;
     qDebug().noquote().nospace() << "Function - " << func << "()";
     qDebug().noquote().nospace() << line;
 
-    qDebug().nospace() << "\n⚡ " << "Execution time : "
+    qDebug().nospace() << "\n⚡ " << "Function Execution time : "
                        << (elapsed ? *elapsed : -1) << "ms";
 
     // Show statistics for every connection
     const auto connections = DB::connectionNames();
 
-    int allElapsed = 0;
-    StatementsCounter allStatementsCounter {0, 0, 0};
+    // Total counters for the summary
+    int allElapsed = -1;
+    StatementsCounter allStatementsCounter;
+    /* If any connection count statements, then counters will be -1, set them
+       to the zero values only if some connection count statements, the same is true
+       for queries execution time counter. 🧹 */
+    if (DB::anyCountingStatements())
+        allStatementsCounter = {0, 0, 0};
+    if (DB::anyCountingElapsed())
+        allElapsed = 0;
 
+    // Log all connections
     for (const auto &connectionName : connections) {
         auto &connection = DB::connection(connectionName);
 
-        qDebug().noquote().nospace() << "\nConnection name - '"
-                                     << connectionName << "'";
-        qDebug() << "---";
-
         // Queries execution time
         const auto elapsed = connection.takeElapsedCounter();
-        allElapsed += elapsed;
-        qDebug().nospace() << "⚡ " << "Queries execution time : "
-                           << elapsed << (elapsed > -1 ? "ms" : "");
+        // Don't count if counting is not enabled
+        if (connection.countingElapsed())
+            allElapsed += elapsed;
 
         // Executed statements counter
         const auto statementsCounter = connection.takeStatementsCounter();
-        allStatementsCounter.normal        += statementsCounter.normal;
-        allStatementsCounter.affecting     += statementsCounter.affecting;
-        allStatementsCounter.transactional += statementsCounter.transactional;
+        // Count only when the counting is enabled
+        if (connection.countingStatements()) {
+            allStatementsCounter.normal        += statementsCounter.normal;
+            allStatementsCounter.affecting     += statementsCounter.affecting;
+            allStatementsCounter.transactional += statementsCounter.transactional;
+        }
 
-        qDebug() << "⚖ Statement counters";
-        qDebug() << "  Normal      :" << statementsCounter.normal;
-        qDebug() << "  Affecting   :" << statementsCounter.affecting;
-        qDebug() << "  Transaction :" << statementsCounter.transactional;
-        qDebug() << "---";
+        // Log connection statistics
+        logQueryCountersBlock(
+                    QStringLiteral("Connection name - '%1'").arg(connectionName),
+                    elapsed, statementsCounter);
     }
 
     // Summary
-    qDebug() << "\nSummary";
+    logQueryCountersBlock(QStringLiteral("Summary"),
+                          allElapsed, allStatementsCounter);
+
+    qDebug().noquote() << line;
+}
+
+void TestOrm::logQueryCountersBlock(
+        const QString &title, const qint64 elapsed,
+        const StatementsCounter &statementsCounter) const
+{
+    qDebug() << "";
+    qDebug().noquote() << title;
     qDebug() << "---";
 
     // Queries execution time
     qDebug().nospace() << "⚡ " << "Queries execution time : "
-                       << allElapsed << "ms";
+                   << elapsed << (elapsed > -1 ? "ms" : "");
+
+    const auto &[normal, affecting, transactional] = statementsCounter;
+    int total = -1;
+    // I will check only normal for -1, it is enough
+    if (normal != -1)
+        total = normal + affecting + transactional;
 
     qDebug() << "⚖ Statement counters";
-    qDebug() << "  Normal      :" << allStatementsCounter.normal;
-    qDebug() << "  Affecting   :" << allStatementsCounter.affecting;
-    qDebug() << "  Transaction :" << allStatementsCounter.transactional;
+    qDebug() << "  Normal      :" << normal;
+    qDebug() << "  Affecting   :" << affecting;
+    qDebug() << "  Transaction :" << transactional;
+    qDebug() << "  Total       :" << total;
     qDebug() << "---";
-
-    qDebug().noquote() << line;
 }

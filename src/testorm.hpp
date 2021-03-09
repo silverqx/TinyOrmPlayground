@@ -23,6 +23,10 @@ private:
     void logQueryCounters(
             const QString &func,
             const std::optional<qint64> elapsed = std::nullopt) const;
+    /*! Log a one Query statement counters. */
+    void logQueryCountersBlock(
+            const QString &title, qint64 elapsed,
+            const Orm::StatementsCounter &statementsCounter) const;
 
     std::unique_ptr<Orm::DatabaseManager> m_db;
 };
