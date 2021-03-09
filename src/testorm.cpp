@@ -181,7 +181,6 @@ void TestOrm::testTinyOrm()
     {
         qDebug() << "\n";
 
-
         qt_noop();
 
         qt_noop();
@@ -353,11 +352,17 @@ void TestOrm::testTinyOrm()
 //    }
 
     /* Model::destroy() */
-//    {
-//        auto count = TorrentPreviewableFile::destroy({1004, 1003});
-//        qDebug() << count;
-//        qt_noop();
-//    }
+    {
+        Tag tag500({{"name", "tag500"}});
+        tag500.save();
+        Tag tag501({{"name", "tag501"}});
+        tag501.save();
+
+        auto count = Tag::destroy({tag500["id"], tag501["id"]});
+        qDebug() << "Destroyed :" << count;
+
+        qt_noop();
+    }
 
     /* Model::save() insert */
 //    {
