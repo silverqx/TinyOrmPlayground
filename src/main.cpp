@@ -31,5 +31,5 @@ int main(int, char *[])
                 << "' Exception:\n" << e.what();
     }
 
-    qDebug() << "\n";
+    qDebug() << "";
 }

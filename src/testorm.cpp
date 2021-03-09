@@ -186,9 +186,6 @@ void TestOrm::testTinyOrm()
 
         qt_noop();
 
-
-        qt_noop();
-
         qt_noop();
 
 //        while (users.next())
@@ -1486,6 +1483,79 @@ void TestOrm::testTinyOrm()
         qt_noop();
     }
 
+    /* BelongsToMany::sync with Custom pivot */
+    {
+        qDebug() << "\n\nBelongsToMany::sync with Custom pivot\n---";
+
+        Tag tag100({{"name", "tag100"}});
+        tag100.save();
+        Tag tag101({{"name", "tag101"}});
+        tag101.save();
+        Tag tag102({{"name", "tag102"}});
+        tag102.save();
+        Tag tag103({{"name", "tag103"}});
+        tag103.save();
+
+        auto torrent5 = Torrent::find(5);
+
+        torrent5->tags()->attach({{tag101}, {tag102}});
+
+        auto changed = torrent5->tags()->sync(
+                           {{tag100["id"].value<quint64>(), {{"active", 1}}},
+                            {tag101["id"].value<quint64>(), {{"active", 0}}},
+                            {tag103["id"].value<quint64>(), {{"active", 1}}}});
+
+        tag100.remove();
+        tag101.remove();
+        tag102.remove();
+        tag103.remove();
+
+        qt_noop();
+    }
+
+    /* BelongsToMany::sync with Pivot */
+    {
+        qDebug() << "\n\nBelongsToMany::sync with Pivot\n---";
+
+        Torrent torrent100 {
+            {"name", "test100"}, {"size", 100}, {"progress", 555},
+            {"hash", "xyzhash100"}, {"note", "sync with pivot"},
+        };
+        torrent100.save();
+        Torrent torrent101 {
+            {"name", "test101"}, {"size", 101}, {"progress", 556},
+            {"hash", "xyzhash101"}, {"note", "sync with pivot"},
+        };
+        torrent101.save();
+        Torrent torrent102 {
+            {"name", "test102"}, {"size", 102}, {"progress", 557},
+            {"hash", "xyzhash102"}, {"note", "sync with pivot"},
+        };
+        torrent102.save();
+        Torrent torrent103 {
+            {"name", "test103"}, {"size", 103}, {"progress", 558},
+            {"hash", "xyzhash103"}, {"note", "sync with pivot"},
+        };
+        torrent103.save();
+
+        auto tag4 = Tag::find(4);
+
+        tag4->torrents()->attach({torrent101, torrent102},
+                                 {{"active", 1}});
+
+        auto changed = tag4->torrents()->sync(
+                           {{torrent100["id"].value<quint64>(), {{"active", 1}}},
+                            {torrent101["id"].value<quint64>(), {{"active", 0}}},
+                            {torrent103["id"].value<quint64>(), {{"active", 1}}}});
+
+        torrent100.remove();
+        torrent101.remove();
+        torrent102.remove();
+        torrent103.remove();
+
+        qt_noop();
+    }
+
     logQueryCounters(__FUNCTION__, timer.elapsed());
 }
 
@@ -2057,6 +2127,9 @@ void TestOrm::logQueryCounters(const QString &func,
     // Show statistics for every connection
     const auto connections = DB::connectionNames();
 
+    int allElapsed = 0;
+    StatementsCounter allStatementsCounter {0, 0, 0};
+
     for (const auto &connectionName : connections) {
         auto &connection = DB::connection(connectionName);
 
@@ -2066,11 +2139,15 @@ void TestOrm::logQueryCounters(const QString &func,
 
         // Queries execution time
         const auto elapsed = connection.takeElapsedCounter();
+        allElapsed += elapsed;
         qDebug().nospace() << "⚡ " << "Queries execution time : "
                            << elapsed << (elapsed > -1 ? "ms" : "");
 
         // Executed statements counter
         const auto statementsCounter = connection.takeStatementsCounter();
+        allStatementsCounter.normal        += statementsCounter.normal;
+        allStatementsCounter.affecting     += statementsCounter.affecting;
+        allStatementsCounter.transactional += statementsCounter.transactional;
 
         qDebug() << "⚖ Statement counters";
         qDebug() << "  Normal      :" << statementsCounter.normal;
@@ -2078,5 +2155,20 @@ void TestOrm::logQueryCounters(const QString &func,
         qDebug() << "  Transaction :" << statementsCounter.transactional;
         qDebug() << "---";
     }
+
+    // Summary
+    qDebug() << "\nSummary";
+    qDebug() << "---";
+
+    // Queries execution time
+    qDebug().nospace() << "⚡ " << "Queries execution time : "
+                       << allElapsed << "ms";
+
+    qDebug() << "⚖ Statement counters";
+    qDebug() << "  Normal      :" << allStatementsCounter.normal;
+    qDebug() << "  Affecting   :" << allStatementsCounter.affecting;
+    qDebug() << "  Transaction :" << allStatementsCounter.transactional;
+    qDebug() << "---";
+
     qDebug().noquote() << line;
 }
