@@ -23,6 +23,7 @@
 #include "models/torrenteager.hpp"
 #include "models/torrentpeer.hpp"
 #include "models/torrentpreviewablefile.hpp"
+#include "models/user.hpp"
 
 using namespace ranges;
 
@@ -180,6 +181,7 @@ void TestOrm::testTinyOrm()
 
     {
         qDebug() << "\n";
+
 
         qt_noop();
 
@@ -1557,6 +1559,21 @@ void TestOrm::testTinyOrm()
         torrent101.remove();
         torrent102.remove();
         torrent103.remove();
+
+        qt_noop();
+    }
+
+    /* BelongsToMany::sync with Custom pivot and with pivot attribute */
+    {
+        qDebug() << "\n\nBelongsToMany::sync with Custom pivot and "
+                    "with pivot attribute\n---";
+
+        auto users = User::with("roles")->get();
+
+        for (auto &user : users)
+            for (auto *role : user.getRelation<Role>("roles"))
+                qDebug() << role->getRelation<RoleUser, Orm::One>("subscription")
+                                ->getAttribute("active");
 
         qt_noop();
     }
