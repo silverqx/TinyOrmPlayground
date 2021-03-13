@@ -1563,17 +1563,69 @@ void TestOrm::testTinyOrm()
         qt_noop();
     }
 
-    /* BelongsToMany::sync with Custom pivot and with pivot attribute */
+    /* Many-to-Many Relationship - with Pivot and with pivot attribute */
     {
-        qDebug() << "\n\nBelongsToMany::sync with Custom pivot and "
-                    "with pivot attribute\n---";
+        qDebug() << "\n\nMany-to-Many Relationship - with Pivot and "
+                    "with pivot attribute ; also test u_timestamps\n---";
+
+        auto roles = Role::with("users")->get();
+
+        for (auto &role : roles)
+            for (auto *user : role.getRelation<User>("users")) {
+                qDebug() << user->getRelation<Pivot, Orm::One>("pivot")
+                                ->getAttribute("active");
+
+                // Should not use timestamps
+                auto useTimestamps = user->getRelation<Pivot, Orm::One>("pivot")
+                        ->usesTimestamps();
+                qDebug() << "Timestamps :"  << useTimestamps;
+                Q_ASSERT(!useTimestamps);
+            }
+
+        qt_noop();
+    }
+
+    /* Many-to-Many Relationship - with Custom pivot type, with pivot attribute and
+       with custom relation name */
+    {
+        qDebug() << "\n\nMany-to-Many Relationship - with Custom pivot type, "
+                    "with pivot attribute and with custom relation name ; also test "
+                    "u_timestamps\n---";
 
         auto users = User::with("roles")->get();
 
         for (auto &user : users)
-            for (auto *role : user.getRelation<Role>("roles"))
+            for (auto *role : user.getRelation<Role>("roles")) {
                 qDebug() << role->getRelation<RoleUser, Orm::One>("subscription")
                                 ->getAttribute("active");
+
+                // Should not use timestamps
+                auto useTimestamps = role->getRelation<RoleUser, Orm::One>("subscription")
+                        ->usesTimestamps();
+                qDebug() << "Timestamps :"  << useTimestamps;
+                Q_ASSERT(!useTimestamps);
+            }
+
+        qt_noop();
+    }
+
+    /* Many-to-Many Relationship - Custom pivot should use timestamps */
+    {
+        qDebug() << "\n\nMany-to-Many Relationship - Custom pivot should use "
+                    "timestamps\n---";
+
+        auto torrents = Torrent::with("tags")->get();
+
+        for (auto &torrent : torrents)
+            for (auto *tag : torrent.getRelation<Tag>("tags")) {
+                qDebug() << tag->getRelation<Tagged, Orm::One>("tagged")
+                        ->getAttribute("active");
+
+                auto useTimestamps = tag->getRelation<Tagged, Orm::One>("tagged")
+                        ->usesTimestamps();
+                qDebug() << "Timestamps :"  << useTimestamps;
+                Q_ASSERT(useTimestamps);
+            }
 
         qt_noop();
     }
