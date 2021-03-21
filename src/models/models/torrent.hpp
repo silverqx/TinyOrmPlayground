@@ -119,7 +119,8 @@ private:
 #ifdef PROJECT_TINYORM_TEST
     QString u_connection {"tinyorm_mysql_tests"};
 #else
-    QString u_connection {"crystal"};
+    QString u_connection {"mysql_alt"};
+//    QString u_connection {"sqlite"};
 #endif
 
     /*! Indicates if the model should be timestamped. */

@@ -43,6 +43,11 @@ private:
     QHash<QString, std::any> u_relations {
         {"roles", &User::roles},
     };
+
+#ifdef PROJECT_TINYORM_TEST
+    /*! The connection name for the model. */
+    QString u_connection {"tinyorm_mysql_tests"};
+#endif
 };
 
 #endif // USER_H

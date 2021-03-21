@@ -13,6 +13,7 @@
 
 #include <orm/db.hpp>
 #include <orm/query/joinclause.hpp>
+#include <orm/utils/type.hpp>
 
 #include "common.hpp"
 #include "models/filepropertyproperty.hpp"
@@ -52,10 +53,10 @@ TestOrm &TestOrm::connectToDatabase()
 //        {"options",   QVariantHash()},
 //    });
 
-    /* Create two database connections, tinyorm_default, and crystal, and make
-       tinyorm_default default database connection. */
+    /* Create database connections: mysql, sqlite and mysql_alt, and make
+       mysql default database connection. */
     m_db = DB::create({
-        {"tinyorm_default", {
+        {"mysql", {
             {"driver",    "QMYSQL"},
             {"host",      qEnvironmentVariable("DB_HOST", "127.0.0.1")},
             {"port",      qEnvironmentVariable("DB_PORT", "3306")},
@@ -68,24 +69,34 @@ TestOrm &TestOrm::connectToDatabase()
             {"strict",    true},
             {"options",   QVariantHash()},
         }},
-        {"crystal", {
-             {"driver",    "QMYSQL"},
-             {"host",      qEnvironmentVariable("DB_HOST", "127.0.0.1")},
-             {"port",      qEnvironmentVariable("DB_PORT", "3306")},
-             {"database",  qEnvironmentVariable("DB_DATABASE", "")},
-             {"username",  qEnvironmentVariable("DB_USERNAME", "")},
-             {"password",  qEnvironmentVariable("DB_PASSWORD", "")},
-             {"charset",   qEnvironmentVariable("DB_CHARSET", "utf8mb4")},
-             {"collation", qEnvironmentVariable("DB_COLLATION", "utf8mb4_0900_ai_ci")},
-             {"prefix",    ""},
-             {"strict",    true},
-             {"options",   QVariantHash()},
+
+        {"mysql_alt", {
+            {"driver",    "QMYSQL"},
+            {"host",      qEnvironmentVariable("DB_HOST", "127.0.0.1")},
+            {"port",      qEnvironmentVariable("DB_PORT", "3306")},
+            {"database",  qEnvironmentVariable("DB_DATABASE", "")},
+            {"username",  qEnvironmentVariable("DB_USERNAME", "")},
+            {"password",  qEnvironmentVariable("DB_PASSWORD", "")},
+            {"charset",   qEnvironmentVariable("DB_CHARSET", "utf8mb4")},
+            {"collation", qEnvironmentVariable("DB_COLLATION", "utf8mb4_0900_ai_ci")},
+            {"prefix",    ""},
+            {"strict",    true},
+            {"options",   QVariantHash()},
         }},
-    }, "tinyorm_default");
+
+        {"sqlite", {
+            {"driver",    "QSQLITE"},
+            {"database",  qEnvironmentVariable("DB_SQLITE_DATABASE", "")},
+            {"prefix",    ""},
+            {"options",   QVariantHash()},
+            {"foreign_key_constraints", true},
+        }},
+    }, "mysql");
 
     // Create connections eagerly, so I can enable counters
-    DB::connection("tinyorm_default");
-    DB::connection("crystal");
+    DB::connection("mysql");
+    DB::connection("mysql_alt");
+    DB::connection("sqlite");
 
     // Enable counters on all database connections
     DB::enableAllElapsedCounters();
@@ -189,6 +200,8 @@ void TestOrm::testTinyOrm()
 
         qt_noop();
 
+        qt_noop();
+
 //        while (users.next())
 //            qDebug() << "id :" << users.value("id").toULongLong() << ";"
 //                     << "name :" << users.value("name").toString();
@@ -198,6 +211,10 @@ void TestOrm::testTinyOrm()
 //            qDebug() << "id :" << user.getAttribute("id").toULongLong();
 ////            qDebug() << "id :" << user.getAttribute("id").toULongLong() << ";"
 ////                     << "name :" << user.getAttribute("name").toString();
+
+        // Log summary counters if needed
+//        logQueryCounters(__FUNCTION__, timer.elapsed());
+//        return;
 
         qt_noop();
     }
@@ -2200,7 +2217,7 @@ void TestOrm::logQueryCounters(const QString &func,
                        << (elapsed ? *elapsed : -1) << "ms";
 
     // Show statistics for every connection
-    const auto connections = DB::connectionNames();
+    const auto connections = DB::openedConnectionNames();
 
     // Total counters for the summary
     int allElapsed = -1;
