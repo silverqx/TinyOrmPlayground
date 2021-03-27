@@ -12,6 +12,8 @@
 #include <range/v3/all.hpp>
 
 #include <orm/db.hpp>
+#include <orm/invalidargumenterror.hpp>
+#include <orm/mysqlconnection.hpp>
 #include <orm/query/joinclause.hpp>
 #include <orm/utils/type.hpp>
 
@@ -31,10 +33,17 @@ using namespace ranges;
 using json = nlohmann::json;
 
 using Orm::AttributeItem;
+using Orm::MySqlConnection;
+using Orm::InvalidArgumentError;
 using Orm::One;
 using Orm::StatementsCounter;
 using Orm::Tiny::ModelNotFoundError;
 using Orm::Tiny::Relations::Pivot;
+
+/*
+   Notes:
+   - text in [] names connection name, eg. [sqlite]
+*/
 
 TestOrm &TestOrm::connectToDatabase()
 {
@@ -58,13 +67,14 @@ TestOrm &TestOrm::connectToDatabase()
     m_db = DB::create({
         {"mysql", {
             {"driver",    "QMYSQL"},
-            {"host",      qEnvironmentVariable("DB_HOST", "127.0.0.1")},
-            {"port",      qEnvironmentVariable("DB_PORT", "3306")},
-            {"database",  qEnvironmentVariable("DB_DATABASE", "")},
-            {"username",  qEnvironmentVariable("DB_USERNAME", "")},
-            {"password",  qEnvironmentVariable("DB_PASSWORD", "")},
-            {"charset",   qEnvironmentVariable("DB_CHARSET", "utf8mb4")},
-            {"collation", qEnvironmentVariable("DB_COLLATION", "utf8mb4_0900_ai_ci")},
+            {"host",      qEnvironmentVariable("DB_MYSQL_HOST", "127.0.0.1")},
+            {"port",      qEnvironmentVariable("DB_MYSQL_PORT", "3306")},
+            {"database",  qEnvironmentVariable("DB_MYSQL_DATABASE", "")},
+            {"username",  qEnvironmentVariable("DB_MYSQL_USERNAME", "")},
+            {"password",  qEnvironmentVariable("DB_MYSQL_PASSWORD", "")},
+            {"charset",   qEnvironmentVariable("DB_MYSQL_CHARSET", "utf8mb4")},
+            {"collation", qEnvironmentVariable("DB_MYSQL_COLLATION",
+                                               "utf8mb4_0900_ai_ci")},
             {"prefix",    ""},
             {"strict",    true},
             {"options",   QVariantHash()},
@@ -72,13 +82,14 @@ TestOrm &TestOrm::connectToDatabase()
 
         {"mysql_alt", {
             {"driver",    "QMYSQL"},
-            {"host",      qEnvironmentVariable("DB_HOST", "127.0.0.1")},
-            {"port",      qEnvironmentVariable("DB_PORT", "3306")},
-            {"database",  qEnvironmentVariable("DB_DATABASE", "")},
-            {"username",  qEnvironmentVariable("DB_USERNAME", "")},
-            {"password",  qEnvironmentVariable("DB_PASSWORD", "")},
-            {"charset",   qEnvironmentVariable("DB_CHARSET", "utf8mb4")},
-            {"collation", qEnvironmentVariable("DB_COLLATION", "utf8mb4_0900_ai_ci")},
+            {"host",      qEnvironmentVariable("DB_MYSQL_HOST", "127.0.0.1")},
+            {"port",      qEnvironmentVariable("DB_MYSQL_PORT", "3306")},
+            {"database",  qEnvironmentVariable("DB_MYSQL_DATABASE", "")},
+            {"username",  qEnvironmentVariable("DB_MYSQL_USERNAME", "")},
+            {"password",  qEnvironmentVariable("DB_MYSQL_PASSWORD", "")},
+            {"charset",   qEnvironmentVariable("DB_MYSQL_CHARSET", "utf8mb4")},
+            {"collation", qEnvironmentVariable("DB_MYSQL_COLLATION",
+                                               "utf8mb4_0900_ai_ci")},
             {"prefix",    ""},
             {"strict",    true},
             {"options",   QVariantHash()},
@@ -89,7 +100,30 @@ TestOrm &TestOrm::connectToDatabase()
             {"database",  qEnvironmentVariable("DB_SQLITE_DATABASE", "")},
             {"prefix",    ""},
             {"options",   QVariantHash()},
-            {"foreign_key_constraints", true},
+            {"foreign_key_constraints", qEnvironmentVariable("DB_SQLITE_FOREIGN_KEYS",
+                                                             "true")},
+            {"check_database_exists",   true},
+        }},
+
+        {"sqlite_memory", {
+            {"driver",    "QSQLITE"},
+            {"database",  ":memory:"},
+            {"prefix",    ""},
+            {"options",   QVariantHash()},
+            {"foreign_key_constraints", qEnvironmentVariable("DB_SQLITE_FOREIGN_KEYS",
+                                                             "true")},
+        }},
+
+        {"sqlite_check_exists_true", {
+            {"driver",    "QSQLITE"},
+            {"database",  CHECK_DATABASE_EXISTS_FILE},
+            {"check_database_exists", true},
+        }},
+
+        {"sqlite_check_exists_false", {
+            {"driver",    "QSQLITE"},
+            {"database",  CHECK_DATABASE_EXISTS_FILE},
+            {"check_database_exists", false},
         }},
     }, "mysql");
 
@@ -97,10 +131,12 @@ TestOrm &TestOrm::connectToDatabase()
     DB::connection("mysql");
     DB::connection("mysql_alt");
     DB::connection("sqlite");
+    DB::connection("sqlite_memory");
 
+    // BUG also decide how to behave when connection is not created and user enable counters silverqx
     // Enable counters on all database connections
-    DB::enableAllElapsedCounters();
-    DB::enableAllStatementCounters();
+    DB::enableElapsedCounters(CONNECTIONS_TO_COUNT);
+    DB::enableStatementCounters(CONNECTIONS_TO_COUNT);
 
     return *this;
 }
@@ -109,6 +145,7 @@ TestOrm &TestOrm::run()
 {
 //    ctorAggregate();
     anotherTests();
+    testConnection();
     testQueryBuilder();
     testTinyOrm();
 //    jsonConfig();
@@ -164,6 +201,90 @@ void TestOrm::anotherTests()
 //    qt_noop();
 }
 
+void TestOrm::testConnection()
+{
+    QElapsedTimer timer;
+    timer.start();
+
+    qDebug().nospace()
+            << "\n\n======================"
+            << "\n  DatabaseConnection  "
+            << "\n======================";
+
+    /* DatabaseConnection::isMaria() - on MySQL connection */
+    {
+        qDebug() << "\n\nDatabaseConnection::isMaria() - on MySQL connection\n---";
+
+        const auto isMaria =
+                dynamic_cast<MySqlConnection &>(DB::connection("mysql")).isMaria();
+        Q_ASSERT(!isMaria);
+
+        qt_noop();
+    }
+
+    /* SQLite :memory: driver [sqlite_memory] */
+    {
+        qDebug() << "\n\nSQLite :memory: driver [sqlite_memory]\n---";
+
+        auto &conn = DB::connection("sqlite_memory");
+
+        conn.statement("create table tbl1 (one varchar(10), two smallint)");
+        conn.insert("insert into tbl1 values(?, ?)", {"hello!", 10});
+        conn.insert("insert into tbl1 values(?, ?)", {"goodbye", 20});
+
+        auto [ok, query] = conn.selectOne("select * from tbl1 where two = ?", {10});
+
+        Q_ASSERT(ok);
+        Q_ASSERT(query.isValid());
+        Q_ASSERT(query.value("one").value<QString>() == "hello!");
+        Q_ASSERT(query.value("two").value<int>() == 10);
+
+        qt_noop();
+    }
+
+    /* SQLite database - check_database_exists */
+    {
+        // Remove the SQLite database file
+        QFile::remove(CHECK_DATABASE_EXISTS_FILE);
+        Q_ASSERT(!QFile::exists(CHECK_DATABASE_EXISTS_FILE));
+
+        /* SQLite database [sqlite_check_exists_true] - check_database_exists - true */
+        {
+            qDebug() << "\n\nSQLite database [sqlite_check_exists_true] - "
+                    "check_database_exists - true\n---";
+
+            TINY_VERIFY_EXCEPTION_THROWN(
+                        DB::connection("sqlite_check_exists_true")
+                        .statement("create table tbl1 (one varchar(10), two smallint)"),
+                        InvalidArgumentError);
+
+            qt_noop();
+        }
+
+        /* SQLite database [sqlite_check_exists_false] - check_database_exists - false */
+        {
+            qDebug() << "\n\nSQLite database [sqlite_check_exists_false] - "
+                    "check_database_exists - false\n---";
+
+            DB::connection("sqlite_check_exists_false")
+                    .statement("create table tbl1 (one varchar(10), two smallint)");
+
+            Q_ASSERT(QFile::exists(CHECK_DATABASE_EXISTS_FILE));
+
+            qt_noop();
+        }
+
+        QSqlDatabase::database("sqlite_check_exists_true").close();
+        QSqlDatabase::database("sqlite_check_exists_false").close();
+
+        // Remove the SQLite database file
+        QFile::remove(CHECK_DATABASE_EXISTS_FILE);
+        Q_ASSERT(!QFile::exists(CHECK_DATABASE_EXISTS_FILE));
+    }
+
+    logQueryCounters(__FUNCTION__, timer.elapsed());
+}
+
 void TestOrm::testTinyOrm()
 {
     QElapsedTimer timer;
@@ -203,14 +324,14 @@ void TestOrm::testTinyOrm()
         qt_noop();
 
 //        while (users.next())
-//            qDebug() << "id :" << users.value("id").toULongLong() << ";"
-//                     << "name :" << users.value("name").toString();
-////            qDebug() << "id :" << users.value("id").toULongLong();
+//            qDebug() << "id :" << users.value("id").value<quint64>() << ";"
+//                     << "name :" << users.value("name").value<QString>();
+////            qDebug() << "id :" << users.value("id").value<quint64>();
 
 //        for (auto &user : users)
-//            qDebug() << "id :" << user.getAttribute("id").toULongLong();
-////            qDebug() << "id :" << user.getAttribute("id").toULongLong() << ";"
-////                     << "name :" << user.getAttribute("name").toString();
+//            qDebug() << "id :" << user.getAttribute("id").value<quint64>();
+////            qDebug() << "id :" << user.getAttribute("id").value<quint64>() << ";"
+////                     << "name :" << user.getAttribute("name").value<QString>();
 
         // Log summary counters if needed
 //        logQueryCounters(__FUNCTION__, timer.elapsed());
@@ -226,16 +347,16 @@ void TestOrm::testTinyOrm()
         auto torrents = torrent.query()->get();
 
         for (auto &t : torrents)
-            qDebug() << "id :" << t.getAttribute("id").toULongLong() << ";"
-                     << "name :" << t.getAttribute("name").toString();
+            qDebug() << "id :" << t.getAttribute("id").value<quint64>() << ";"
+                     << "name :" << t.getAttribute("name").value<QString>();
 
         qt_noop();
     }
     {
         qDebug() << "\n\nBasic get all all()\n---";
         for (auto &t : Torrent::all())
-            qDebug() << "id :" << t.getAttribute("id").toULongLong() << ";"
-                     << "name :" << t.getAttribute("name").toString();
+            qDebug() << "id :" << t.getAttribute("id").value<quint64>() << ";"
+                     << "name :" << t.getAttribute("name").value<QString>();
 
         qt_noop();
     }
@@ -244,10 +365,11 @@ void TestOrm::testTinyOrm()
     {
         qDebug() << "\n\nModel::latest()\n---";
         for (auto &t : Torrent::latest()->get())
-            qDebug() << "id :" << t.getAttribute("id").toULongLong() << ";"
-                     << "name :" << t.getAttribute("name").toString() << ";"
+            qDebug() << "id :" << t.getAttribute("id").value<quint64>() << ";"
+                     << "name :" << t.getAttribute("name").value<QString>() << ";"
                      << "created_at :"
-                     << t.getAttribute(Torrent::getCreatedAtColumn()).toDateTime().toString();
+                     << t.getAttribute(Torrent::getCreatedAtColumn())
+                        .toDateTime().toString();
         qt_noop();
     }
 
@@ -255,10 +377,11 @@ void TestOrm::testTinyOrm()
     {
         qDebug() << "\n\nModel::oldest()\n---";
         for (auto &t : Torrent::oldest()->get())
-            qDebug() << "id :" << t.getAttribute("id").toULongLong() << ";"
+            qDebug() << "id :" << t.getAttribute("id").value<quint64>() << ";"
                      << "name :" << t.getAttribute("name").toString() << ";"
                      << "created_at :"
-                     << t.getAttribute(Torrent::getCreatedAtColumn()).toDateTime().toString();
+                     << t.getAttribute(Torrent::getCreatedAtColumn())
+                        .toDateTime().toString();
         qt_noop();
     }
 
@@ -266,8 +389,8 @@ void TestOrm::testTinyOrm()
     {
         qDebug() << "\n\nModel::where()\n---";
         for (auto &t : Torrent::where("id", ">", 3)->get())
-            qDebug() << "id :" << t.getAttribute("id").toULongLong() << ";"
-                     << "name :" << t.getAttribute("name").toString();
+            qDebug() << "id :" << t.getAttribute("id").value<quint64>() << ";"
+                     << "name :" << t.getAttribute("name").value<QString>();
 
         qt_noop();
     }
@@ -276,10 +399,10 @@ void TestOrm::testTinyOrm()
     {
         qDebug() << "\n\nModel::whereEq() and operator[]()\n---";
         auto t = Torrent::whereEq("id", 4)->get().first();
-        qDebug() << "id :" << t["id"].toULongLong() << ";"
-                 << "name :" << t["name"].toString();
-//        qDebug() << "id :" << t.getAttribute("id").toULongLong() << ";"
-//                 << "name :" << t.getAttribute("name").toString();
+        qDebug() << "id :" << t["id"]->value<quint64>() << ";"
+                 << "name :" << t["name"]->value<QString>();
+//        qDebug() << "id :" << t.getAttribute("id")->value<quint64>() << ";"
+//                 << "name :" << t.getAttribute("name")->value<QString>();
 
         qt_noop();
     }
@@ -288,8 +411,8 @@ void TestOrm::testTinyOrm()
     {
         qDebug() << "\n\nModel::where() vector\n---";
         for (auto &t : Torrent::where({{"id", 4}})->get())
-            qDebug() << "id :" << t.getAttribute("id").toULongLong() << ";"
-                     << "name :" << t.getAttribute("name").toString();
+            qDebug() << "id :" << t.getAttribute("id").value<quint64>() << ";"
+                     << "name :" << t.getAttribute("name").value<QString>();
 
         qt_noop();
     }
@@ -454,7 +577,7 @@ void TestOrm::testTinyOrm()
         auto torrentFile = TorrentPreviewableFile::find(id);
 
         qDebug() << "torrentFile id :" << id;
-        qDebug() << torrentFile->getAttribute("filepath").toString();
+        qDebug() << torrentFile->getAttribute("filepath").value<QString>();
 
         qt_noop();
     }
@@ -670,17 +793,17 @@ void TestOrm::testTinyOrm()
 
 //        qDebug() << "hash:";
 //        for (QVariant &val : hash) {
-//            qDebug() << val.toString();
+//            qDebug() << val.value<QString>();
 //        }
 //        qDebug() << "\nvector:";
 //        for (auto &val : vec) {
-//            qDebug() << val.value.toString();
+//            qDebug() << val.value.value<QString>();
 //        }
 //        qDebug() << "\nothers:";
-//        qDebug() << hash.find(&b.key).value().get().toString();
-////        qDebug() << hash[&b.key].get().toString();
-////        qDebug() << hash[&d.key]->toString();
-////        qDebug() << hash[&b.key]->toString();
+//        qDebug() << hash.find(&b.key).value().get().value<QString>();
+////        qDebug() << hash[&b.key].get().value<QString>();
+////        qDebug() << hash[&d.key]->value<QString>();
+////        qDebug() << hash[&b.key]->value<QString>();
 //        qt_noop();
 //    }
 
@@ -722,9 +845,9 @@ void TestOrm::testTinyOrm()
 ////        auto *file = files.first();
 ////        auto *fileProperty = file->getRelationValue<TorrentPreviewableFileProperty, One>("fileProperty");
 
-//        auto torrentName      = torrent->getAttribute("name").toString();
-//        auto filepath         = file->getAttribute("filepath").toString();
-//        auto filePropertyName = fileProperty->getAttribute("name").toString();
+//        auto torrentName      = torrent->getAttribute("name").value<QString>();
+//        auto filepath         = file->getAttribute("filepath").value<QString>();
+//        auto filePropertyName = fileProperty->getAttribute("name").value<QString>();
 //        qDebug() << torrentName;
 //        qDebug() << filepath;
 //        qDebug() << filePropertyName;
@@ -738,9 +861,9 @@ void TestOrm::testTinyOrm()
 //            auto files = torrent->getRelation<TorrentPreviewableFile>("torrentFiles");
 //            auto file = files.first();
 //            auto *fileProperty = file->getRelation<TorrentPreviewableFileProperty, One>("fileProperty");
-//            qDebug() << torrent->getAttribute("name").toString();
-//            qDebug() << file->getAttribute("filepath").toString();
-//            qDebug() << fileProperty->getAttribute("name").toString();
+//            qDebug() << torrent->getAttribute("name").value<QString>();
+//            qDebug() << file->getAttribute("filepath").value<QString>();
+//            qDebug() << fileProperty->getAttribute("name").value<QString>();
 //        };
 
 //        debugAttributes();
@@ -770,14 +893,14 @@ void TestOrm::testTinyOrm()
 //            for (auto *file : files) {
 //                qDebug().nospace().noquote()
 //                        << "\nFile : "
-//                        << file->getAttribute("filepath").toString()
-//                        << "(" << file->getAttribute("id").toString() << ")";
+//                        << file->getAttribute("filepath").value<QString>()
+//                        << "(" << file->getAttribute("id").value<quint64>() << ")";
 
 //                auto fileProperty = file->getRelation<TorrentPreviewableFileProperty, One>("fileProperty");
 
 //                qDebug().nospace().noquote()
-//                        << fileProperty->getAttribute("name").toString()
-//                        << "(" << fileProperty->getAttribute("id").toString() << ")";
+//                        << fileProperty->getAttribute("name").value<QString>()
+//                        << "(" << fileProperty->getAttribute("id").value<quint64>() << ")";
 //                qt_noop();
 //            }
 //        }
@@ -791,15 +914,16 @@ void TestOrm::testTinyOrm()
             for (auto *file : files) {
                 qDebug().nospace().noquote()
                         << "\nFile : "
-                        << file->getAttribute("filepath").toString()
-                        << "(" << file->getAttribute("id").toString() << ")";
+                        << file->getAttribute("filepath").value<QString>()
+                        << "(" << file->getAttribute("id").value<quint64>() << ")";
 
                 auto fileProperty = file->getRelationValue<TorrentPreviewableFileProperty, One>("fileProperty");
 
                 if (fileProperty)
                     qDebug().nospace().noquote()
-                            << fileProperty->getAttribute("name").toString()
-                            << "(" << fileProperty->getAttribute("id").toString() << ")";
+                            << fileProperty->getAttribute("name").value<QString>()
+                            << "(" << fileProperty->getAttribute("id").value<quint64>()
+                            << ")";
                 qt_noop();
             }
         }
@@ -839,7 +963,8 @@ void TestOrm::testTinyOrm()
         auto torrent = Torrent::find(2);
 
         qDebug() << "progress before :" << torrent->getAttribute("progress");
-        torrent->setAttribute("progress", torrent->getAttribute("progress").toUInt() + 1);
+        torrent->setAttribute("progress",
+                              torrent->getAttribute("progress").value<uint>() + 1);
 
         const auto &updatedAt = torrent->getUpdatedAtColumn();
         qDebug() << updatedAt << "before :" << torrent->getAttribute(updatedAt).toDateTime();
@@ -856,7 +981,8 @@ void TestOrm::testTinyOrm()
         auto torrent = Torrent::whereEq("id", 2)->first({"id", "name", "progress"});
 
         qDebug() << "progress before :" << torrent->getAttribute("progress");
-        torrent->setAttribute("progress", torrent->getAttribute("progress").toUInt() + 1);
+        torrent->setAttribute("progress",
+                              torrent->getAttribute("progress").value<uint>() + 1);
 
         const auto &updatedAt = torrent->getUpdatedAtColumn();
         qDebug() << updatedAt << "before :" << torrent->getAttribute(updatedAt).toDateTime();
@@ -873,7 +999,8 @@ void TestOrm::testTinyOrm()
         auto fileProperty = TorrentPreviewableFileProperty::find(2);
 
         qDebug() << "size before :" << fileProperty->getAttribute("size");
-        fileProperty->setAttribute("size", fileProperty->getAttribute("size").toUInt() + 1);
+        fileProperty->setAttribute("size",
+                                   fileProperty->getAttribute("size").value<uint>() + 1);
 
         fileProperty->save();
         qDebug() << "size after :" << fileProperty->getAttribute("size");
@@ -886,7 +1013,9 @@ void TestOrm::testTinyOrm()
         auto filePropertyProperty = FilePropertyProperty::find(4);
 
         qDebug() << "value before :" << filePropertyProperty->getAttribute("value");
-        filePropertyProperty->setAttribute("value", filePropertyProperty->getAttribute("value").toUInt() + 1);
+        filePropertyProperty->setAttribute("value",
+                                           filePropertyProperty->getAttribute("value")
+                                           .value<uint>() + 1);
 
         const auto &updatedAtFilePropertyProperty = filePropertyProperty->getUpdatedAtColumn();
         qDebug() << "FilePropertyProperty" << updatedAtFilePropertyProperty << "before :"
@@ -971,29 +1100,29 @@ void TestOrm::testTinyOrm()
         auto torrent = Torrent::find(1);
 
         const auto &updatedAt = torrent->getUpdatedAtColumn();
-        qDebug() << "size before:" << torrent->getAttribute("size").toUInt();
+        qDebug() << "size before:" << torrent->getAttribute("size").value<uint>();
         qDebug() << updatedAt << "before:"
                  << torrent->getAttribute(updatedAt).toDateTime();
         qDebug() << "progress before:"
-                 << (*torrent)["progress"].toUInt();
+                 << (*torrent)["progress"]->value<uint>();
 
         Torrent::whereEq("id", 1)->increment("size", 2, {{"progress", 111}});
 
         torrent = Torrent::find(1);
-        qDebug() << "size after increment:" << torrent->getAttribute("size").toUInt();
+        qDebug() << "size after increment:" << torrent->getAttribute("size").value<uint>();
         qDebug() << updatedAt << "after increment:"
                  << torrent->getAttribute(updatedAt).toDateTime();
         qDebug() << "progress after increment:"
-                 << (*torrent)["progress"].toUInt();
+                 << (*torrent)["progress"]->value<uint>();
 
         Torrent::whereEq("id", 1)->decrement("size", 2, {{"progress", 100}});
 
         torrent = Torrent::find(1);
-        qDebug() << "size after decrement:" << torrent->getAttribute("size").toUInt();
+        qDebug() << "size after decrement:" << torrent->getAttribute("size").value<uint>();
         qDebug() << updatedAt << "after decrement:"
                  << torrent->getAttribute(updatedAt).toDateTime();
         qDebug() << "progress after decrement:"
-                 << (*torrent)["progress"].toUInt();
+                 << (*torrent)["progress"]->value<uint>();
         qt_noop();
     }
 
@@ -1025,7 +1154,7 @@ void TestOrm::testTinyOrm()
                 ->update({{"progress", 333}});
 
         qDebug() << "progress after:"
-                 << (*Torrent::find(3))["progress"].toUInt();
+                 << (*Torrent::find(3))["progress"].value<uint>();
         qt_noop();
     }
 
@@ -1037,7 +1166,7 @@ void TestOrm::testTinyOrm()
                 ->update({{"progress", 300}});
 
         qDebug() << "progress after:"
-                 << Torrent::find(3)->getAttribute("progress").toUInt();
+                 << Torrent::find(3)->getAttribute("progress").value<uint>();
         qt_noop();
     }
 
@@ -1124,7 +1253,7 @@ void TestOrm::testTinyOrm()
         Q_ASSERT(&t.refresh() == &t);
 
         auto torrent = Torrent::find(3);
-        auto original = torrent->getAttribute("name").toString();
+        auto original = torrent->getAttribute("name").value<QString>();
 
         torrent->setAttribute("name", "test3 refresh");
         auto &refreshed = torrent->refresh();
@@ -1252,15 +1381,15 @@ void TestOrm::testTinyOrm()
 //        [[maybe_unused]]
 //        auto *pivot3 = tags.at(2)->getRelation<Pivot, One>("tagged");
         qDebug() << "Tagged Active :"
-                 << pivot3->getAttribute("active").toBool();
+                 << pivot3->getAttribute("active").value<bool>();
         qDebug() << "Tagged created_at :"
                  << pivot3->getAttribute("created_at").toDateTime();
 
         auto *tagProperty = tags.first()->getRelation<TagProperty, One>("tagProperty");
         qDebug() << "TagProperty:";
-        qDebug() << "id :" << tagProperty->getAttribute("id").toULongLong() << ";"
-                 << "color :" << tagProperty->getAttribute("color").toString() << ";"
-                 << "position :" << tagProperty->getAttribute("position").toUInt();
+        qDebug() << "id :" << tagProperty->getAttribute("id").value<quint64>() << ";"
+                 << "color :" << tagProperty->getAttribute("color").value<QString>() << ";"
+                 << "position :" << tagProperty->getAttribute("position").value<uint>();
 
         qt_noop();
     }
@@ -1282,7 +1411,7 @@ void TestOrm::testTinyOrm()
         [[maybe_unused]]
         auto *pivot22 = torrents.at(1)->getRelation<Pivot, One>("pivot");
         qDebug() << "Pivot Active :"
-                 << pivot21->getAttribute("active").toBool();
+                 << pivot21->getAttribute("active").value<bool>();
         qDebug() << "Pivot created_at :"
                  << pivot21->getAttribute("created_at").toDateTime();
 
@@ -1416,8 +1545,8 @@ void TestOrm::testTinyOrm()
         auto torrent5 = Torrent::find(5);
 
         torrent5->tags()->attach({
-            {tag100["id"].value<quint64>(), {{"active", 0}}},
-            {tag101["id"].value<quint64>(), {{"active", 1}}}
+            {tag100["id"]->value<quint64>(), {{"active", 0}}},
+            {tag101["id"]->value<quint64>(), {{"active", 1}}}
         });
 
         tag100.remove();
@@ -1445,8 +1574,8 @@ void TestOrm::testTinyOrm()
         auto tag4 = Tag::find(4);
 
         tag4->torrents()->attach({
-            {torrent100["id"].value<quint64>(), {{"active", 0}}},
-            {torrent101["id"].value<quint64>(), {{"active", 1}}},
+            {torrent100["id"]->value<quint64>(), {{"active", 0}}},
+            {torrent101["id"]->value<quint64>(), {{"active", 1}}},
         });
 
         torrent100.remove();
@@ -1525,9 +1654,9 @@ void TestOrm::testTinyOrm()
         torrent5->tags()->attach({{tag101}, {tag102}});
 
         auto changed = torrent5->tags()->sync(
-                           {{tag100["id"].value<quint64>(), {{"active", 1}}},
-                            {tag101["id"].value<quint64>(), {{"active", 0}}},
-                            {tag103["id"].value<quint64>(), {{"active", 1}}}});
+                           {{tag100["id"]->value<quint64>(), {{"active", 1}}},
+                            {tag101["id"]->value<quint64>(), {{"active", 0}}},
+                            {tag103["id"]->value<quint64>(), {{"active", 1}}}});
 
         tag100.remove();
         tag101.remove();
@@ -1568,9 +1697,9 @@ void TestOrm::testTinyOrm()
                                  {{"active", 1}});
 
         auto changed = tag4->torrents()->sync(
-                           {{torrent100["id"].value<quint64>(), {{"active", 1}}},
-                            {torrent101["id"].value<quint64>(), {{"active", 0}}},
-                            {torrent103["id"].value<quint64>(), {{"active", 1}}}});
+                           {{torrent100["id"]->value<quint64>(), {{"active", 1}}},
+                            {torrent101["id"]->value<quint64>(), {{"active", 0}}},
+                            {torrent103["id"]->value<quint64>(), {{"active", 1}}}});
 
         torrent100.remove();
         torrent101.remove();
@@ -1847,8 +1976,8 @@ void TestOrm::testQueryBuilder()
                 ->where("torrents.id", "=", 2)
                 .first({"id", "name"});
 
-        qDebug() << "id :" << torrent.value("id").toULongLong()
-                 << "; name :" << torrent.value("name").toString();
+        qDebug() << "id :" << torrent.value("id").value<quint64>()
+                 << "; name :" << torrent.value("name").value<QString>();
 
         qt_noop();
     }
@@ -1861,7 +1990,7 @@ void TestOrm::testQueryBuilder()
                 ->where("torrents.id", "=", 2)
                 .value("name");
 
-        qDebug() << "name:" << name.toString();
+        qDebug() << "name:" << name.value<QString>();
 
         qt_noop();
     }
@@ -1872,8 +2001,8 @@ void TestOrm::testQueryBuilder()
 
         auto [ok, torrent] = DB::table("torrents")->find(3, {"id", "name"});
 
-        qDebug() << "id :" << torrent.value("id").toULongLong()
-                 << "; name :" << torrent.value("name").toString();
+        qDebug() << "id :" << torrent.value("id").value<quint64>()
+                 << "; name :" << torrent.value("name").value<QString>();
 
         qt_noop();
     }
@@ -1945,40 +2074,251 @@ void TestOrm::testQueryBuilder()
 //    }
 //    qt_noop();
 
-//    const auto id_l = 1;
-//    auto [ok_l, l] = m_db.query()->from("torrent_previewable_files").insertOrIgnore({
-//        {{"torrent_id", id_l}, {"file_index", 2}, {"filepath", "qrs.mkv"}, {"size", 3074},
-//            {"progress", 20}},
-//        {{"torrent_id", id_l}, {"file_index", 3}, {"filepath", "ghi.mkv"}, {"size", 3074},
-//            {"progress", 20}},
-//        {{"torrent_id", id_l}, {"file_index", 4}, {"filepath", "def.mkv"}, {"size", 3074},
-//            {"progress", 20}},
-//    });
-//    qDebug() << "TWELVE :" << l->executedQuery();
-//    if (ok_l) {
-//        qDebug() << "last id :" << l->lastInsertId() // undefined behavior
-//                 << "; affected rows :" << l->numRowsAffected();
-//    }
-//    qt_noop();
+    /* QueryBuilder::insertOrIgnore() */
+    {
+        qDebug() << "\n\nQueryBuilder::insertOrIgnore()\n---";
 
-    /* UPDATEs */
-//    auto [affected_m, m] = m_db.query()->from("torrents")
-//            .where("id", "=", 277)
-//            .update({{"name", "first1"}, {"progress", 350}});
-//    qDebug() << "THIRTEEN :" << m.executedQuery();
-//    qDebug() << "affected rows :" << affected_m;
-//    qt_noop();
+        const auto torrentId = 5;
+        auto [affected1, query1] = DB::table("torrent_previewable_files")
+                ->insert({
+            {"torrent_id", torrentId}, {"file_index", 3}, {"filepath", "qrs.mkv"},
+                {"size", 3074}, {"progress", 20}
+        });
+        Q_ASSERT(affected1 == 1);
 
-//    auto [affected_n, n] = m_db.query()->from("torrents")
-//            .join("torrent_previewable_files", "torrents.id", "=",
-//                  "torrent_previewable_files.torrent_id")
-//            .where("torrents.id", "=", 277)
-//            .where("torrent_previewable_files.id", "=", 100)
-//            .update({{"name", "first4"}, {"torrents.progress", 354},
-//                    {"torrent_previewable_files.progress", 15}});
-//    qDebug() << "FOURTEEN :" << n.executedQuery();
-//    qDebug() << "affected rows :" << affected_n;
-//    qt_noop();
+        auto [affected, query] = DB::table("torrent_previewable_files")
+                ->insertOrIgnore(
+        {
+            {{"torrent_id", torrentId}, {"file_index", 3}, {"filepath", "qrs.mkv"},
+                {"size", 3074}, {"progress", 20}},
+            {{"torrent_id", torrentId}, {"file_index", 4}, {"filepath", "ghi.mkv"},
+                {"size", 3074}, {"progress", 20}},
+            {{"torrent_id", torrentId}, {"file_index", 5}, {"filepath", "def.mkv"},
+                {"size", 3074}, {"progress", 20}},
+        });
+        Q_ASSERT(affected == 2);
+
+        qt_noop();
+    }
+
+    /* QueryBuilder::insertOrIgnore() [sqlite] */
+    {
+        qDebug() << "\n\nQueryBuilder::insertOrIgnore() [sqlite]\n---";
+
+        const auto torrentId = 5;
+        auto [affected1, query1] = DB::table("torrent_previewable_files", "", "sqlite")
+                ->insert({
+            {"torrent_id", torrentId}, {"file_index", 3}, {"filepath", "qrs.mkv"},
+            {"size", 3074}, {"progress", 20}
+        });
+        Q_ASSERT(affected1 == 1);
+
+        auto [affected, query] = DB::table("torrent_previewable_files", "", "sqlite")
+                ->insertOrIgnore(
+        {
+            {{"torrent_id", torrentId}, {"file_index", 3}, {"filepath", "qrs.mkv"},
+                {"size", 3074}, {"progress", 20}},
+            {{"torrent_id", torrentId}, {"file_index", 4}, {"filepath", "ghi.mkv"},
+                {"size", 3074}, {"progress", 20}},
+            {{"torrent_id", torrentId}, {"file_index", 5}, {"filepath", "def.mkv"},
+                {"size", 3074}, {"progress", 20}},
+        });
+        Q_ASSERT(affected == 2);
+
+        qt_noop();
+    }
+
+    {
+        auto qrsFileIdMysql = DB::table("torrent_previewable_files")
+                         ->whereEq("filepath", "qrs.mkv").value("id");
+        auto qrsFileIdSqlite = DB::table("torrent_previewable_files", "", "sqlite")
+                              ->whereEq("filepath", "qrs.mkv").value("id");
+
+        /* QueryBuilder::update() */
+        {
+            qDebug() << "\n\nQueryBuilder::update()\n---";
+
+            auto [affected, _] = DB::table("torrent_previewable_files")
+                    ->where("id", "=", qrsFileIdMysql)
+                    .update({{"filepath", "qrs-update.mkv"}, {"progress", 890}});
+            Q_ASSERT(affected == 1);
+
+            qt_noop();
+        }
+
+        /* QueryBuilder::update() [sqlite] */
+        {
+            qDebug() << "\n\nQueryBuilder::update() [sqlite]\n---";
+
+            auto [affected, _] = DB::table("torrent_previewable_files", "", "sqlite")
+                    ->where("id", "=", qrsFileIdSqlite)
+                    .update({{"filepath", "qrs-update.mkv"}, {"progress", 890}});
+            Q_ASSERT(affected == 1);
+
+            qt_noop();
+        }
+
+        /* QueryBuilder::update() - with join */
+        {
+            qDebug() << "\n\nQueryBuilder::update() - with join\n---";
+
+            auto [affected, _] = DB::table("torrents")
+                    ->join("torrent_previewable_files", "torrents.id", "=",
+                           "torrent_previewable_files.torrent_id")
+                    .where("torrents.id", "=", 5)
+                    .where("torrent_previewable_files.id", "=", qrsFileIdMysql)
+                    .update({
+                {"name", "test5 update join"}, {"torrents.progress", 503},
+                {"torrent_previewable_files.progress", 891}
+            });
+            Q_ASSERT(affected == 2);
+
+            qt_noop();
+        }
+
+        /* QueryBuilder::update() [sqlite] - with join */
+        {
+            qDebug() << "\n\nQueryBuilder::update() [sqlite] - with join\n---";
+
+            /* SQLite can update only columns in the main table, not in the join table. */
+            auto [affected, _] = DB::table("torrents", "", "sqlite")
+                    ->join("torrent_previewable_files", "torrents.id", "=",
+                    "torrent_previewable_files.torrent_id")
+                    .where("torrents.id", "=", 5)
+                    .where("torrent_previewable_files.id", "=", qrsFileIdSqlite)
+                    .update({
+                {"name", "test5 update join"}, {"progress", 503}
+            });
+            Q_ASSERT(affected == 1);
+
+            qt_noop();
+        }
+
+        /* QueryBuilder::update() - with limit */
+        {
+            qDebug() << "\n\nQueryBuilder::update() - with limit\n---";
+
+            auto [affected, _] = DB::table("torrent_previewable_files")
+                    ->where("torrent_id", "=", 5)
+                    .where("file_index", ">", 2)
+                    .limit(2)
+                    .update({{"progress", 892}});
+            Q_ASSERT(affected == 2);
+
+            qt_noop();
+        }
+
+        /* QueryBuilder::update() [sqlite] - with limit */
+        {
+            qDebug() << "\n\nQueryBuilder::update() [sqlite] - with limit\n---";
+
+            auto [affected, _] = DB::table("torrent_previewable_files", "", "sqlite")
+                    ->where("torrent_id", "=", 5)
+                    .where("file_index", ">", 2)
+                    .limit(2)
+                    .update({{"progress", 892}});
+            Q_ASSERT(affected == 2);
+
+            qt_noop();
+        }
+
+        /* QueryBuilder::remove() - with join */
+//        {
+//            qDebug() << "\n\nQueryBuilder::remove() - with join\n---";
+
+//            auto [affected, _] = DB::table("torrents")
+//                    ->join("torrent_previewable_files", "torrents.id", "=",
+//                           "torrent_previewable_files.torrent_id")
+//                    .where("torrents.id", "=", 5)
+//                    .where("torrent_previewable_files.id", "=", qrsFileIdMysql)
+//                    .remove();
+//            Q_ASSERT(affected == 1);
+
+//            qt_noop();
+//        }
+
+        /* SQLite behaves differently here, while MySQL respects constrain ON DELETE
+           CASCADE, SQLite only removes rows selected by the WHERE clause
+           in the joined table.
+           So I comment on these two examples and uncomment them when I will to want test
+           this DELETE with join statements. */
+        /* QueryBuilder::remove() [sqlite] - with join */
+//        {
+//            qDebug() << "\n\nQueryBuilder::remove() [sqlite] - with join\n---";
+
+//            auto [affected, _] = DB::table("torrents", "", "sqlite")
+//                    ->join("torrent_previewable_files", "torrents.id", "=",
+//                    "torrent_previewable_files.torrent_id")
+//                    .where("torrents.id", "=", 5)
+//                    .where("torrent_previewable_files.id", "=", qrsFileIdSqlite)
+//                    .remove();
+//            Q_ASSERT(affected == 1);
+
+//            qt_noop();
+//        }
+
+        // Also part of the Restore
+        /* QueryBuilder::remove() - with limit */
+        {
+            qDebug() << "\n\nQueryBuilder::remove() - with limit\n---";
+
+            auto [affected, _] = DB::table("torrent_previewable_files")
+                    ->where("torrent_id", "=", 5)
+                    .where("file_index", ">", 2)
+                    .limit(2)
+                    .remove();
+            Q_ASSERT(affected == 2);
+
+            qt_noop();
+        }
+
+        /* QueryBuilder::remove() [sqlite] - with limit */
+        {
+            qDebug() << "\n\nQueryBuilder::remove() [sqlite] - with limit\n---";
+
+            auto [affected, _] = DB::table("torrent_previewable_files", "", "sqlite")
+                    ->where("torrent_id", "=", 5)
+                    .where("file_index", ">", 2)
+                    .limit(2)
+                    .remove();
+            Q_ASSERT(affected == 2);
+
+            qt_noop();
+        }
+
+        // Restore
+        {
+            DB::table("torrent_previewable_files")
+                    ->where("torrent_id", "=", 5)
+                    .where("file_index", ">", 2)
+                    .remove();
+            DB::table("torrent_previewable_files", "", "sqlite")
+                    ->where("torrent_id", "=", 5)
+                    .where("file_index", ">", 2)
+                    .remove();
+        }
+    }
+
+    /* QueryBuilder::update() - restore from previous updates */
+    {
+        qDebug() << "\n\nQueryBuilder::update() - restore from previous updates\n---";
+
+        {
+            auto [affected, _] = DB::table("torrents")
+                    ->where("torrents.id", "=", 5)
+                    .update({{"name", "test5"}, {"progress", 500}});
+            Q_ASSERT(affected == 1);
+        }
+
+        {
+            auto [affected, _] = DB::table("torrents", "", "sqlite")
+                    ->where("torrents.id", "=", 5)
+                    .update({{"name", "test5"}, {"progress", 500}});
+            Q_ASSERT(affected == 1);
+        }
+
+        qt_noop();
+    }
 
     /* EXPRESSIONs */
 //    Expression aa("first1");
@@ -2216,9 +2556,6 @@ void TestOrm::logQueryCounters(const QString &func,
     qDebug().nospace() << "\n⚡ " << "Function Execution time : "
                        << (elapsed ? *elapsed : -1) << "ms";
 
-    // Show statistics for every connection
-    const auto connections = DB::openedConnectionNames();
-
     // Total counters for the summary
     int allElapsed = -1;
     StatementsCounter allStatementsCounter;
@@ -2231,7 +2568,7 @@ void TestOrm::logQueryCounters(const QString &func,
         allElapsed = 0;
 
     // Log all connections
-    for (const auto &connectionName : connections) {
+    for (const auto &connectionName : CONNECTIONS_TO_COUNT) {
         auto &connection = DB::connection(connectionName);
 
         // Queries execution time
@@ -2270,6 +2607,10 @@ void TestOrm::logQueryCountersBlock(
     qDebug().noquote() << title;
     qDebug() << "---";
 
+    if (title == "Summary")
+        qDebug().nospace() << "∑ " << "Counted connections    : "
+                           << CONNECTIONS_TO_COUNT.size();
+
     // Queries execution time
     qDebug().nospace() << "⚡ " << "Queries execution time : "
                    << elapsed << (elapsed > -1 ? "ms" : "");
@@ -2280,7 +2621,7 @@ void TestOrm::logQueryCountersBlock(
     if (normal != -1)
         total = normal + affecting + transactional;
 
-    qDebug() << "⚖ Statement counters";
+    qDebug() << "⚖ Statements counters";
     qDebug() << "  Normal      :" << normal;
     qDebug() << "  Affecting   :" << affecting;
     qDebug() << "  Transaction :" << transactional;

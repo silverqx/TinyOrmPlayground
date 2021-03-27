@@ -18,7 +18,7 @@ CONFIG(release, debug|release): message( "Project is built in RELEASE mode." )
 # TinyOrmPlayground defines
 # ---
 
-DEFINES += PROJECT_TINYORMPLAYGROUND
+DEFINES += PROJECT_TINYORM_PLAYGROUND
 # Log queries with time measurement, used only when viewing source code
 DEFINES += TINYORM_DEBUG_SQL
 
