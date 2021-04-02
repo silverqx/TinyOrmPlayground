@@ -1,6 +1,4 @@
-# This file is used to ignore files which are generated
-# ----------------------------------------------------------------------------
-
+# Common generated files
 *~
 *.autosave
 *.a
@@ -67,7 +65,9 @@ Thumbs.db
 *.pyc
 
 # Binaries
-# --------
 *.dll
 *.exe
 
+# others
+/executed_queries.sql
+/tmp.sql

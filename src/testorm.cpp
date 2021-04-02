@@ -314,8 +314,24 @@ void TestOrm::testTinyOrm()
     {
         qDebug() << "\n";
 
+        {
 
-        qt_noop();
+            qt_noop();
+        }
+        {
+
+            qt_noop();
+        }
+
+        {
+
+            qt_noop();
+        }
+
+        {
+
+            qt_noop();
+        }
 
         qt_noop();
 
