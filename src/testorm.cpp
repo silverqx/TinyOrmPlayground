@@ -333,11 +333,20 @@ void TestOrm::testTinyOrm()
             qt_noop();
         }
 
-        qt_noop();
+        {
 
-        qt_noop();
+            qt_noop();
+        }
 
-        qt_noop();
+        {
+
+            qt_noop();
+        }
+
+        {
+
+            qt_noop();
+        }
 
 //        while (users.next())
 //            qDebug() << "id :" << users.value("id").value<quint64>() << ";"
