@@ -156,6 +156,72 @@ TestOrm &TestOrm::run()
 
 void TestOrm::anotherTests()
 {
+    QElapsedTimer timer;
+    timer.start();
+
+    qDebug().nospace()
+            << "================="
+            << "\n  Another Tests  "
+            << "\n=================";
+
+    {
+        qDebug() << "\n";
+
+        {
+
+            qt_noop();
+        }
+        {
+
+            qt_noop();
+        }
+
+        {
+
+            qt_noop();
+        }
+
+        {
+
+            qt_noop();
+        }
+
+        {
+
+            qt_noop();
+        }
+
+        {
+
+            qt_noop();
+        }
+
+        {
+            Torrent t;
+
+            QStringList ll {"aa", "bb"};
+            t.mergeFillable(ll);
+
+            qt_noop();
+        }
+
+//        while (users.next())
+//            qDebug() << "id :" << users.value("id").value<quint64>() << ";"
+//                     << "name :" << users.value("name").value<QString>();
+////            qDebug() << "id :" << users.value("id").value<quint64>();
+
+//        for (auto &user : users)
+//            qDebug() << "id :" << user.getAttribute("id").value<quint64>();
+////            qDebug() << "id :" << user.getAttribute("id").value<quint64>() << ";"
+////                     << "name :" << user.getAttribute("name").value<QString>();
+
+        // Log summary counters if needed
+//        logQueryCounters(__FUNCTION__, timer.elapsed());
+//        return;
+
+        qt_noop();
+    }
+
     // Ranges
     QVector<AttributeItem> attributes {
         {"one", 1},
@@ -310,60 +376,6 @@ void TestOrm::testTinyOrm()
 //////        qDebug() << torrent3.has_value();
 //        qt_noop();
 //    }
-
-    {
-        qDebug() << "\n";
-
-        {
-
-            qt_noop();
-        }
-        {
-
-            qt_noop();
-        }
-
-        {
-
-            qt_noop();
-        }
-
-        {
-
-            qt_noop();
-        }
-
-        {
-
-            qt_noop();
-        }
-
-        {
-
-            qt_noop();
-        }
-
-        {
-
-            qt_noop();
-        }
-
-//        while (users.next())
-//            qDebug() << "id :" << users.value("id").value<quint64>() << ";"
-//                     << "name :" << users.value("name").value<QString>();
-////            qDebug() << "id :" << users.value("id").value<quint64>();
-
-//        for (auto &user : users)
-//            qDebug() << "id :" << user.getAttribute("id").value<quint64>();
-////            qDebug() << "id :" << user.getAttribute("id").value<quint64>() << ";"
-////                     << "name :" << user.getAttribute("name").value<QString>();
-
-        // Log summary counters if needed
-//        logQueryCounters(__FUNCTION__, timer.elapsed());
-//        return;
-
-        qt_noop();
-    }
 
     /* Basic get all get() */
     {
@@ -1425,8 +1437,8 @@ void TestOrm::testTinyOrm()
 
         qDebug() << "\nRefresh has to exclude pivot relations, to avoid exception.\n";
 
-        auto g = Tag::find(2);
-        auto torrents = g->getRelationValue<Torrent>("torrents");
+        auto tag = Tag::find(2);
+        auto torrents = tag->getRelationValue<Torrent>("torrents");
 //        [[maybe_unused]]
 //        auto *pivot21 = torrents.first()->getRelation<Tagged, One>("pivot");
 //        [[maybe_unused]]
