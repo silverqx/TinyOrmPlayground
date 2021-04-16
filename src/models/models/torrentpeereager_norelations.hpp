@@ -1,14 +1,14 @@
 #ifndef TORRENTPEEREAGER_NORELATIONS_H
 #define TORRENTPEEREAGER_NORELATIONS_H
 
-#include "orm/tiny/basemodel.hpp"
+#include "orm/tiny/model.hpp"
 
-using Orm::Tiny::BaseModel;
+using Orm::Tiny::Model;
 
-class TorrentPeerEager_NoRelations final : public BaseModel<TorrentPeerEager_NoRelations>
+class TorrentPeerEager_NoRelations final : public Model<TorrentPeerEager_NoRelations>
 {
-    friend BaseModel;
-    using BaseModel::BaseModel;
+    friend Model;
+    using Model::Model;
 
     /*! The table associated with the model. */
     QString u_table {"torrent_peers"};

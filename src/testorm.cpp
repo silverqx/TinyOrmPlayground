@@ -197,10 +197,6 @@ void TestOrm::anotherTests()
         }
 
         {
-            Torrent t;
-
-            QStringList ll {"aa", "bb"};
-            t.mergeFillable(ll);
 
             qt_noop();
         }
@@ -298,9 +294,8 @@ void TestOrm::testConnection()
         conn.insert("insert into tbl1 values(?, ?)", {"hello!", 10});
         conn.insert("insert into tbl1 values(?, ?)", {"goodbye", 20});
 
-        auto [ok, query] = conn.selectOne("select * from tbl1 where two = ?", {10});
+        auto query = conn.selectOne("select * from tbl1 where two = ?", {10});
 
-        Q_ASSERT(ok);
         Q_ASSERT(query.isValid());
         Q_ASSERT(query.value("one").value<QString>() == "hello!");
         Q_ASSERT(query.value("two").value<int>() == 10);
@@ -1854,7 +1849,7 @@ void TestOrm::testQueryBuilder()
 
     /* distinct, limit, offset and ordering  */
 //    {
-//        auto [ok, query] = m_db.query()->from("torrents")
+//        auto query = m_db.query()->from("torrents")
 //                .distinct()
 ////                .where("progress", ">", 100)
 //                .limit(5)
@@ -1938,7 +1933,7 @@ void TestOrm::testQueryBuilder()
 
     /* where() - an array of basic where clauses */
 //    {
-//        auto [ok, query] = m_db.query()->from("torrents")
+//        auto query = m_db.query()->from("torrents")
 //                .where({
 //                    {"size", 13, ">="},
 //                    {"progress", 500, ">="},
@@ -1956,7 +1951,7 @@ void TestOrm::testQueryBuilder()
 
     /* where() - an array of where clauses comparing two columns */
     {
-//        auto [ok, query] = m_db.query()->from("torrents")
+//        auto query = m_db.query()->from("torrents")
 //                .whereColumn({
 //            {"size", "progress", ">"},
 ////            {"progress", "size", ">="},
@@ -1987,7 +1982,7 @@ void TestOrm::testQueryBuilder()
     /* QueryBuilder::join() - Advanced Join Clause */
     {
         qDebug() << "\n\nQueryBuilder::join() - Advanced Join Clause\n---";
-        auto [ok, torrents] = DB::table("torrents")
+        auto torrents = DB::table("torrents")
                 ->join("torrent_previewable_files", [](auto &join)
         {
             join.on("torrents.id", "=", "torrent_id")
@@ -2009,7 +2004,7 @@ void TestOrm::testQueryBuilder()
     {
         qDebug() << "\n\nQueryBuilder::first()\n---";
 
-        auto [ok, torrent] = m_db->table("torrents")
+        auto torrent = m_db->table("torrents")
                 ->where("torrents.id", "=", 2)
                 .first({"id", "name"});
 
@@ -2036,7 +2031,7 @@ void TestOrm::testQueryBuilder()
     {
         qDebug() << "\n\nQueryBuilder::find()\n---";
 
-        auto [ok, torrent] = DB::table("torrents")->find(3, {"id", "name"});
+        auto torrent = DB::table("torrents")->find(3, {"id", "name"});
 
         qDebug() << "id :" << torrent.value("id").value<quint64>()
                  << "; name :" << torrent.value("name").value<QString>();
@@ -2072,11 +2067,11 @@ void TestOrm::testQueryBuilder()
 
     // Insert with boolean value, Qt converts it to int
 //    {
-//        auto [ok, q] = m_db.query()->from("torrents").insert(
-//                        {{"name", "bool test"}, {"size", 2048}, {"progress", 300},
-////                         {"added_on", QDateTime().currentDateTime().toString(Qt::ISODate)},
-//                         {"hash", "xxxx61defa3daecacfde5bde0214c4a439351d4d"},
-//                         {"bool", false}});
+//        auto q = DB::table("torrents")->insert(
+//                     {{"name", "bool test"}, {"size", 2048}, {"progress", 300},
+////                      {"added_on", QDateTime().currentDateTime().toString(Qt::ISODate)},
+//                      {"hash", "xxxx61defa3daecacfde5bde0214c4a439351d4d"},
+//                      {"bool", false}});
 //        qt_noop();
 //    }
 
@@ -2089,7 +2084,7 @@ void TestOrm::testQueryBuilder()
 //    }
 
 //    const auto id_i = 278;
-//    auto [ok_j, j] = m_db.query()->from("torrent_previewable_files").insert({
+//    auto j = m_db.query()->from("torrent_previewable_files").insert({
 //        {{"torrent_id", id_i}, {"file_index", 0}, {"filepath", "abc.mkv"}, {"size", 2048},
 //            {"progress", 10}},
 //        {{"torrent_id", id_i}, {"file_index", 1}, {"filepath", "xyz.mkv"}, {"size", 1024},
@@ -2101,7 +2096,7 @@ void TestOrm::testQueryBuilder()
 //    }
 //    qt_noop();
 
-//    auto [ok_k, k] = m_db.query()->from("torrent_previewable_files").insert({
+//    auto k = m_db.query()->from("torrent_previewable_files").insert({
 //        {"torrent_id", id_i}, {"file_index", 2}, {"filepath", "qrs.mkv"}, {"size", 3074},
 //        {"progress", 20}});
 //    qDebug() << "TWELVE :" << k->executedQuery();
@@ -2116,12 +2111,10 @@ void TestOrm::testQueryBuilder()
         qDebug() << "\n\nQueryBuilder::insertOrIgnore()\n---";
 
         const auto torrentId = 5;
-        auto [affected1, query1] = DB::table("torrent_previewable_files")
-                ->insert({
+        auto query1 = DB::table("torrent_previewable_files")->insert({
             {"torrent_id", torrentId}, {"file_index", 3}, {"filepath", "qrs.mkv"},
                 {"size", 3074}, {"progress", 20}
         });
-        Q_ASSERT(affected1 == 1);
 
         auto [affected, query] = DB::table("torrent_previewable_files")
                 ->insertOrIgnore(
@@ -2143,12 +2136,11 @@ void TestOrm::testQueryBuilder()
         qDebug() << "\n\nQueryBuilder::insertOrIgnore() [sqlite]\n---";
 
         const auto torrentId = 5;
-        auto [affected1, query1] = DB::table("torrent_previewable_files", "", "sqlite")
+        auto query1 = DB::table("torrent_previewable_files", "", "sqlite")
                 ->insert({
             {"torrent_id", torrentId}, {"file_index", 3}, {"filepath", "qrs.mkv"},
             {"size", 3074}, {"progress", 20}
         });
-        Q_ASSERT(affected1 == 1);
 
         auto [affected, query] = DB::table("torrent_previewable_files", "", "sqlite")
                 ->insertOrIgnore(

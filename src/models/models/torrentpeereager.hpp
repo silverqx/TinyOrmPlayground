@@ -1,14 +1,14 @@
 #ifndef TORRENTPEEREAGER_H
 #define TORRENTPEEREAGER_H
 
-#include "orm/tiny/basemodel.hpp"
+#include "orm/tiny/model.hpp"
 
 #include "models/torrenteager.hpp"
 
-class TorrentPeerEager final : public BaseModel<TorrentPeerEager, TorrentEager>
+class TorrentPeerEager final : public Model<TorrentPeerEager, TorrentEager>
 {
-    friend BaseModel;
-    using BaseModel::BaseModel;
+    friend Model;
+    using Model::Model;
 
 public:
     /*! Get the torrent that owns the torrent peer. */

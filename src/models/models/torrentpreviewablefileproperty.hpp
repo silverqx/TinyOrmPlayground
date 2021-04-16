@@ -1,15 +1,15 @@
 #ifndef TORRENTPREVIEWABLEFILEPROPERTY_H
 #define TORRENTPREVIEWABLEFILEPROPERTY_H
 
-#include "orm/tiny/basemodel.hpp"
+#include "orm/tiny/model.hpp"
 
 #include "models/torrentpreviewablefile.hpp"
 
 class TorrentPreviewableFileProperty final :
-        public BaseModel<TorrentPreviewableFileProperty, TorrentPreviewableFile>
+        public Model<TorrentPreviewableFileProperty, TorrentPreviewableFile>
 {
-    friend BaseModel;
-    using BaseModel::BaseModel;
+    friend Model;
+    using Model::Model;
 
 public:
     /*! Get the previewable file that owns the file property. */

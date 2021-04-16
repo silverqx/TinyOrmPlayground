@@ -1,7 +1,7 @@
 #ifndef TORRENT_H
 #define TORRENT_H
 
-#include "orm/tiny/basemodel.hpp"
+#include "orm/tiny/model.hpp"
 
 #include "models/forwards.hpp"
 
@@ -11,7 +11,7 @@
 #include "models/torrentpreviewablefile.hpp"
 
 //using Orm::AttributeItem;
-using Orm::Tiny::BaseModel;
+using Orm::Tiny::Model;
 using Orm::Tiny::Relations::BelongsToMany;
 using Orm::Tiny::Relations::Pivot;
 using Orm::Tiny::Relations::Relation;
@@ -20,11 +20,11 @@ using Orm::WithItem;
 /* This class serves as a showcase, so all possible features are defined / used. */
 
 class Torrent final :
-        public BaseModel<Torrent, TorrentPreviewableFile, TorrentPeer, Tag, Pivot>
-//        public BaseModel<Torrent, TorrentPreviewableFile, TorrentPeer, Tag, Tagged>
+        public Model<Torrent, TorrentPreviewableFile, TorrentPeer, Tag, Pivot>
+//        public Model<Torrent, TorrentPreviewableFile, TorrentPeer, Tag, Tagged>
 {
-    friend BaseModel;
-    using BaseModel::BaseModel;
+    friend Model;
+    using Model::Model;
 
 public:
     /*! The "type" of the primary key ID. */
@@ -47,6 +47,18 @@ public:
     {
         return hasOne<TorrentPeer>();
 //        return hasOne<TorrentPeer>("torrent_id", "id");
+
+        // Default Model example
+//        auto relation = hasOne<TorrentPeer>();
+//        relation->withDefault();
+//        relation->withDefault({{"seeds", 0}, {"total_seeds", -1}});
+        // This callback variant is not yet implemented 😟
+//        relation->withDefault([](Torrent &torrent,
+//                              const TorrentPreviewableFile &/*torrentFile*/)
+//        {
+//            torrent["name"] = "default_model_name";
+//        });
+//        return relation;
     }
 
     /*! Get tags that belong to the torrent. */
@@ -64,6 +76,7 @@ public:
         // Custom 'Tagged' pivot model ✨
         auto relation = belongsToMany<Tag, Tagged>();
         dynamic_cast<BelongsToMany<Torrent, Tag, Tagged> &>(*relation)
+                // CUR finish specific methods in Relation classes silverqx
                 .as("tagged")
                 .withPivot("active")
                 .withTimestamps(/*"created_at_custom", "updated_at_custom"*/);
