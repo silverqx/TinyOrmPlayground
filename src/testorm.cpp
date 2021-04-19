@@ -7,6 +7,8 @@
 #include <fstream>
 #include <iomanip>
 #include <iostream>
+#include <typeindex>
+#include <typeinfo>
 
 #include <nlohmann/json.hpp>
 #include <range/v3/all.hpp>

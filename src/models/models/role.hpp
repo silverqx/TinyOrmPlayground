@@ -23,8 +23,8 @@ public:
     {
         // Ownership of a unique_ptr()
         auto relation = belongsToMany<User>();
-        dynamic_cast<BelongsToMany<Role, User> &>(*relation)
-                .withPivot("active");
+
+        relation->withPivot("active");
 
         return relation;
     }
