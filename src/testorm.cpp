@@ -867,52 +867,52 @@ void TestOrm::testTinyOrm()
 //    }
 
     /* Model::push() */
-//    {
-//        Torrent t;
-//        auto torrent = t.find(2);
-//        // eager load
+    {
+        Torrent t;
+        auto torrent = t.find(2);
+        // eager load
 //        auto files = torrent->getRelation<TorrentPreviewableFile>("torrentFiles");
 //        auto *file = files.first();
 //        auto *fileProperty = file->getRelation<TorrentPreviewableFileProperty, One>("fileProperty");
-//        // lazy load
-////        auto files = torrent->getRelationValue<TorrentPreviewableFile>("torrentFiles");
-////        auto *file = files.first();
-////        auto *fileProperty = file->getRelationValue<TorrentPreviewableFileProperty, One>("fileProperty");
+        // lazy load
+        auto files = torrent->getRelationValue<TorrentPreviewableFile>("torrentFiles");
+        auto *file = files.first();
+        auto *fileProperty = file->getRelationValue<TorrentPreviewableFileProperty, One>("fileProperty");
 
-//        auto torrentName      = torrent->getAttribute("name").value<QString>();
-//        auto filepath         = file->getAttribute("filepath").value<QString>();
-//        auto filePropertyName = fileProperty->getAttribute("name").value<QString>();
-//        qDebug() << torrentName;
-//        qDebug() << filepath;
-//        qDebug() << filePropertyName;
+        auto torrentName      = torrent->getAttribute("name").value<QString>();
+        auto filepath         = file->getAttribute("filepath").value<QString>();
+        auto filePropertyName = fileProperty->getAttribute("name").value<QString>();
+        qDebug() << torrentName;
+        qDebug() << filepath;
+        qDebug() << filePropertyName;
 
-//        torrent->setAttribute("name", QVariant(torrentName + " x"));
-//        file->setAttribute("filepath", QVariant(filepath + ".xy"));
-//        fileProperty->setAttribute("name", QVariant(filePropertyName + " x"));
+        torrent->setAttribute("name", QVariant(torrentName + " x"));
+        file->setAttribute("filepath", QVariant(filepath + ".xy"));
+        fileProperty->setAttribute("name", QVariant(filePropertyName + " x"));
 
-//        const auto debugAttributes = [&torrent]
-//        {
-//            auto files = torrent->getRelation<TorrentPreviewableFile>("torrentFiles");
-//            auto file = files.first();
-//            auto *fileProperty = file->getRelation<TorrentPreviewableFileProperty, One>("fileProperty");
-//            qDebug() << torrent->getAttribute("name").value<QString>();
-//            qDebug() << file->getAttribute("filepath").value<QString>();
-//            qDebug() << fileProperty->getAttribute("name").value<QString>();
-//        };
+        const auto debugAttributes = [&torrent]
+        {
+            auto files = torrent->getRelation<TorrentPreviewableFile>("torrentFiles");
+            auto file = files.first();
+            auto *fileProperty = file->getRelation<TorrentPreviewableFileProperty, One>("fileProperty");
+            qDebug() << torrent->getAttribute("name").value<QString>();
+            qDebug() << file->getAttribute("filepath").value<QString>();
+            qDebug() << fileProperty->getAttribute("name").value<QString>();
+        };
 
-//        debugAttributes();
-//        torrent->push();
+        debugAttributes();
+        torrent->push();
 
-//        // Set it back, so I don't have to manually
-//        torrent->setAttribute("name", torrentName);
-//        file->setAttribute("filepath", filepath);
-//        fileProperty->setAttribute("name", filePropertyName);
+        // Set it back, so I don't have to manually
+        torrent->setAttribute("name", torrentName);
+        file->setAttribute("filepath", filepath);
+        fileProperty->setAttribute("name", filePropertyName);
 
-//        debugAttributes();
-//        torrent->push();
+        debugAttributes();
+        torrent->push();
 
-//        qt_noop();
-//    }
+        qt_noop();
+    }
 
     /* eager/lazy load - getRelation() and getRelationValue() */
     {
