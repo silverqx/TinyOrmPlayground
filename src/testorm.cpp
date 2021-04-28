@@ -199,6 +199,18 @@ void TestOrm::anotherTests()
         }
 
         {
+            auto t = Torrent::find(2);
+
+            [[maybe_unused]]
+            auto files = t->getRelationValue<TorrentPreviewableFile>("torrentFiles");
+            [[maybe_unused]]
+            auto peers = t->getRelationValue<TorrentPeer, One>("torrentPeer");
+
+            auto tags = t->getRelationValue<Tag>("tags");
+            [[maybe_unused]]
+            auto *pivot1 = tags.first()->getRelation<Tagged, One>("tagged");
+            [[maybe_unused]]
+            auto *pivot2 = tags.at(1)->getRelation<Tagged, One>("tagged");
 
             qt_noop();
         }
@@ -529,6 +541,8 @@ void TestOrm::testTinyOrm()
 
     /* Model::destroy() */
     {
+        qDebug() << "\n\nModel::destroy()\n---";
+
         Tag tag500({{"name", "tag500"}});
         tag500.save();
         Tag tag501({{"name", "tag501"}});
@@ -866,18 +880,23 @@ void TestOrm::testTinyOrm()
 //        qt_noop();
 //    }
 
-    /* Model::push() */
+    /* Model::push() - lazy load */
     {
-        Torrent t;
-        auto torrent = t.find(2);
+        qDebug() << "\n\nModel::push() - lazy load\n---";
+
+        auto torrent = Torrent::find(2);
+
         // eager load
 //        auto files = torrent->getRelation<TorrentPreviewableFile>("torrentFiles");
 //        auto *file = files.first();
 //        auto *fileProperty = file->getRelation<TorrentPreviewableFileProperty, One>("fileProperty");
+
         // lazy load
         auto files = torrent->getRelationValue<TorrentPreviewableFile>("torrentFiles");
         auto *file = files.first();
-        auto *fileProperty = file->getRelationValue<TorrentPreviewableFileProperty, One>("fileProperty");
+        auto *fileProperty =
+                file->getRelationValue<TorrentPreviewableFileProperty, One>(
+                    "fileProperty");
 
         auto torrentName      = torrent->getAttribute("name").value<QString>();
         auto filepath         = file->getAttribute("filepath").value<QString>();
@@ -894,7 +913,9 @@ void TestOrm::testTinyOrm()
         {
             auto files = torrent->getRelation<TorrentPreviewableFile>("torrentFiles");
             auto file = files.first();
-            auto *fileProperty = file->getRelation<TorrentPreviewableFileProperty, One>("fileProperty");
+            auto *fileProperty =
+                    file->getRelation<TorrentPreviewableFileProperty, One>(
+                        "fileProperty");
             qDebug() << torrent->getAttribute("name").value<QString>();
             qDebug() << file->getAttribute("filepath").value<QString>();
             qDebug() << fileProperty->getAttribute("name").value<QString>();
