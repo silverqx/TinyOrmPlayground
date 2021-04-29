@@ -366,9 +366,9 @@ void TestOrm::testTinyOrm()
     timer.start();
 
     qDebug().nospace()
-            << "\n\n============="
-            << "\n  BaseModel  "
-            << "\n=============";
+            << "\n\n========="
+            << "\n  Model  "
+            << "\n=========";
 
 //    {
 //        TorrentPreviewableFile a;
