@@ -200,38 +200,11 @@ void TestOrm::anotherTests()
         }
 
         {
-            auto user = User::find(2);
-
-            Role role {{"name", "first"}};
-            Role role1 {{"name", "c1"}};
-            Role role2 {{"name", "c2"}};
-            Role roleA1 {{"name", "Another c1"}};
-            Role roleA2 {{"name", "Another c2"}};
-
-            user->roles()->save(role, {{"active", false}});
-
-            user->roles()->saveMany({role1, role2}, {{{"active", true}},
-                                                     {{"active", false}}});
-
-            // No pivot attributes for comment1
-            user->roles()->saveMany({roleA1, roleA2}, {{}, {{"active", false}}});
 
             qt_noop();
         }
 
         {
-            auto t = Torrent::find(2);
-
-            [[maybe_unused]]
-            auto files = t->getRelationValue<TorrentPreviewableFile>("torrentFiles");
-//            [[maybe_unused]]
-//            auto peers = t->getRelationValue<TorrentPeer, One>("torrentPeer");
-
-//            auto tags = t->getRelationValue<Tag>("tags");
-//            [[maybe_unused]]
-//            auto *pivot1 = tags.first()->getRelation<Tagged, One>("tagged");
-//            [[maybe_unused]]
-//            auto *pivot2 = tags.at(1)->getRelation<Tagged, One>("tagged");
 
             qt_noop();
         }
