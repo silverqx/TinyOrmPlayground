@@ -1,0 +1,21 @@
+# Dependencies include and library paths
+# ---
+
+win32-g++* {
+}
+else:win32-msvc* {
+    # includes
+    # range-v3
+    INCLUDEPATH += $$quote(E:/xyz/vcpkg/installed/x64-windows/include)
+
+    # libraries
+    LIBS += $$quote(-L$$PWD/../../TinyOrm/TinyOrm-builds/build-TinyOrm-Desktop_Qt_$${TINY_QT_VERSION_UNDERSCORED}_MSVC2019_64bit-$${TINY_RELEASE_TYPE_CAMEL}/src/$${TINY_RELEASE_TYPE}/)
+}
+else:unix {
+    # includes
+    # range-v3
+    INCLUDEPATH += $$quote(/home/xyz/vcpkg/installed/x64-linux/include)
+
+    # libraries
+    LIBS += $$quote(-L$$PWD/../../TinyOrm/TinyOrm-builds/build-TinyOrm-Desktop_Qt_$${TINY_QT_VERSION_UNDERSCORED}_GCC_64bit-$${TINY_RELEASE_TYPE_CAMEL}/src/)
+}

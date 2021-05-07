@@ -71,3 +71,4 @@ Thumbs.db
 # others
 /executed_queries.sql
 /tmp.sql
+conf.pri

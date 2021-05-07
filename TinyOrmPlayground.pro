@@ -88,21 +88,6 @@ else:CONFIG(debug, debug|release) {
     TINY_RELEASE_TYPE_CAMEL = Debug
 }
 
-# Dependencies include and library paths
-# ---
-
-INCLUDEPATH += $$quote($$PWD/../../TinyOrm/TinyOrm/include)
-
-win32-g++* {
-}
-else:win32-msvc* {
-    LIBS += $$quote(-L$$PWD/../../TinyOrm/TinyOrm-builds/build-TinyOrm-Desktop_Qt_$${TINY_QT_VERSION_UNDERSCORED}_MSVC2019_64bit-$${TINY_RELEASE_TYPE_CAMEL}/src/$${TINY_RELEASE_TYPE}/)
-}
-else:unix {
-}
-
-LIBS += -lTinyOrm
-
 # File version and windows manifest
 # ---
 
@@ -117,6 +102,23 @@ win32-msvc* {
 #    RC_ICONS = images/TinyOrmPlayground.ico
     RC_LANG = 1033
 }
+
+# User Configuration
+# ---
+
+exists(conf.pri) {
+    include(conf.pri)
+}
+else {
+    error( "'conf.pri' does not exist. See an example configuration in 'conf.pri.example'." )
+}
+
+# Dependencies include and library paths
+# ---
+
+INCLUDEPATH += $$quote($$PWD/../../TinyOrm/TinyOrm/include)
+
+LIBS += -lTinyOrm
 
 # Use Precompiled headers (PCH)
 # ---
@@ -137,7 +139,7 @@ include(src/src.pri)
 # Default rules for deployment
 # ---
 
-release {
+CONFIG(release, debug|release) {
     win32-msvc*: target.path = C:/optx64/$${TARGET}
     else: unix:!android: target.path = /opt/$${TARGET}/bin
     !isEmpty(target.path): INSTALLS += target
