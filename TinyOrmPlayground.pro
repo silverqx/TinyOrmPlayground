@@ -9,12 +9,6 @@ TEMPLATE = app
 CONFIG *= console c++2a strict_c++ silent warn_on link_prl
 CONFIG -= c++11 app_bundle
 
-# Some info output
-# ---
-
-CONFIG(debug, debug|release): message( "Project is built in DEBUG mode." )
-CONFIG(release, debug|release): message( "Project is built in RELEASE mode." )
-
 # TinyOrmPlayground defines
 # ---
 
@@ -49,31 +43,11 @@ DEFINES += QT_STRICT_ITERATORS
 
 DEFINES += TINYORM_LINKING_SHARED
 
-# WinApi
+# Platform specific configuration
 # ---
-
-# Windows 10 1903 "19H1" - 0x0A000007
-DEFINES += NTDDI_VERSION=0x0A000007
-# Windows 10 - 0x0A00
-DEFINES += _WIN32_WINNT=0x0A00
-DEFINES += _WIN32_IE=0x0A00
-DEFINES += UNICODE
-DEFINES += _UNICODE
-DEFINES += WIN32
-DEFINES += _WIN32
-DEFINES += WIN32_LEAN_AND_MEAN
-DEFINES += NOMINMAX
-
-# Compilers
-# ---
-
-win32-msvc* {
-    # I don't use -MP flag, because using jom
-    QMAKE_CXXFLAGS += -guard:cf -permissive- -Zc:ternary
-    QMAKE_CXXFLAGS_DEBUG += -bigobj
-    QMAKE_LFLAGS += /guard:cf
-    QMAKE_LFLAGS_RELEASE += /OPT:REF /OPT:ICF=5
-}
+win32: include(qmake/winconf.pri)
+macx: include(qmake/macxconf.pri)
+unix:!macx: include(qmake/unixconf.pri)
 
 # My variables
 # ---
@@ -116,7 +90,7 @@ else {
 # Dependencies include and library paths
 # ---
 
-INCLUDEPATH += $$quote($$PWD/../../TinyOrm/TinyOrm/include)
+INCLUDEPATH += $$quote($$PWD/../../TinyOrm/TinyORM/include)
 
 LIBS += -lTinyOrm
 
@@ -141,6 +115,12 @@ include(src/src.pri)
 
 CONFIG(release, debug|release) {
     win32-msvc*: target.path = C:/optx64/$${TARGET}
-    else: unix:!android: target.path = /opt/$${TARGET}/bin
+#    else: unix:!android: target.path = /opt/$${TARGET}/bin
     !isEmpty(target.path): INSTALLS += target
 }
+
+# Some info output
+# ---
+
+CONFIG(debug, debug|release): message( "Project is built in DEBUG mode." )
+CONFIG(release, debug|release): message( "Project is built in RELEASE mode." )

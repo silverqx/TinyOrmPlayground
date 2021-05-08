@@ -1,6 +1,9 @@
+#include <QCoreApplication>
 #include <QDebug>
 
+#ifdef _MSC_VER
 #include <qt_windows.h>
+#endif
 
 #include <orm/utils/type.hpp>
 
@@ -9,8 +12,10 @@
 // TODO investigate ctrl+shift+alt+b build errors about can not delete TinyOrmPlayground.vc.pdb, .ilk, TinyOrmPlayground_pch.pch and similar silverqx
 int main(int, char *[])
 {
+#ifdef _MSC_VER
     SetConsoleOutputCP(CP_UTF8);
 //    SetConsoleOutputCP(1250);
+#endif
 
     QCoreApplication::setOrganizationName("crystal");
     QCoreApplication::setOrganizationDomain("crystal-studio.fun");
