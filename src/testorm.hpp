@@ -27,7 +27,7 @@ private:
     /*! Log a one Query statement counters. */
     void logQueryCountersBlock(
             const QString &title, qint64 elapsed,
-            const Orm::StatementsCounter &statementsCounter) const;
+            const Orm::StatementsCounter statementsCounter) const;
 
     /*! Get the filepath to the SQLite database file, for testing the 'check_database_exists'
         configuration option. */

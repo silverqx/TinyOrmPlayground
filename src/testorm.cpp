@@ -2653,7 +2653,7 @@ void TestOrm::logQueryCounters(const QString &func,
 
 void TestOrm::logQueryCountersBlock(
         const QString &title, const qint64 elapsed,
-        const StatementsCounter &statementsCounter) const
+        const StatementsCounter statementsCounter) const
 {
     qDebug() << "";
     qDebug().noquote() << title;
