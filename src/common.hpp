@@ -8,22 +8,20 @@
         QT_TRY {\
             QT_TRY {\
                 expression;\
-                qFatal("Expected exception of type '" #exceptiontype "' to be thrown, "\
-                       "but no exception caught.", __FILE__, __LINE__);\
+                qFatal("Expected exception of type '" #exceptiontype "' to be "\
+                       "thrown, but no exception caught. [%s(%u)]", __FILE__, __LINE__);\
                 return;\
             } QT_CATCH (const exceptiontype &e) {\
                 qDebug() << "Caught expected exception with message :" << e.what();\
             }\
         } QT_CATCH (const std::exception &e) {\
-            QByteArray msg =\
-                QByteArray() + "Expected exception of type '" #exceptiontype\
-                               "' to be thrown, but 'std::exception' caught with "\
-                               "message : " + e.what();\
-            qFatal(msg.constData(), __FILE__, __LINE__);\
+            qFatal("Expected exception of type '" #exceptiontype\
+                   "' to be thrown, but 'std::exception' caught with "\
+                   "message : %s. [%s(%u)]", e.what(), __FILE__, __LINE__);\
             return;\
         } QT_CATCH (...) {\
             qFatal("Expected exception of type '" #exceptiontype "' to be thrown, "\
-                   "but unknown exception caught.", __FILE__, __LINE__);\
+                   "but unknown exception caught. [%s(%u)]", __FILE__, __LINE__);\
             return;\
         }\
     } while (false)
@@ -37,8 +35,8 @@
  * So, users must use Qt with exception support enabled if they use exceptions
  * in their code.
  */
-#  define QVERIFY_EXCEPTION_THROWN(expression, exceptiontype)\
-    Q_STATIC_ASSERT_X(false, "Support of exceptions is disabled.")
+#  define TINY_VERIFY_EXCEPTION_THROWN(expression, exceptiontype)\
+     Q_STATIC_ASSERT_X(false, "Support of exceptions is disabled.")
 
 #endif // !QT_NO_EXCEPTIONS
 

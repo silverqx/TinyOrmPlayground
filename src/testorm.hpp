@@ -29,9 +29,13 @@ private:
             const QString &title, qint64 elapsed,
             const Orm::StatementsCounter &statementsCounter) const;
 
-    /*! Path to the SQLite database file. */
-    inline static const QString
-    CHECK_DATABASE_EXISTS_FILE = "E:/SQLite/q_tinyorm_test-check_exists.sqlite3";
+    /*! Get the filepath to the SQLite database file, for testing the 'check_database_exists'
+        configuration option. */
+    static QString getCheckDatabaseExistsFile();
+
+    /*! Path to the SQLite database file, for testing the 'check_database_exists'
+        configuration option. */
+    static const QString CHECK_DATABASE_EXISTS_FILE;
 
     /*! Connections to count on statements and execution times. */
     inline static const QStringList

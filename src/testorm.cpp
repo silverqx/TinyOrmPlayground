@@ -1,6 +1,8 @@
 #include "testorm.hpp"
 
 #include <QDebug>
+#include <QDir>
+#include <QFile>
 #include <QStandardPaths>
 
 //#include <format>
@@ -46,6 +48,8 @@ using Orm::Tiny::Relations::Pivot;
    Notes:
    - text in [] names connection name, eg. [sqlite]
 */
+
+const QString TestOrm::CHECK_DATABASE_EXISTS_FILE = getCheckDatabaseExistsFile();
 
 TestOrm &TestOrm::connectToDatabase()
 {
@@ -252,7 +256,9 @@ void TestOrm::anotherTests()
     // ---
     printf("Function name __FUNCTION__: %s\n", __FUNCTION__);
     printf("Function name __func__: %s\n", __func__);
+#ifdef _MSC_VER
     printf("Decorated function name: %s\n", __FUNCDNAME__);
+#endif
     // GCC : __PRETTY_FUNCTION__ ; MSVC : __FUNCSIG__
     printf("Function signature: %s\n", Q_FUNC_INFO);
     qt_noop();
@@ -2673,4 +2679,16 @@ void TestOrm::logQueryCountersBlock(
     qDebug() << "  Transaction :" << transactional;
     qDebug() << "  Total       :" << total;
     qDebug() << "---";
+}
+
+QString TestOrm::getCheckDatabaseExistsFile()
+{
+    auto path = qEnvironmentVariable("DB_SQLITE_DATABASE", "");
+
+    if (path.isEmpty())
+        throw std::invalid_argument("Undefined environment variable 'DB_SQLITE_DATABASE'.");
+
+    path.truncate(QDir::fromNativeSeparators(path).lastIndexOf(QChar('/')));
+
+    return path + "/q_tinyorm_test-check_exists.sqlite3";
 }
