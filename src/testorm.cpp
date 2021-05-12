@@ -1746,12 +1746,12 @@ void TestOrm::testTinyOrm()
         };
         torrent103.save();
 
-        auto tag4 = Tag::find(4);
+        auto tag5 = Tag::find(5);
 
-        tag4->torrents()->attach({torrent101, torrent102},
+        tag5->torrents()->attach({torrent101, torrent102},
                                  {{"active", 1}});
 
-        auto changed = tag4->torrents()->sync(
+        auto changed = tag5->torrents()->sync(
                            {{torrent100["id"]->value<quint64>(), {{"active", 1}}},
                             {torrent101["id"]->value<quint64>(), {{"active", 0}}},
                             {torrent103["id"]->value<quint64>(), {{"active", 1}}}});
