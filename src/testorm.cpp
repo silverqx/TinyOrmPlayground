@@ -1500,7 +1500,8 @@ void TestOrm::testTinyOrm()
         [[maybe_unused]]
         auto verifyTorrent5 = file.getRelation<Torrent, One>("torrent");
 
-        // Have to unset current relationship
+        /* Have to unset current relationship, this is clearly visible in the Eqloquent's
+           associate implementation. */
         fileRef = file.torrent()->associate(2);
 
 //        fileRef.save();
@@ -1579,7 +1580,7 @@ void TestOrm::testTinyOrm()
         auto tag4 = Tag::find(4);
 
         tag4->torrents()->attach({torrent100["id"], torrent101["id"]},
-                                 {{"active", 1}});
+                                 {{"active", 0}});
 
         torrent100.remove();
         torrent101.remove();
