@@ -103,7 +103,6 @@ TestOrm &TestOrm::connectToDatabase()
             {"prefix",          ""},
             {"strict",          true},
             {"isolation_level", "REPEATABLE READ"},
-            // CUR add timezone names to the MySQL server and test them silverqx
             {"options",         QVariantHash()},
         }},
 

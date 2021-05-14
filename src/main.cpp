@@ -9,7 +9,6 @@
 
 #include "testorm.hpp"
 
-// TODO investigate ctrl+shift+alt+b build errors about can not delete TinyOrmPlayground.vc.pdb, .ilk, TinyOrmPlayground_pch.pch and similar silverqx
 int main(int, char *[])
 {
 #ifdef _MSC_VER
@@ -32,7 +31,6 @@ int main(int, char *[])
         // TODO future alse how to correctly setup this in prod/dev envs. silverqx
         qCritical().nospace().noquote()
                 << "\n\nCaught '"
-                // CUR still returns exception type eg for exceptions in MySqlConnector::getMySqlVersion silverqx
                 << Orm::Utils::Type::classPureBasename(e, true)
                 << "' Exception:\n" << e.what();
     }
