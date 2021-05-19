@@ -170,6 +170,8 @@ void TestOrm::anotherTests()
     QElapsedTimer timer;
     timer.start();
 
+    resetAllQueryLogCounters();
+
     qDebug().nospace()
             << "================="
             << "\n  Another Tests  "
@@ -229,57 +231,77 @@ void TestOrm::anotherTests()
         qt_noop();
     }
 
-    // Ranges
-    QVector<AttributeItem> attributes {
-        {"one", 1},
-        {"two", 2},
-        {"three", 3},
-        {"four", 4},
-    };
-//    const auto itAttribute = ranges::find_if(attributes,
-//                                             [](const auto &attribute)
-//    {
-//        return attribute.key == "three";
-//    });
-    const auto itAttribute = ranges::find(attributes, true,
-                                          [](const auto &attribute)
+    /* Ranges */
     {
-        return attribute.key == "three";
-    });
+        QVector<AttributeItem> attributes {
+            {"one", 1},
+            {"two", 2},
+            {"three", 3},
+            {"four", 4},
+        };
 
-    // Not found
-    if (itAttribute == ranges::end(attributes))
-        qt_noop();
+//        const auto itAttribute = ranges::find_if(attributes,
+//                                                 [](const auto &attribute)
+//        {
+//            return attribute.key == "three";
+//        });
 
-    // __FUNCTION__
-    // ---
-    printf("Function name __FUNCTION__: %s\n", __FUNCTION__);
-    printf("Function name __func__: %s\n", __func__);
+        const auto itAttribute = ranges::find(attributes, true,
+                                              [](const auto &attribute)
+        {
+            return attribute.key == "three";
+        });
+
+        // Not found
+        if (itAttribute == ranges::end(attributes))
+            qt_noop();
+    }
+
+    /* __FUNCTION__ */
+    {
+        qDebug().nospace()
+                << "\n\n=================="
+            << "\n   __FUNCTION__   "
+            << "\n==================\n\n";
+
+        printf("Function name __FUNCTION__ : %s\n", __FUNCTION__);
+        printf("Function name __func__ : %s\n", __func__);
 #ifdef _MSC_VER
-    printf("Decorated function name: %s\n", __FUNCDNAME__);
+        printf("Decorated function name __FUNCDNAME__ : %s\n", __FUNCDNAME__);
 #endif
-    // GCC : __PRETTY_FUNCTION__ ; MSVC : __FUNCSIG__
-    printf("Function signature: %s\n", Q_FUNC_INFO);
-    qt_noop();
+        // GCC : __PRETTY_FUNCTION__ ; MSVC : __FUNCSIG__
+        printf("Function signature Q_FUNC_INFO: %s\n", Q_FUNC_INFO);
+        qt_noop();
+    }
 
-    // formatting
-    // ---
-//    int num = 100;
-//    std::string s = "hello";
+    /* Formatting with std::format() */
+    {
+//        qDebug().nospace()
+//                << "\n\n=================="
+//            << "\n   __FUNCTION__   "
+//            << "\n==================\n\n";
 
-//    printf("before: %i\n", num);
-////    printf("before: %f\n", num);
-//    printf("before: %s\n", s.c_str());
+//        int num = 100;
+//        std::string s = "hello";
 
-//    std::string message = std::format("The answer is {}.", 42);
+//        printf("before: %i\n", num);
+////        printf("before: %f\n", num);
+//        printf("before: %s\n", s.c_str());
 
-//    qt_noop();
+//        std::string message = std::format("The answer is {}.", 42);
+
+//        qt_noop();
+    }
+
+    logQueryCounters(__FUNCTION__, timer.elapsed());
 }
 
 void TestOrm::testConnection()
 {
     QElapsedTimer timer;
     timer.start();
+
+    resetAllQueryLogCounters();
 
     qDebug().nospace()
             << "\n\n======================"
@@ -363,6 +385,8 @@ void TestOrm::testTinyOrm()
 {
     QElapsedTimer timer;
     timer.start();
+
+    resetAllQueryLogCounters();
 
     qDebug().nospace()
             << "\n\n========="
@@ -1839,6 +1863,8 @@ void TestOrm::testQueryBuilder()
     QElapsedTimer timer;
     timer.start();
 
+    resetAllQueryLogCounters();
+
     qDebug().nospace()
             << "\n\n================"
             << "\n  QueryBuilder  "
@@ -2611,6 +2637,8 @@ void TestOrm::logQueryCounters(const QString &func,
     // Total counters for the summary
     int allElapsed = -1;
     StatementsCounter allStatementsCounter;
+    bool allRecordsHaveBeenModified = false;
+
     /* If any connection count statements, then counters will be -1, set them
        to the zero values only if some connection count statements, the same is true
        for queries execution time counter. 🧹 */
@@ -2638,22 +2666,28 @@ void TestOrm::logQueryCounters(const QString &func,
             allStatementsCounter.transactional += statementsCounter.transactional;
         }
 
+        // Whether recods have been modified
+        const auto recordsHaveBeenModified = connection.getRecordsHaveBeenModified();
+        allRecordsHaveBeenModified |= recordsHaveBeenModified;
+
         // Log connection statistics
         logQueryCountersBlock(
                     QStringLiteral("Connection name - '%1'").arg(connectionName),
-                    elapsed, statementsCounter);
+                    elapsed, statementsCounter, recordsHaveBeenModified);
     }
 
     // Summary
     logQueryCountersBlock(QStringLiteral("Summary"),
-                          allElapsed, allStatementsCounter);
+                          allElapsed, allStatementsCounter,
+                          allRecordsHaveBeenModified);
 
     qDebug().noquote() << line;
 }
 
 void TestOrm::logQueryCountersBlock(
-        const QString &title, const qint64 elapsed,
-        const StatementsCounter statementsCounter) const
+            const QString &title, const qint64 elapsed,
+            const StatementsCounter statementsCounter,
+            const bool recordsHaveBeenModified) const
 {
     qDebug() << "";
     qDebug().noquote() << title;
@@ -2665,7 +2699,11 @@ void TestOrm::logQueryCountersBlock(
 
     // Queries execution time
     qDebug().nospace() << "⚡ " << "Queries execution time : "
-                   << elapsed << (elapsed > -1 ? "ms" : "");
+                       << elapsed << (elapsed > -1 ? "ms" : "");
+
+    // Whether records have been modified on the current connection
+    qDebug().nospace() << "✎ " << "Records was modified   : "
+                       << (recordsHaveBeenModified ? "yes" : "no");
 
     const auto &[normal, affecting, transactional] = statementsCounter;
     int total = -1;
@@ -2691,4 +2729,13 @@ QString TestOrm::getCheckDatabaseExistsFile()
     path.truncate(QDir::fromNativeSeparators(path).lastIndexOf(QChar('/')));
 
     return path + "/q_tinyorm_test-check_exists.sqlite3";
+}
+
+void TestOrm::resetAllQueryLogCounters() const
+{
+    DB::resetElapsedCounters(CONNECTIONS_TO_COUNT);
+    DB::resetStatementCounters(CONNECTIONS_TO_COUNT);
+
+    for (const auto &connection : CONNECTIONS_TO_COUNT)
+        DB::forgetRecordModificationState(connection);
 }

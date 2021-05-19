@@ -27,11 +27,15 @@ private:
     /*! Log a one Query statement counters. */
     void logQueryCountersBlock(
             const QString &title, qint64 elapsed,
-            const Orm::StatementsCounter statementsCounter) const;
+            const Orm::StatementsCounter statementsCounter,
+            bool recordsHaveBeenModified) const;
 
     /*! Get the filepath to the SQLite database file, for testing the 'check_database_exists'
         configuration option. */
     static QString getCheckDatabaseExistsFile();
+
+    /*! Reset all counters on counted connections. */
+    void resetAllQueryLogCounters() const;
 
     /*! Path to the SQLite database file, for testing the 'check_database_exists'
         configuration option. */
