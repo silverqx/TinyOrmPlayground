@@ -40,7 +40,6 @@ using Orm::AttributeItem;
 using Orm::MySqlConnection;
 using Orm::InvalidArgumentError;
 using Orm::One;
-using Orm::StatementsCounter;
 using Orm::Tiny::ModelNotFoundError;
 using Orm::Tiny::Relations::Pivot;
 
@@ -161,6 +160,11 @@ TestOrm &TestOrm::run()
     testTinyOrm();
 //    jsonConfig();
 //    standardPaths();
+
+    // Whole application Summary
+    logQueryCountersBlock(QStringLiteral("Application Summary"),
+                          m_appElapsed, m_appStatementsCounter,
+                          m_appRecordsHaveBeenModified);
 
     return *this;
 }
@@ -2622,30 +2626,34 @@ void TestOrm::standardPaths()
 }
 
 void TestOrm::logQueryCounters(const QString &func,
-                               const std::optional<qint64> elapsed) const
+                               const std::optional<qint64> functionElapsed)
 {
     // Header with the function execution time
     const auto line = QString("-").repeated(13 + func.size());
 
+    // Function elapsed execution time
     qDebug().noquote().nospace() << "\n" << line;
     qDebug().noquote().nospace() << "Function - " << func << "()";
     qDebug().noquote().nospace() << line;
 
-    qDebug().nospace() << "\n⚡ " << "Function Execution time : "
-                       << (elapsed ? *elapsed : -1) << "ms";
+    qDebug().nospace() << "\n⚡ Function Execution time : "
+                       << (functionElapsed ? *functionElapsed : -1) << "ms";
+
+    if (functionElapsed)
+        m_appFunctionsElapsed += *functionElapsed;
 
     // Total counters for the summary
-    int allElapsed = -1;
-    StatementsCounter allStatementsCounter;
-    bool allRecordsHaveBeenModified = false;
+    int summaryElapsed = -1;
+    StatementsCounter summaryStatementsCounter;
+    bool summaryRecordsHaveBeenModified = false;
 
     /* If any connection count statements, then counters will be -1, set them
        to the zero values only if some connection count statements, the same is true
        for queries execution time counter. 🧹 */
     if (DB::anyCountingStatements())
-        allStatementsCounter = {0, 0, 0};
+        summaryStatementsCounter = {0, 0, 0};
     if (DB::anyCountingElapsed())
-        allElapsed = 0;
+        summaryElapsed = 0;
 
     // Log all connections
     for (const auto &connectionName : CONNECTIONS_TO_COUNT) {
@@ -2654,21 +2662,28 @@ void TestOrm::logQueryCounters(const QString &func,
         // Queries execution time
         const auto elapsed = connection.takeElapsedCounter();
         // Don't count if counting is not enabled
-        if (connection.countingElapsed())
-            allElapsed += elapsed;
+        if (connection.countingElapsed()) {
+            summaryElapsed += elapsed;
+            m_appElapsed += elapsed;
+        }
 
         // Executed statements counter
         const auto statementsCounter = connection.takeStatementsCounter();
         // Count only when the counting is enabled
         if (connection.countingStatements()) {
-            allStatementsCounter.normal        += statementsCounter.normal;
-            allStatementsCounter.affecting     += statementsCounter.affecting;
-            allStatementsCounter.transactional += statementsCounter.transactional;
+            summaryStatementsCounter.normal        += statementsCounter.normal;
+            summaryStatementsCounter.affecting     += statementsCounter.affecting;
+            summaryStatementsCounter.transactional += statementsCounter.transactional;
+
+            m_appStatementsCounter.normal        += statementsCounter.normal;
+            m_appStatementsCounter.affecting     += statementsCounter.affecting;
+            m_appStatementsCounter.transactional += statementsCounter.transactional;
         }
 
         // Whether recods have been modified
         const auto recordsHaveBeenModified = connection.getRecordsHaveBeenModified();
-        allRecordsHaveBeenModified |= recordsHaveBeenModified;
+        summaryRecordsHaveBeenModified |= recordsHaveBeenModified;
+        m_appRecordsHaveBeenModified |= recordsHaveBeenModified;
 
         // Log connection statistics
         logQueryCountersBlock(
@@ -2678,8 +2693,8 @@ void TestOrm::logQueryCounters(const QString &func,
 
     // Summary
     logQueryCountersBlock(QStringLiteral("Summary"),
-                          allElapsed, allStatementsCounter,
-                          allRecordsHaveBeenModified);
+                          summaryElapsed, summaryStatementsCounter,
+                          summaryRecordsHaveBeenModified);
 
     qDebug().noquote() << line;
 }
@@ -2689,20 +2704,43 @@ void TestOrm::logQueryCountersBlock(
             const StatementsCounter statementsCounter,
             const bool recordsHaveBeenModified) const
 {
-    qDebug() << "";
-    qDebug().noquote() << title;
-    qDebug() << "---";
+    // Header
+    if (title.contains("Application")) {
+        qDebug() << "\n-----------------------";
+        qDebug().noquote().nospace() << "  " << title;
+        qDebug() << "-----------------------";
+    } else {
+        qDebug() << "";
+        qDebug().noquote() << title;
+        qDebug() << "---";
+    }
 
-    if (title == "Summary")
-        qDebug().nospace() << "∑ " << "Counted connections    : "
+#ifdef _MSC_VER
+    if (title.contains("Application"))
+        qDebug() << "⚙ _MSC_VER                 :" << _MSC_VER;
+#endif
+
+    // All Functions execution time
+    if (title.contains("Application"))
+        qDebug() << "⚡ Functions execution time :" << m_appFunctionsElapsed << "ms\n";
+
+    // Counters on connections
+    if (title.contains("Summary"))
+        qDebug().nospace() << "∑ " << "Counted connections    "
+                           << (title.contains("Application") ? "  " : "")
+                           << ": "
                            << CONNECTIONS_TO_COUNT.size();
 
     // Queries execution time
-    qDebug().nospace() << "⚡ " << "Queries execution time : "
+    qDebug().nospace() << "⚡ Queries execution time "
+                       << (title.contains("Application") ? "  " : "")
+                       << ": "
                        << elapsed << (elapsed > -1 ? "ms" : "");
 
     // Whether records have been modified on the current connection
-    qDebug().nospace() << "✎ " << "Records was modified   : "
+    qDebug().nospace() << "✎ Records was modified   "
+                       << (title.contains("Application") ? "  " : "")
+                       << ": "
                        << (recordsHaveBeenModified ? "yes" : "no");
 
     const auto &[normal, affecting, transactional] = statementsCounter;
@@ -2712,10 +2750,10 @@ void TestOrm::logQueryCountersBlock(
         total = normal + affecting + transactional;
 
     qDebug() << "⚖ Statements counters";
-    qDebug() << "  Normal      :" << normal;
-    qDebug() << "  Affecting   :" << affecting;
-    qDebug() << "  Transaction :" << transactional;
-    qDebug() << "  Total       :" << total;
+    qDebug() << "  Normal        :" << normal;
+    qDebug() << "  Affecting     :" << affecting;
+    qDebug() << "  Transaction   :" << transactional;
+    qDebug() << "  Total         :" << total;
     qDebug() << "---";
 }
 

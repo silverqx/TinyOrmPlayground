@@ -2,6 +2,7 @@
 #define TESTORM_H
 
 #include <orm/databasemanager.hpp>
+#include <orm/types/statementscounter.hpp>
 
 class TestOrm
 {
@@ -12,6 +13,8 @@ public:
     TestOrm &run();
 
 private:
+    using StatementsCounter = Orm::StatementsCounter;
+
     void anotherTests();
     void testConnection();
     void testTinyOrm();
@@ -23,7 +26,7 @@ private:
     /*! Log queries execution time counter and Query statements counter. */
     void logQueryCounters(
             const QString &func,
-            const std::optional<qint64> elapsed = std::nullopt) const;
+            const std::optional<qint64> functionElapsed = std::nullopt);
     /*! Log a one Query statement counters. */
     void logQueryCountersBlock(
             const QString &title, qint64 elapsed,
@@ -47,6 +50,16 @@ private:
 
     /*! Database manager instance. */
     std::unique_ptr<Orm::DatabaseManager> m_db;
+
+    /* Counters for the summary */
+    /*! Queries execution time for the whole application. */
+    int m_appFunctionsElapsed = 0;
+    /*! Queries execution time for the whole application. */
+    int m_appElapsed = 0;
+    /*! Counts executed statements in the whole application. */
+    StatementsCounter m_appStatementsCounter;
+    /*! Indicates if changes have been made to the database for the whole application. */
+    bool m_appRecordsHaveBeenModified = false;
 };
 
 #endif // TESTORM_H
