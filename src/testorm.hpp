@@ -57,7 +57,7 @@ private:
     /*! Queries execution time for the whole application. */
     int m_appElapsed = 0;
     /*! Counts executed statements in the whole application. */
-    StatementsCounter m_appStatementsCounter;
+    StatementsCounter m_appStatementsCounter {0, 0, 0};
     /*! Indicates if changes have been made to the database for the whole application. */
     bool m_appRecordsHaveBeenModified = false;
 };

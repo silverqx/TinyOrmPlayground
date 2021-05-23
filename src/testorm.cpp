@@ -2743,11 +2743,15 @@ void TestOrm::logQueryCountersBlock(
                        << ": "
                        << (recordsHaveBeenModified ? "yes" : "no");
 
+    // Count total executed queries
     const auto &[normal, affecting, transactional] = statementsCounter;
-    int total = -1;
-    // I will check only normal for -1, it is enough
+    int total = normal == -1 && affecting == -1 && transactional == -1 ? -1 : 0;
     if (normal != -1)
-        total = normal + affecting + transactional;
+        total += normal;
+    if (affecting != -1)
+        total += affecting;
+    if (transactional != -1)
+        total += transactional;
 
     qDebug() << "⚖ Statements counters";
     qDebug() << "  Normal        :" << normal;
@@ -2762,7 +2766,8 @@ QString TestOrm::getCheckDatabaseExistsFile()
     auto path = qEnvironmentVariable("DB_SQLITE_DATABASE", "");
 
     if (path.isEmpty())
-        throw std::invalid_argument("Undefined environment variable 'DB_SQLITE_DATABASE'.");
+        throw std::invalid_argument(
+                "Undefined environment variable 'DB_SQLITE_DATABASE'.");
 
     path.truncate(QDir::fromNativeSeparators(path).lastIndexOf(QChar('/')));
 
