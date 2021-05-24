@@ -24,12 +24,8 @@
 #include "common.hpp"
 #include "models/filepropertyproperty.hpp"
 #include "models/setting.hpp"
-#include "models/tagged.hpp"
-#include "models/tagproperty.hpp"
 #include "models/torrent.hpp"
 #include "models/torrenteager.hpp"
-#include "models/torrentpeer.hpp"
-#include "models/torrentpreviewablefile.hpp"
 #include "models/user.hpp"
 
 using namespace ranges;
