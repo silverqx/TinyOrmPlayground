@@ -5,7 +5,9 @@
 #include <QFile>
 #include <QStandardPaths>
 
-//#include <format>
+#ifdef _MSC_VER
+#include <format>
+#endif
 #include <fstream>
 #include <iomanip>
 #include <iostream>
@@ -275,23 +277,29 @@ void TestOrm::anotherTests()
     }
 
     /* Formatting with std::format() */
+#ifdef _MSC_VER
     {
-//        qDebug().nospace()
-//                << "\n\n=================="
-//            << "\n   __FUNCTION__   "
-//            << "\n==================\n\n";
+        qDebug().nospace()
+            << "\n\n=================="
+            << "\n    std::format   "
+            << "\n==================\n\n";
 
-//        int num = 100;
-//        std::string s = "hello";
+        int num = 100;
+        std::string s = "hello";
 
-//        printf("before: %i\n", num);
-////        printf("before: %f\n", num);
-//        printf("before: %s\n", s.c_str());
+        printf("before: %i\n", num);
+//        printf("before: %f\n", num);
+        printf("before: %s\n", s.c_str());
 
-//        std::string message = std::format("The answer is {}.", 42);
+        std::string m1 = std::format("The answer is {}.", 42);
+        std::string m2 = std::format("The answer is {}.", s);
 
-//        qt_noop();
+        qDebug() << QString::fromStdString(m1);
+        qDebug() << QString::fromStdString(m2);
+
+        qt_noop();
     }
+#endif
 
     logQueryCounters(__FUNCTION__, timer.elapsed());
 }
