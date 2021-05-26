@@ -72,3 +72,4 @@ Thumbs.db
 /executed_queries.sql
 /tmp.sql
 conf.pri
+/CMakeUserPresets.json

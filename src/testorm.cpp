@@ -1035,6 +1035,15 @@ void TestOrm::testTinyOrm()
         qt_noop();
     }
 
+    /* Model::withOnly() */
+    {
+        qDebug() << "\n\nModel::withOnly()\n---";
+        auto t = TorrentEager::withOnly("torrentPeer")->find(1);
+        auto *p = t->getRelation<TorrentPeerEager_NoRelations, One>("torrentPeer");
+        qDebug() << p->getAttribute("id");
+        qt_noop();
+    }
+
     /* Timestamps - update */
     {
         qDebug() << "\n\nTimestamps - update\n---";
