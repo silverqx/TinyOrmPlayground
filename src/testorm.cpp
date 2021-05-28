@@ -2645,12 +2645,12 @@ void TestOrm::logQueryCounters(const QString &func,
     const auto line = QString("-").repeated(13 + func.size());
 
     // Function elapsed execution time
-    qDebug().noquote().nospace() << "\n" << line;
-    qDebug().noquote().nospace() << "Function - " << func << "()";
-    qDebug().noquote().nospace() << line;
+    qInfo().noquote().nospace() << "\n" << line;
+    qInfo().noquote().nospace() << "Function - " << func << "()";
+    qInfo().noquote().nospace() << line;
 
-    qDebug().nospace() << "\n⚡ Function Execution time : "
-                       << (functionElapsed ? *functionElapsed : -1) << "ms";
+    qInfo().nospace() << "\n⚡ Function Execution time : "
+                      << (functionElapsed ? *functionElapsed : -1) << "ms";
 
     if (functionElapsed)
         m_appFunctionsElapsed += *functionElapsed;
@@ -2709,7 +2709,7 @@ void TestOrm::logQueryCounters(const QString &func,
                           summaryElapsed, summaryStatementsCounter,
                           summaryRecordsHaveBeenModified);
 
-    qDebug().noquote() << line;
+    qInfo().noquote() << line;
 }
 
 void TestOrm::logQueryCountersBlock(
@@ -2719,42 +2719,42 @@ void TestOrm::logQueryCountersBlock(
 {
     // Header
     if (title.contains("Application")) {
-        qDebug() << "\n-----------------------";
-        qDebug().noquote().nospace() << "  " << title;
-        qDebug() << "-----------------------";
+        qInfo() << "\n-----------------------";
+        qInfo().noquote().nospace() << "  " << title;
+        qInfo() << "-----------------------";
     } else {
-        qDebug() << "";
-        qDebug().noquote() << title;
-        qDebug() << "---";
+        qInfo() << "";
+        qInfo().noquote() << title;
+        qInfo() << "---";
     }
 
 #ifdef _MSC_VER
     if (title.contains("Application"))
-        qDebug() << "⚙ _MSC_VER                 :" << _MSC_VER;
+        qInfo() << "⚙ _MSC_VER                 :" << _MSC_VER;
 #endif
 
     // All Functions execution time
     if (title.contains("Application"))
-        qDebug() << "⚡ Functions execution time :" << m_appFunctionsElapsed << "ms\n";
+        qInfo() << "⚡ Functions execution time :" << m_appFunctionsElapsed << "ms\n";
 
     // Counters on connections
     if (title.contains("Summary"))
-        qDebug().nospace() << "∑ " << "Counted connections    "
-                           << (title.contains("Application") ? "  " : "")
-                           << ": "
-                           << CONNECTIONS_TO_COUNT.size();
+        qInfo().nospace() << "∑ " << "Counted connections    "
+                          << (title.contains("Application") ? "  " : "")
+                          << ": "
+                          << CONNECTIONS_TO_COUNT.size();
 
     // Queries execution time
-    qDebug().nospace() << "⚡ Queries execution time "
-                       << (title.contains("Application") ? "  " : "")
-                       << ": "
-                       << elapsed << (elapsed > -1 ? "ms" : "");
+    qInfo().nospace() << "⚡ Queries execution time "
+                      << (title.contains("Application") ? "  " : "")
+                      << ": "
+                      << elapsed << (elapsed > -1 ? "ms" : "");
 
     // Whether records have been modified on the current connection
-    qDebug().nospace() << "✎ Records was modified   "
-                       << (title.contains("Application") ? "  " : "")
-                       << ": "
-                       << (recordsHaveBeenModified ? "yes" : "no");
+    qInfo().nospace() << "✎ Records was modified   "
+                      << (title.contains("Application") ? "  " : "")
+                      << ": "
+                      << (recordsHaveBeenModified ? "yes" : "no");
 
     // Count total executed queries
     const auto &[normal, affecting, transactional] = statementsCounter;
@@ -2766,12 +2766,12 @@ void TestOrm::logQueryCountersBlock(
     if (transactional != -1)
         total += transactional;
 
-    qDebug() << "⚖ Statements counters";
-    qDebug() << "  Normal        :" << normal;
-    qDebug() << "  Affecting     :" << affecting;
-    qDebug() << "  Transaction   :" << transactional;
-    qDebug() << "  Total         :" << total;
-    qDebug() << "---";
+    qInfo() << "⚖ Statements counters";
+    qInfo() << "  Normal        :" << normal;
+    qInfo() << "  Affecting     :" << affecting;
+    qInfo() << "  Transaction   :" << transactional;
+    qInfo() << "  Total         :" << total;
+    qInfo() << "---";
 }
 
 QString TestOrm::getCheckDatabaseExistsFile()
