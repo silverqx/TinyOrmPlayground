@@ -46,7 +46,11 @@ private:
 
     /*! Connections to count on statements and execution times. */
     inline static const QStringList
-    CONNECTIONS_TO_COUNT {"mysql", "mysql_alt", "sqlite", "sqlite_memory"};
+    CONNECTIONS_TO_COUNT {"mysql", "mysql_alt", "sqlite", "sqlite_memory", "postgres"};
+    /*! Connections, for which the testQueryBuilder() and testTinyOrm()
+        will be ran on. */
+    inline static const QStringList
+    CONNECTIONS_TO_TEST {"mysql", "sqlite", "postgres"};
 
     /*! Database manager instance. */
     std::unique_ptr<Orm::DatabaseManager> m_db;
