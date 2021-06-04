@@ -17,12 +17,16 @@ else:unix {
     INCLUDEPATH += $$quote(/home/xyz/vcpkg/installed/x64-linux/include)
 
     # libraries
+    # TinyORM library path
+    # ccache build link against ccache build
+    contains(OUT_PWD, .*ccache.*): TINY_CCACHE_BUILD = _ccache
+    else: TINY_CCACHE_BUILD =
     # support gcc, clang11, and clang12
     clang {
-        equals(QMAKE_CLANG_MAJOR_VERSION, 11): LIBS += $$quote(-L$$PWD/../../TinyOrm/TinyOrm-builds/build-TinyOrm-Desktop_Qt_$${TINY_QT_VERSION_UNDERSCORED}_clang11_64bit-$${TINY_RELEASE_TYPE_CAMEL}/src/)
-        else:equals(QMAKE_CLANG_MAJOR_VERSION, 12): LIBS += $$quote(-L$$PWD/../../TinyOrm/TinyOrm-builds/build-TinyOrm-Desktop_Qt_$${TINY_QT_VERSION_UNDERSCORED}_clang12_64bit-$${TINY_RELEASE_TYPE_CAMEL}/src/)
+        equals(QMAKE_CLANG_MAJOR_VERSION, 11): LIBS += $$quote(-L$$PWD/../../TinyOrm/TinyOrm-builds/build-TinyOrm-Desktop_Qt_$${TINY_QT_VERSION_UNDERSCORED}_clang11_64bit$${TINY_CCACHE_BUILD}-$${TINY_RELEASE_TYPE_CAMEL}/src/)
+        else:equals(QMAKE_CLANG_MAJOR_VERSION, 12): LIBS += $$quote(-L$$PWD/../../TinyOrm/TinyOrm-builds/build-TinyOrm-Desktop_Qt_$${TINY_QT_VERSION_UNDERSCORED}_clang12_64bit$${TINY_CCACHE_BUILD}-$${TINY_RELEASE_TYPE_CAMEL}/src/)
     }
-    else:gcc: LIBS += $$quote(-L$$PWD/../../TinyOrm/TinyOrm-builds/build-TinyOrm-Desktop_Qt_$${TINY_QT_VERSION_UNDERSCORED}_GCC_64bit-$${TINY_RELEASE_TYPE_CAMEL}/src/)
+    else:gcc: LIBS += $$quote(-L$$PWD/../../TinyOrm/TinyOrm-builds/build-TinyOrm-Desktop_Qt_$${TINY_QT_VERSION_UNDERSCORED}_GCC_64bit$${TINY_CCACHE_BUILD}-$${TINY_RELEASE_TYPE_CAMEL}/src/)
 
     # others
     clang: CONFIG *= use_lld_linker
