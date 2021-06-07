@@ -1896,6 +1896,36 @@ void TestOrm::testTinyOrm()
         qt_noop();
     }
 
+    /* Test with() overloads */
+    {
+        qDebug() << "\n\nTest with() overloads\n---";
+
+        auto t1 = Torrent::query()->with("torrentPeer").find(2);
+        auto t2 = Torrent::query()->with({"torrentPeer", "torrentFiles"}).find(2);
+        auto t3 = Torrent::query()->with({{"torrentPeer"}, {"torrentFiles"}}).find(2);
+
+        QVector<QString> w {"torrentPeer", "torrentFiles"};
+        auto t4 = Torrent::query()->with(w).find(2);
+
+        auto t5 = TorrentPeer().torrent()->with("torrentPeer").find(2);
+        auto t6 = TorrentPeer().torrent()
+                  ->with({"torrentPeer", "torrentFiles"}).find(2);
+        auto t7 = TorrentPeer().torrent()
+                  ->with({{"torrentPeer"}, {"torrentFiles"}}).find(2);
+
+        auto t8 = TorrentPeer().torrent()->with(w).find(2);
+
+        auto t9 = Torrent::query()->with({{"torrentPeer", [](auto &q)
+                                          {
+                                              q.oldest();
+                                          }}}).find(2);
+        auto t10 = TorrentPeer().torrent()->with({{"torrentPeer", [](auto &q)
+                                                   {
+                                                       q.oldest();
+                                                   }}}).find(2);
+        qt_noop();
+    }
+
     logQueryCounters(__FUNCTION__, timer.elapsed());
 }
 
@@ -2589,6 +2619,7 @@ void TestOrm::logQueryCounters(const QString &func,
     qInfo().noquote().nospace() << "Function - " << func << "()";
     qInfo().noquote().nospace() << line;
 
+    // BUG emoji icons take two chars silverqx
     qInfo().nospace() << "\n⚡ Function Execution time : "
                       << (functionElapsed ? *functionElapsed : -1) << "ms";
 
@@ -2675,7 +2706,8 @@ void TestOrm::logQueryCountersBlock(
 
     // All Functions execution time
     if (title.contains("Application"))
-        qInfo() << "⚡ Functions execution time :" << m_appFunctionsElapsed << "ms\n";
+        qInfo().nospace() << "⚡ Functions execution time : "
+                          << m_appFunctionsElapsed << "ms\n";
 
     // Counters on connections
     if (title.contains("Summary"))
