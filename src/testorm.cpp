@@ -44,6 +44,26 @@ using Orm::Tiny::Relations::Pivot;
 /*
    Notes:
    - text in [] names connection name, eg. [sqlite]
+
+   Performance:
+   ---
+   - only on MySQL connection CONNECTIONS_TO_TEST {mysql} and ms are best values I saw
+     - 08. jul 2021 ( 325 queries executed )
+       - Qt 5.15.2 ; msvc 16.10 x64
+         - debug build
+           - under 1000ms all functions
+           - 273ms all queries
+         - prod. build with disabled debug output ( QT_NO_DEBUG_OUTPUT )
+           - under 436ms all functions
+           - 247ms all queries
+         - tst_model on MySQL connection only ( createConnections({Databases::MYSQL}) )
+           - 390ms
+       - Qt 6.1.1 ; msvc 16.10 x64
+         - prod. build with disabled debug output ( QT_NO_DEBUG_OUTPUT )
+           - under 449ms all functions
+           - 258ms all queries
+         - tst_model on MySQL connection only ( createConnections({Databases::MYSQL}) )
+           - 434ms
 */
 
 const QString TestOrm::CHECK_DATABASE_EXISTS_FILE = getCheckDatabaseExistsFile();
