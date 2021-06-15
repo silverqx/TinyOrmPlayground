@@ -20,7 +20,7 @@ int main(int, char *[])
     QCoreApplication::setOrganizationDomain("crystal-studio.fun");
     QCoreApplication::setApplicationName("TinyOrmPlayground");
 
-    qDebug() << "";
+    qInfo() << "";
 
     try {
         TestOrm().connectToDatabase()
@@ -35,5 +35,5 @@ int main(int, char *[])
                 << "' Exception:\n" << e.what();
     }
 
-    qDebug() << "";
+    qInfo() << "";
 }

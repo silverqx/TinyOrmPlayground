@@ -2900,10 +2900,17 @@ void TestOrm::logQueryCountersBlock(
         qInfo() << "⚙ _MSC_VER                 :" << _MSC_VER;
 #endif
 
-    // All Functions execution time
-    if (title.contains("Application"))
+    if (title.contains("Application")) {
+        qInfo().nospace() << "  Qt version               : "
+                          << QT_VERSION_STR;
+        qInfo().nospace() << "  Build type               : "
+                          << (QLibraryInfo::isDebugBuild() ? "Debug" : "Release")
+                          << "\n";
+
+        // All Functions execution time
         qInfo().nospace() << "⚡ Functions execution time : "
                           << m_appFunctionsElapsed << "ms\n";
+    }
 
     // Counters on connections
     if (title.contains("Summary"))
