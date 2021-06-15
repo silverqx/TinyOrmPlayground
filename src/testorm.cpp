@@ -49,7 +49,7 @@ using Orm::Tiny::Relations::Pivot;
    Performance:
    ---
    - only on MySQL connection CONNECTIONS_TO_TEST {mysql} and ms are best values I saw
-     - 13. jul 2021 ( 325 queries executed )
+     - 13. jul 2021 ( 325 queries executed, TinyORM 749c4014 )
        - Qt 5.15.2 ; msvc 16.10 x64
          - debug build
            - under 945ms all functions
