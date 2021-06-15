@@ -1940,6 +1940,183 @@ void TestOrm::testTinyOrm()
         qt_noop();
     }
 
+    /* Test findOrXx/firstOrXx/updateOrCreate on HasOneOrMany relations */
+    {
+        qDebug() << "\n\nTest findOrXx/firstOrXx/updateOrCreate on HasOneOrMany "
+                    "relations\n---";
+
+        auto t1 = Torrent::find(1)->torrentFiles()->findOrNew(1);
+        Q_ASSERT(t1.exists);
+
+        auto t2 = Torrent::find(1)->torrentFiles()->firstOrNew(
+                      {{"filepath", "test1_file1.mkv"}},
+                      {{"size", 1026},
+                       {"progress", 123},
+                       {"file_index", 2}});
+        Q_ASSERT(t2.exists);
+
+        auto t3 = Torrent::find(1)->torrentFiles()->firstOrNew(
+                      {{"filepath", "test1_fileXX.mkv"}},
+                      {{"size", 1026},
+                       {"progress", 123},
+                       {"file_index", 2}});
+        Q_ASSERT(!t3.exists);
+        Q_ASSERT(t3.getAttributesHash().size() == 5);
+
+        auto t4 = Torrent::find(1)->torrentFiles()->firstOrCreate(
+                      {{"filepath", "test1_file1.mkv"}},
+                      {{"size", 1026},
+                       {"progress", 123},
+                       {"file_index", 2}});
+        Q_ASSERT(t4.exists);
+        Q_ASSERT(t4["id"]->value<quint64>() == 1);
+
+        auto t5 = Torrent::find(1)->torrentFiles()->firstOrCreate(
+                      {{"filepath", "test1_fileXX.mkv"}},
+                      {{"size", 1026},
+                       {"progress", 123},
+                       {"file_index", 2}});
+        Q_ASSERT(t5.exists);
+        Q_ASSERT(t5["id"]->value<quint64>() > 9);
+
+        auto t6 = Torrent::find(1)->torrentFiles()->updateOrCreate(
+                      {{"filepath", "test1_file1.mkv"}},
+                      {{"size", 1025}});
+        Q_ASSERT(t6.exists);
+        Q_ASSERT(t6["id"]->value<quint64>() == 1);
+
+        auto t7 = Torrent::find(1)->torrentFiles()->updateOrCreate(
+                      {{"filepath", "test1_fileYY.mkv"},
+                       {"size", 1026},
+                       {"progress", 123},
+                       {"file_index", 3}});
+        Q_ASSERT(t7.exists);
+        Q_ASSERT(t7["id"]->value<quint64>() > 9);
+
+        // Restore
+        auto removed = TorrentPreviewableFile::destroy({t5["id"], t7["id"]});
+        Q_ASSERT(removed == 2);
+
+        Torrent::find(1)->torrentFiles()->whereEq("id", 1).update({{"size", 1024}});
+
+        qt_noop();
+    }
+
+    /* Test find/findMany/findOrXX on BelongsToMany relation */
+    {
+        qDebug() << "\n\nTest find/findMany/findOrXX on BelongsToMany relation\n---";
+
+        auto t1 = Torrent::find(2)->tags()->find(2);
+        Q_ASSERT(t1->exists);
+
+        auto t2 = Torrent::find(2)->tags()->findMany({2, 3});
+        Q_ASSERT(t2.size() == 2);
+
+        auto t3 = Torrent::find(2)->tags()->findOrNew(2);
+        Q_ASSERT(t3.exists);
+
+        auto t4 = Torrent::find(2)->tags()->findOrNew(20);
+        Q_ASSERT(!t4.exists);
+        Q_ASSERT(t4.getAttributesHash().empty());
+
+        auto t5 = Torrent::find(2)->tags()->findOrFail(2);
+        Q_ASSERT(t5.exists);
+
+        TINY_VERIFY_EXCEPTION_THROWN(
+                    Torrent::find(2)->tags()->findOrFail(20),
+                    ModelNotFoundError);
+
+        qt_noop();
+    }
+
+    /* Test first/firstOrXx/findOrXX/firstWhere/updateOrCreate on BelongsToMany
+       relation */
+    {
+        qDebug() << "\n\nTest first/firstOrXx/findOrXX/firstWhere/updateOrCreate "
+                    "on BelongsToMany relation\n---";
+
+        auto t1 = Torrent::find(2)->tags()->first();
+        Q_ASSERT(t1->exists);
+
+        auto t2 = Torrent::find(2)->tags()->firstOrNew(
+                      {{"name", "tag4"}},
+                      {{"note", "firstOrNew"}});
+        Q_ASSERT(t2.exists);
+
+        auto t3 = Torrent::find(2)->tags()->firstOrNew(
+                      {{"name", "tag20"}},
+                      {{"note", "firstOrNew"}});
+        Q_ASSERT(!t3.exists);
+        Q_ASSERT(t3.getAttributesHash().size() == 2);
+
+        auto t4 = Torrent::find(2)->tags()->firstOrNew(
+                      {{"id", 100}, {"name", "tag20"}},
+                      {{"note", "firstOrNew"}});
+        Q_ASSERT(!t4.exists);
+        Q_ASSERT(t4.getAttributesHash().size() == 2);
+
+        auto t5 = Torrent::find(2)->tags()->firstOrCreate(
+                      {{"name", "tag4"}},
+                      {{"note", "firstOrCreate"}},
+                      {{"active", false}});
+        Q_ASSERT(t5.exists);
+
+        auto t6 = Torrent::find(2)->tags()->firstOrCreate(
+                      {{"name", "tag20"}},
+                      {{"note", "firstOrCreate"}},
+                      {{"active", false}});
+        Q_ASSERT(t6.exists);
+        Q_ASSERT(t6["id"]->value<quint64>() > 5);
+
+        auto t7 = Torrent::find(2)->tags()->firstOrCreate(
+                      {{"id", 100}, {"name", "tag21"}},
+                      {{"note", "firstOrCreate"}},
+                      {{"active", false}});
+        Q_ASSERT(t7.exists);
+        Q_ASSERT(t7["id"]->value<quint64>() > 5);
+        Q_ASSERT(t7["id"]->value<quint64>() != 100);
+
+        auto t8 = Torrent::find(2)->tags()->firstWhereEq("name", "tag4");
+        Q_ASSERT(t8->exists);
+
+        auto t9 = Torrent::find(2)->tags()->whereEq("name", "tag4").firstOrFail();
+        Q_ASSERT(t9.exists);
+
+        TINY_VERIFY_EXCEPTION_THROWN(
+                    Torrent::find(4)->tags()->whereEq("name", "tag30").firstOrFail(),
+                    ModelNotFoundError);
+
+        auto t10 = Torrent::find(2)->tags()->updateOrCreate(
+                       {{"name", "tag4"}},
+                       {{"name", "tag4"}, {"note", "updateOrCreate"}},
+                       {{"active", false}});
+        Q_ASSERT(t10.exists);
+        Q_ASSERT(t10["id"]->value<quint64>() == 4);
+
+        auto t11 = Torrent::find(2)->tags()->updateOrCreate(
+                       {{"name", "tag40"}},
+                       {{"name", "tag40"}, {"note", "updateOrCreate"}},
+                       {{"active", false}});
+        Q_ASSERT(t11.exists);
+        Q_ASSERT(t11["id"]->value<quint64>() > 5);
+
+        // Restore
+        auto removed = Tag::destroy({t6["id"], t7["id"], t11["id"]});
+        Q_ASSERT(removed == 3);
+
+        Torrent::find(2)->tags()->updateOrCreate(
+                    {{"name", "tag4"}},
+                    {{"name", "tag4"},
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+                     {"note", QVariant(QMetaType::QString)}},
+#else
+                     {"note", QVariant(QVariant::String)}},
+#endif
+                    {{"active", true}});
+
+        qt_noop();
+    }
+
     logQueryCounters(__FUNCTION__, timer.elapsed());
 }
 
