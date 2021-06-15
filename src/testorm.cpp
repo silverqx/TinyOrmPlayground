@@ -3,6 +3,7 @@
 #include <QDebug>
 #include <QDir>
 #include <QFile>
+#include <QLibraryInfo>
 #include <QStandardPaths>
 
 #ifdef _MSC_VER
@@ -210,14 +211,12 @@ void TestOrm::anotherTests()
 
     resetAllQueryLogCounters();
 
-    qDebug().nospace()
+    qInfo().nospace()
             << "================="
             << "\n  Another Tests  "
-            << "\n=================";
+            << "\n=================\n";
 
     {
-        qDebug() << "\n";
-
         {
 
             qt_noop();
@@ -297,10 +296,10 @@ void TestOrm::anotherTests()
 
     /* __FUNCTION__ */
     {
-        qDebug().nospace()
+        qInfo().nospace()
                 << "\n\n=================="
-            << "\n   __FUNCTION__   "
-            << "\n==================\n\n";
+                << "\n   __FUNCTION__   "
+                << "\n==================\n\n";
 
         printf("Function name __FUNCTION__ : %s\n", __FUNCTION__);
         printf("Function name __func__ : %s\n", __func__);
@@ -315,7 +314,7 @@ void TestOrm::anotherTests()
     /* Formatting with std::format() */
 #ifdef _MSC_VER
     {
-        qDebug().nospace()
+        qInfo().nospace()
             << "\n\n=================="
             << "\n    std::format   "
             << "\n==================\n\n";
@@ -347,15 +346,16 @@ void TestOrm::testConnection()
 
     resetAllQueryLogCounters();
 
-    qDebug().nospace()
+    qInfo().nospace()
             << "\n\n======================"
             << "\n  DatabaseConnection  "
             << "\n======================";
 
     /* DatabaseConnection::isMaria() - on MySQL connection */
     {
-        qDebug() << "\n\nDatabaseConnection::isMaria() - on MySQL connection\n---";
+        qInfo() << "\n\nDatabaseConnection::isMaria() - on MySQL connection\n---";
 
+        [[maybe_unused]]
         const auto isMaria =
                 dynamic_cast<MySqlConnection &>(DB::connection("mysql")).isMaria();
         Q_ASSERT(!isMaria);
@@ -365,7 +365,7 @@ void TestOrm::testConnection()
 
     /* SQLite :memory: driver [sqlite_memory] */
     {
-        qDebug() << "\n\nSQLite :memory: driver [sqlite_memory]\n---";
+        qInfo() << "\n\nSQLite :memory: driver [sqlite_memory]\n---";
 
         auto &conn = DB::connection("sqlite_memory");
 
@@ -390,8 +390,8 @@ void TestOrm::testConnection()
 
         /* SQLite database [sqlite_check_exists_true] - check_database_exists - true */
         {
-            qDebug() << "\n\nSQLite database [sqlite_check_exists_true] - "
-                    "check_database_exists - true\n---";
+            qInfo() << "\n\nSQLite database [sqlite_check_exists_true] - "
+                       "check_database_exists - true\n---";
 
             TINY_VERIFY_EXCEPTION_THROWN(
                         DB::connection("sqlite_check_exists_true")
@@ -403,8 +403,8 @@ void TestOrm::testConnection()
 
         /* SQLite database [sqlite_check_exists_false] - check_database_exists - false */
         {
-            qDebug() << "\n\nSQLite database [sqlite_check_exists_false] - "
-                    "check_database_exists - false\n---";
+            qInfo() << "\n\nSQLite database [sqlite_check_exists_false] - "
+                       "check_database_exists - false\n---";
 
             DB::connection("sqlite_check_exists_false")
                     .statement("create table tbl1 (one varchar(10), two smallint)");
@@ -432,7 +432,7 @@ void TestOrm::testTinyOrm()
 
     resetAllQueryLogCounters();
 
-    qDebug().nospace()
+    qInfo().nospace()
             << "\n\n========="
             << "\n  Model  "
             << "\n=========";
@@ -455,7 +455,7 @@ void TestOrm::testTinyOrm()
 
     /* Basic get all get() */
     {
-        qDebug() << "\n\nBasic get all get()\n---";
+        qInfo() << "\n\nBasic get all get()\n---";
         Torrent torrent;
         auto torrents = torrent.query()->get();
 
@@ -466,7 +466,7 @@ void TestOrm::testTinyOrm()
         qt_noop();
     }
     {
-        qDebug() << "\n\nBasic get all all()\n---";
+        qInfo() << "\n\nBasic get all all()\n---";
         for (auto &t : Torrent::all())
             qDebug() << "id :" << t.getAttribute("id").value<quint64>() << ";"
                      << "name :" << t.getAttribute("name").value<QString>();
@@ -476,7 +476,7 @@ void TestOrm::testTinyOrm()
 
     /* Model::latest() */
     {
-        qDebug() << "\n\nModel::latest()\n---";
+        qInfo() << "\n\nModel::latest()\n---";
         for (auto &t : Torrent::latest()->get())
             qDebug() << "id :" << t.getAttribute("id").value<quint64>() << ";"
                      << "name :" << t.getAttribute("name").value<QString>() << ";"
@@ -488,7 +488,7 @@ void TestOrm::testTinyOrm()
 
     /* Model::oldest() */
     {
-        qDebug() << "\n\nModel::oldest()\n---";
+        qInfo() << "\n\nModel::oldest()\n---";
         for (auto &t : Torrent::oldest()->get())
             qDebug() << "id :" << t.getAttribute("id").value<quint64>() << ";"
                      << "name :" << t.getAttribute("name").toString() << ";"
@@ -500,7 +500,7 @@ void TestOrm::testTinyOrm()
 
     /* Model::where() */
     {
-        qDebug() << "\n\nModel::where()\n---";
+        qInfo() << "\n\nModel::where()\n---";
         for (auto &t : Torrent::where("id", ">", 3)->get())
             qDebug() << "id :" << t.getAttribute("id").value<quint64>() << ";"
                      << "name :" << t.getAttribute("name").value<QString>();
@@ -510,7 +510,7 @@ void TestOrm::testTinyOrm()
 
     /* Model::whereEq() and operator[]() */
     {
-        qDebug() << "\n\nModel::whereEq() and operator[]()\n---";
+        qInfo() << "\n\nModel::whereEq() and operator[]()\n---";
         auto t = Torrent::whereEq("id", 4)->get().first();
         qDebug() << "id :" << t["id"]->value<quint64>() << ";"
                  << "name :" << t["name"]->value<QString>();
@@ -522,7 +522,7 @@ void TestOrm::testTinyOrm()
 
     /* Model::where() vector */
     {
-        qDebug() << "\n\nModel::where() vector\n---";
+        qInfo() << "\n\nModel::where() vector\n---";
         for (auto &t : Torrent::where({{"id", 4}})->get())
             qDebug() << "id :" << t.getAttribute("id").value<quint64>() << ";"
                      << "name :" << t.getAttribute("name").value<QString>();
@@ -608,7 +608,7 @@ void TestOrm::testTinyOrm()
 
     /* Model::destroy() */
     {
-        qDebug() << "\n\nModel::destroy()\n---";
+        qInfo() << "\n\nModel::destroy()\n---";
 
         Tag tag500({{"name", "tag500"}});
         tag500.save();
@@ -687,7 +687,7 @@ void TestOrm::testTinyOrm()
 
     /* Model::find(id) */
     {
-        qDebug() << "\n\nModel::find(id)\n---";
+        qInfo() << "\n\nModel::find(id)\n---";
         const auto id = 3;
         auto torrentFile = TorrentPreviewableFile::find(id);
 
@@ -699,7 +699,7 @@ void TestOrm::testTinyOrm()
 
     /* Model::findOrNew() - found */
     {
-        qDebug() << "\n\nModel::findOrNew() - found\n---";
+        qInfo() << "\n\nModel::findOrNew() - found\n---";
 
         auto torrent = Torrent::findOrNew(3, {"id", "name"});
 
@@ -711,7 +711,7 @@ void TestOrm::testTinyOrm()
 
     /* Model::findOrNew() - not found */
     {
-        qDebug() << "\n\nModel::findOrNew() - not found\n---";
+        qInfo() << "\n\nModel::findOrNew() - not found\n---";
 
         auto torrent = Torrent::findOrNew(999999, {"id", "name"});
 
@@ -725,7 +725,7 @@ void TestOrm::testTinyOrm()
 
     /* Model::findOrFail() - found */
     {
-        qDebug() << "\n\nModel::findOrFail() - found\n---";
+        qInfo() << "\n\nModel::findOrFail() - found\n---";
 
         auto torrent = Torrent::findOrFail(3, {"id", "name"});
 
@@ -738,7 +738,7 @@ void TestOrm::testTinyOrm()
 
     /* Model::findOrFail() - not found, fail */
     {
-        qDebug() << "\n\nModel::findOrFail() - not found, fail\n---";
+        qInfo() << "\n\nModel::findOrFail() - not found, fail\n---";
 
         TINY_VERIFY_EXCEPTION_THROWN(Torrent::findOrFail(999999), ModelNotFoundError);
 
@@ -747,7 +747,7 @@ void TestOrm::testTinyOrm()
 
     /* Model::whereEq()/firstWhere()/firstWhereEq() */
     {
-        qDebug() << "\n\nModel::whereEq()/firstWhere()/firstWhereEq()\n---";
+        qInfo() << "\n\nModel::whereEq()/firstWhere()/firstWhereEq()\n---";
 
         auto torrentFile3 = TorrentPreviewableFile::whereEq("id", 3)->first();
         Q_ASSERT(torrentFile3->exists);
@@ -769,7 +769,7 @@ void TestOrm::testTinyOrm()
 
     /* Model::where() - vector */
     {
-        qDebug() << "\n\nModel::where() - vector\n---";
+        qInfo() << "\n\nModel::where() - vector\n---";
 
         auto torrentFile3 = TorrentPreviewableFile::where(
                                 {{"id", 3},
@@ -785,7 +785,7 @@ void TestOrm::testTinyOrm()
 
     /* Model::firstOrNew() - found */
     {
-        qDebug() << "\n\nModel::firstOrNew() - found\n---";
+        qInfo() << "\n\nModel::firstOrNew() - found\n---";
         auto torrent = Torrent::firstOrNew(
                            {{"id", 3}},
 
@@ -802,7 +802,7 @@ void TestOrm::testTinyOrm()
 
     /* Model::firstOrNew() - not found */
     {
-        qDebug() << "\n\nModel::firstOrNew() - not found\n---";
+        qInfo() << "\n\nModel::firstOrNew() - not found\n---";
         auto torrent = Torrent::firstOrNew(
                            {{"id", 10}},
 
@@ -822,7 +822,7 @@ void TestOrm::testTinyOrm()
 
     /* Model::firstOrCreate() - found */
     {
-        qDebug() << "\n\nModel::firstOrCreate() - found\n---";
+        qInfo() << "\n\nModel::firstOrCreate() - found\n---";
         auto torrent = Torrent::firstOrCreate(
                            {{"name", "test3"}},
 
@@ -839,7 +839,7 @@ void TestOrm::testTinyOrm()
 
     /* Model::firstOrCreate() - not found */
     {
-        qDebug() << "\n\nModel::firstOrCreate() - not found\n---";
+        qInfo() << "\n\nModel::firstOrCreate() - not found\n---";
         auto torrent = Torrent::firstOrCreate(
                            {{"name", "test50"}},
 
@@ -862,7 +862,7 @@ void TestOrm::testTinyOrm()
 
     /* TinyBuilder::firstOrFail() - found */
     {
-        qDebug() << "\n\nTinyBuilder::firstOrFail() - found\n---";
+        qInfo() << "\n\nTinyBuilder::firstOrFail() - found\n---";
 
         auto torrent = Torrent::whereEq("id", 3)->firstOrFail({"id", "name"});
 
@@ -877,7 +877,7 @@ void TestOrm::testTinyOrm()
 
     /* TinyBuilder::firstOrFail() - not found, fail */
     {
-        qDebug() << "\n\nTinyBuilder::firstOrFail() - not found, fail\n---";
+        qInfo() << "\n\nTinyBuilder::firstOrFail() - not found, fail\n---";
 
         TINY_VERIFY_EXCEPTION_THROWN(
                     Torrent::whereEq("id", 999999)->firstOrFail(), ModelNotFoundError);
@@ -949,7 +949,7 @@ void TestOrm::testTinyOrm()
 
     /* Model::push() - lazy load */
     {
-        qDebug() << "\n\nModel::push() - lazy load\n---";
+        qInfo() << "\n\nModel::push() - lazy load\n---";
 
         auto torrent = Torrent::find(2);
 
@@ -1004,7 +1004,7 @@ void TestOrm::testTinyOrm()
 
     /* eager/lazy load - getRelation() and getRelationValue() */
     {
-        qDebug() << "\n\neager/lazy load - getRelation() and getRelationValue()\n---";
+        qInfo() << "\n\neager/lazy load - getRelation() and getRelationValue()\n---";
         auto torrent = Torrent::find(2);
 
         // eager load
@@ -1055,7 +1055,7 @@ void TestOrm::testTinyOrm()
 
     /* Model::with() - One - hasOne() */
     {
-        qDebug() << "\n\nModel::with() - One - hasOne()\n---";
+        qInfo() << "\n\nModel::with() - One - hasOne()\n---";
         auto torrents = Torrent::with("torrentPeer")->orderBy("id").get();
         auto *peer = torrents[1].getRelation<TorrentPeer, One>("torrentPeer");
         qDebug() << peer->getAttribute("id");
@@ -1064,7 +1064,7 @@ void TestOrm::testTinyOrm()
 
     /* Model::with() - One - belongsTo() */
     {
-        qDebug() << "\n\nModel::with() - One - belongsTo()\n---";
+        qInfo() << "\n\nModel::with() - One - belongsTo()\n---";
         auto files = TorrentPreviewableFile::with("torrent")->orderBy("id").get();
         auto *torrent = files[1].getRelation<Torrent, One>("torrent");
         qDebug() << torrent->getAttribute("id");
@@ -1073,7 +1073,7 @@ void TestOrm::testTinyOrm()
 
     /* Model::with() - Many - hasMany() */
     {
-        qDebug() << "\n\nModel::with() - Many - hasMany()\n---";
+        qInfo() << "\n\nModel::with() - Many - hasMany()\n---";
         auto torrents = Torrent::with("torrentFiles")->orderBy("id").get();
         auto files = torrents[1].getRelation<TorrentPreviewableFile>("torrentFiles");
         for (const auto &file : files)
@@ -1083,7 +1083,7 @@ void TestOrm::testTinyOrm()
 
     /* Model::withOnly() */
     {
-        qDebug() << "\n\nModel::withOnly()\n---";
+        qInfo() << "\n\nModel::withOnly()\n---";
         auto t = TorrentEager::withOnly("torrentPeer")->find(1);
         auto *p = t->getRelation<TorrentPeerEager_NoRelations, One>("torrentPeer");
         qDebug() << p->getAttribute("id");
@@ -1092,7 +1092,7 @@ void TestOrm::testTinyOrm()
 
     /* Timestamps - update */
     {
-        qDebug() << "\n\nTimestamps - update\n---";
+        qInfo() << "\n\nTimestamps - update\n---";
         auto torrent = Torrent::find(2);
 
         qDebug() << "progress before :" << torrent->getAttribute("progress");
@@ -1110,7 +1110,7 @@ void TestOrm::testTinyOrm()
 
     /* Timestamps - update, select w/o updated_at column */
     {
-        qDebug() << "\n\nTimestamps - update, select w/o updated_at column\n---";
+        qInfo() << "\n\nTimestamps - update, select w/o updated_at column\n---";
         auto torrent = Torrent::whereEq("id", 2)->first({"id", "name", "progress"});
 
         qDebug() << "progress before :" << torrent->getAttribute("progress");
@@ -1128,7 +1128,7 @@ void TestOrm::testTinyOrm()
 
     /* Timestamps - update, u_timestamps = false */
     {
-        qDebug() << "\n\nTimestamps - update, u_timestamps = false\n---";
+        qInfo() << "\n\nTimestamps - update, u_timestamps = false\n---";
         auto fileProperty = TorrentPreviewableFileProperty::find(2);
 
         qDebug() << "size before :" << fileProperty->getAttribute("size");
@@ -1142,7 +1142,7 @@ void TestOrm::testTinyOrm()
 
     /* Touching Parent Timestamps */
     {
-        qDebug() << "\n\nTouching Parent Timestamps\n---";
+        qInfo() << "\n\nTouching Parent Timestamps\n---";
         auto filePropertyProperty = FilePropertyProperty::find(4);
 
         qDebug() << "value before :" << filePropertyProperty->getAttribute("value");
@@ -1195,7 +1195,7 @@ void TestOrm::testTinyOrm()
 
     /* Timestamps - insert */
     {
-        qDebug() << "\n\nTimestamps - insert\n---";
+        qInfo() << "\n\nTimestamps - insert\n---";
         const auto torrentId = 1;
         TorrentPreviewableFile torrentFile;
         torrentFile.setAttribute("torrent_id", torrentId);
@@ -1228,7 +1228,7 @@ void TestOrm::testTinyOrm()
 
     /* TinyBuilder::increment()/decrement() */
     {
-        qDebug() << "\n\nTinyBuilder::increment()/decrement()\n---";
+        qInfo() << "\n\nTinyBuilder::increment()/decrement()\n---";
 
         auto torrent = Torrent::find(1);
 
@@ -1261,7 +1261,7 @@ void TestOrm::testTinyOrm()
 
     /* Model::create() */
     {
-        qDebug() << "\n\nModel::create()\n---";
+        qInfo() << "\n\nModel::create()\n---";
 
         auto torrent = Torrent::create({
             {"name",     "test100"},
@@ -1281,7 +1281,7 @@ void TestOrm::testTinyOrm()
 
     /* TinyBuilder::update() */
     {
-        qDebug() << "\n\nTinyBuilder::update()\n---";
+        qInfo() << "\n\nTinyBuilder::update()\n---";
 
         Torrent::whereEq("id", 3)
                 ->update({{"progress", 333}});
@@ -1293,7 +1293,7 @@ void TestOrm::testTinyOrm()
 
     /* Model::update() */
     {
-        qDebug() << "\n\nModel::update()\n---";
+        qInfo() << "\n\nModel::update()\n---";
 
         Torrent::find(3)
                 ->update({{"progress", 300}});
@@ -1305,7 +1305,7 @@ void TestOrm::testTinyOrm()
 
     /* Model::isClean()/isDirty() */
     {
-        qDebug() << "\n\nModel::isClean()/isDirty()\n---";
+        qInfo() << "\n\nModel::isClean()/isDirty()\n---";
 
         auto torrent = Torrent::find(3);
 
@@ -1340,7 +1340,7 @@ void TestOrm::testTinyOrm()
 
     /* Model::wasChanged() */
     {
-        qDebug() << "\n\nModel::wasChanged()\n---";
+        qInfo() << "\n\nModel::wasChanged()\n---";
 
         auto torrent = Torrent::find(3);
 
@@ -1366,7 +1366,7 @@ void TestOrm::testTinyOrm()
 
     /* Model::fresh() */
     {
-        qDebug() << "\n\nModel::fresh()\n---";
+        qInfo() << "\n\nModel::fresh()\n---";
 
         Torrent t;
         Q_ASSERT(t.fresh() == std::nullopt);
@@ -1380,7 +1380,7 @@ void TestOrm::testTinyOrm()
 
     /* Model::refresh() - only attributes check */
     {
-        qDebug() << "\n\nModel::refresh() - only attributes check\n---";
+        qInfo() << "\n\nModel::refresh() - only attributes check\n---";
 
         Torrent t;
         Q_ASSERT(&t.refresh() == &t);
@@ -1398,7 +1398,7 @@ void TestOrm::testTinyOrm()
 
     /* Model::load() */
     {
-        qDebug() << "\n\nModel::load()\n---";
+        qInfo() << "\n\nModel::load()\n---";
 
         auto torrent = Torrent::find(2);
 
@@ -1416,7 +1416,7 @@ void TestOrm::testTinyOrm()
 
     /* Model::refresh() - only relations check */
     {
-        qDebug() << "\n\nModel::refresh() - only relations check\n---";
+        qInfo() << "\n\nModel::refresh() - only relations check\n---";
 
         Torrent t;
         Q_ASSERT(&t.refresh() == &t);
@@ -1483,7 +1483,7 @@ void TestOrm::testTinyOrm()
 
     /* Model::is()/isNot() */
     {
-        qDebug() << "\n\nModel::is()/isNot()\n---";
+        qInfo() << "\n\nModel::is()/isNot()\n---";
 
         auto torrent31 = Torrent::find(3);
         auto torrent32 = Torrent::find(3);
@@ -1497,7 +1497,7 @@ void TestOrm::testTinyOrm()
 
     /* Many-to-Many Relationship */
     {
-        qDebug() << "\n\nMany-to-Many Relationship\n---";
+        qInfo() << "\n\nMany-to-Many Relationship\n---";
 
         auto x = Torrent::find(2);
         auto tags = x->getRelationValue<Tag>("tags");
@@ -1529,7 +1529,7 @@ void TestOrm::testTinyOrm()
 
     /* Many-to-Many Relationship - Inverse side and refresh test */
     {
-        qDebug() << "\n\nMany-to-Many Relationship - Inverse side and refresh test\n---";
+        qInfo() << "\n\nMany-to-Many Relationship - Inverse side and refresh test\n---";
 
         qDebug() << "\nRefresh has to exclude pivot relations, to avoid exception.\n";
 
@@ -1556,7 +1556,7 @@ void TestOrm::testTinyOrm()
 
     /* BelongsTo::associate */
     {
-        qDebug() << "\n\nBelongsTo::associate\n---";
+        qInfo() << "\n\nBelongsTo::associate\n---";
 
         TorrentPreviewableFile file {
             {"file_index", 3},
@@ -1596,7 +1596,7 @@ void TestOrm::testTinyOrm()
 
     /* BelongsTo::associate with an ID */
     {
-        qDebug() << "\n\nBelongsTo::associate with an ID\n---";
+        qInfo() << "\n\nBelongsTo::associate with an ID\n---";
 
         TorrentPreviewableFile file {
             {"file_index", 3},
@@ -1622,7 +1622,7 @@ void TestOrm::testTinyOrm()
 
     /* BelongsToMany::attach with Custom pivot */
     {
-        qDebug() << "\n\nBelongsToMany::attach with Custom pivot\n---";
+        qInfo() << "\n\nBelongsToMany::attach with Custom pivot\n---";
 
         Tag tag100({{"name", "tag100"}});
         tag100.save();
@@ -1642,7 +1642,7 @@ void TestOrm::testTinyOrm()
 
     /* BelongsToMany::attach with Pivot */
     {
-        qDebug() << "\n\nBelongsToMany::attach with Pivot\n---";
+        qInfo() << "\n\nBelongsToMany::attach with Pivot\n---";
 
         Torrent torrent100 {
             {"name", "test100"}, {"size", 100}, {"progress", 555},
@@ -1668,7 +1668,7 @@ void TestOrm::testTinyOrm()
 
     /* BelongsToMany::attach with Custom pivot and IDs with Attributes overload */
     {
-        qDebug() << "\n\nBelongsToMany::attach with Custom pivot and "
+        qInfo() << "\n\nBelongsToMany::attach with Custom pivot and "
                     "IDs with Attributes overload\n---";
 
         Tag tag100({{"name", "tag100"}});
@@ -1691,7 +1691,7 @@ void TestOrm::testTinyOrm()
 
     /* BelongsToMany::attach with Pivot and IDs with Attributes overload */
     {
-        qDebug() << "\n\nBelongsToMany::attach with Pivot and "
+        qInfo() << "\n\nBelongsToMany::attach with Pivot and "
                     "IDs with Attributes overload\n---";
 
         Torrent torrent100 {
@@ -1720,7 +1720,7 @@ void TestOrm::testTinyOrm()
 
     /* BelongsToMany::detach with Custom pivot */
     {
-        qDebug() << "\n\nBelongsToMany::detach with Custom pivot\n---";
+        qInfo() << "\n\nBelongsToMany::detach with Custom pivot\n---";
 
         Tag tag100({{"name", "tag100"}});
         tag100.save();
@@ -1743,7 +1743,7 @@ void TestOrm::testTinyOrm()
 
     /* BelongsToMany::detach with Pivot */
     {
-        qDebug() << "\n\nBelongsToMany::detach with Pivot\n---";
+        qInfo() << "\n\nBelongsToMany::detach with Pivot\n---";
 
         Torrent torrent100 {
             {"name", "test100"}, {"size", 100}, {"progress", 555},
@@ -1772,7 +1772,7 @@ void TestOrm::testTinyOrm()
 
     /* BelongsToMany::sync with Custom pivot */
     {
-        qDebug() << "\n\nBelongsToMany::sync with Custom pivot\n---";
+        qInfo() << "\n\nBelongsToMany::sync with Custom pivot\n---";
 
         Tag tag100({{"name", "tag100"}});
         tag100.save();
@@ -1802,7 +1802,7 @@ void TestOrm::testTinyOrm()
 
     /* BelongsToMany::sync with Pivot */
     {
-        qDebug() << "\n\nBelongsToMany::sync with Pivot\n---";
+        qInfo() << "\n\nBelongsToMany::sync with Pivot\n---";
 
         Torrent torrent100 {
             {"name", "test100"}, {"size", 100}, {"progress", 555},
@@ -1845,8 +1845,8 @@ void TestOrm::testTinyOrm()
 
     /* Many-to-Many Relationship - with Pivot and with pivot attribute */
     {
-        qDebug() << "\n\nMany-to-Many Relationship - with Pivot and "
-                    "with pivot attribute ; also test u_timestamps\n---";
+        qInfo() << "\n\nMany-to-Many Relationship - with Pivot and "
+                   "with pivot attribute ; also test u_timestamps\n---";
 
         auto roles = Role::with("users")->get();
 
@@ -1868,9 +1868,9 @@ void TestOrm::testTinyOrm()
     /* Many-to-Many Relationship - with Custom pivot type, with pivot attribute and
        with custom relation name */
     {
-        qDebug() << "\n\nMany-to-Many Relationship - with Custom pivot type, "
-                    "with pivot attribute and with custom relation name ; also test "
-                    "u_timestamps\n---";
+        qInfo() << "\n\nMany-to-Many Relationship - with Custom pivot type, "
+                   "with pivot attribute and with custom relation name ; also test "
+                   "u_timestamps\n---";
 
         auto users = User::with("roles")->get();
 
@@ -1891,8 +1891,8 @@ void TestOrm::testTinyOrm()
 
     /* Many-to-Many Relationship - Custom pivot should use timestamps */
     {
-        qDebug() << "\n\nMany-to-Many Relationship - Custom pivot should use "
-                    "timestamps\n---";
+        qInfo() << "\n\nMany-to-Many Relationship - Custom pivot should use "
+                   "timestamps\n---";
 
         auto torrents = Torrent::with("tags")->get();
 
@@ -1912,7 +1912,7 @@ void TestOrm::testTinyOrm()
 
     /* Test with() overloads */
     {
-        qDebug() << "\n\nTest with() overloads\n---";
+        qInfo() << "\n\nTest with() overloads\n---";
 
         auto t1 = Torrent::query()->with("torrentPeer").find(2);
         auto t2 = Torrent::query()->with({"torrentPeer", "torrentFiles"}).find(2);
@@ -1942,8 +1942,8 @@ void TestOrm::testTinyOrm()
 
     /* Test findOrXx/firstOrXx/updateOrCreate on HasOneOrMany relations */
     {
-        qDebug() << "\n\nTest findOrXx/firstOrXx/updateOrCreate on HasOneOrMany "
-                    "relations\n---";
+        qInfo() << "\n\nTest findOrXx/firstOrXx/updateOrCreate on HasOneOrMany "
+                   "relations\n---";
 
         auto t1 = Torrent::find(1)->torrentFiles()->findOrNew(1);
         Q_ASSERT(t1.exists);
@@ -2004,7 +2004,7 @@ void TestOrm::testTinyOrm()
 
     /* Test find/findMany/findOrXX on BelongsToMany relation */
     {
-        qDebug() << "\n\nTest find/findMany/findOrXX on BelongsToMany relation\n---";
+        qInfo() << "\n\nTest find/findMany/findOrXX on BelongsToMany relation\n---";
 
         auto t1 = Torrent::find(2)->tags()->find(2);
         Q_ASSERT(t1->exists);
@@ -2032,8 +2032,8 @@ void TestOrm::testTinyOrm()
     /* Test first/firstOrXx/findOrXX/firstWhere/updateOrCreate on BelongsToMany
        relation */
     {
-        qDebug() << "\n\nTest first/firstOrXx/findOrXX/firstWhere/updateOrCreate "
-                    "on BelongsToMany relation\n---";
+        qInfo() << "\n\nTest first/firstOrXx/findOrXX/firstWhere/updateOrCreate "
+                   "on BelongsToMany relation\n---";
 
         auto t1 = Torrent::find(2)->tags()->first();
         Q_ASSERT(t1->exists);
@@ -2127,7 +2127,7 @@ void TestOrm::testQueryBuilder()
 
     resetAllQueryLogCounters();
 
-    qDebug().nospace()
+    qInfo().nospace()
             << "\n\n================"
             << "\n  QueryBuilder  "
             << "\n================";
@@ -2293,7 +2293,8 @@ void TestOrm::testQueryBuilder()
 
     /* QueryBuilder::join() - Advanced Join Clause */
     {
-        qDebug() << "\n\nQueryBuilder::join() - Advanced Join Clause\n---";
+        qInfo() << "\n\nQueryBuilder::join() - Advanced Join Clause\n---";
+
         auto torrents = DB::table("torrents")
                 ->join("torrent_previewable_files", [](auto &join)
         {
@@ -2315,7 +2316,7 @@ void TestOrm::testQueryBuilder()
 
     /* QueryBuilder::first() */
     {
-        qDebug() << "\n\nQueryBuilder::first()\n---";
+        qInfo() << "\n\nQueryBuilder::first()\n---";
 
         auto torrent = m_db->table("torrents")
                 ->where("torrents.id", "=", 2)
@@ -2329,7 +2330,7 @@ void TestOrm::testQueryBuilder()
 
     /* QueryBuilder::value() */
     {
-        qDebug() << "\n\nQueryBuilder::value()\n---";
+        qInfo() << "\n\nQueryBuilder::value()\n---";
 
         auto name = m_db->table("torrents")
                 ->where("torrents.id", "=", 2)
@@ -2342,7 +2343,7 @@ void TestOrm::testQueryBuilder()
 
     /* QueryBuilder::find() */
     {
-        qDebug() << "\n\nQueryBuilder::find()\n---";
+        qInfo() << "\n\nQueryBuilder::find()\n---";
 
         auto torrent = DB::table("torrents")->find(3, {"id", "name"});
 
@@ -2421,7 +2422,7 @@ void TestOrm::testQueryBuilder()
 
     /* QueryBuilder::insertOrIgnore() */
     {
-        qDebug() << "\n\nQueryBuilder::insertOrIgnore()\n---";
+        qInfo() << "\n\nQueryBuilder::insertOrIgnore()\n---";
 
         const auto torrentId = 5;
         auto query1 = DB::table("torrent_previewable_files")->insert({
@@ -2446,14 +2447,14 @@ void TestOrm::testQueryBuilder()
 
     /* Tests of update/delete with limit/join */
     {
-        qDebug() << "\n\nTests of update/delete with limit/join\n---";
+        qInfo() << "\n\nTests of update/delete with limit/join\n---";
 
         auto qrsFileIdMysql = DB::table("torrent_previewable_files")
                               ->whereEq("filepath", "qrs.mkv").value("id");
 
         /* QueryBuilder::update() */
         {
-            qDebug() << "\n\nQueryBuilder::update()\n---";
+            qInfo() << "\n\nQueryBuilder::update()\n---";
 
             auto [affected, _] = DB::table("torrent_previewable_files")
                     ->where("id", "=", qrsFileIdMysql)
@@ -2465,7 +2466,7 @@ void TestOrm::testQueryBuilder()
 
         /* QueryBuilder::update() - with join */
         {
-            qDebug() << "\n\nQueryBuilder::update() - with join\n---";
+            qInfo() << "\n\nQueryBuilder::update() - with join\n---";
 
             auto query = DB::table("torrents")
                     ->join("torrent_previewable_files", "torrents.id", "=",
@@ -2491,7 +2492,7 @@ void TestOrm::testQueryBuilder()
 
         /* QueryBuilder::update() - with limit */
         {
-            qDebug() << "\n\nQueryBuilder::update() - with limit\n---";
+            qInfo() << "\n\nQueryBuilder::update() - with limit\n---";
 
             auto [affected, _] = DB::table("torrent_previewable_files")
                     ->where("torrent_id", "=", 5)
@@ -2505,7 +2506,7 @@ void TestOrm::testQueryBuilder()
 
         /* QueryBuilder::remove() - with join */
 //        {
-//            qDebug() << "\n\nQueryBuilder::remove() - with join\n---";
+//            qInfo() << "\n\nQueryBuilder::remove() - with join\n---";
 
 //            auto [affected, _] = DB::table("torrents")
 //                    ->join("torrent_previewable_files", "torrents.id", "=",
@@ -2525,7 +2526,7 @@ void TestOrm::testQueryBuilder()
            this DELETE with join statements. */
         /* QueryBuilder::remove() [sqlite] - with join */
 //        {
-//            qDebug() << "\n\nQueryBuilder::remove() [sqlite] - with join\n---";
+//            qInfo() << "\n\nQueryBuilder::remove() [sqlite] - with join\n---";
 
 //            auto [affected, _] = DB::table("torrents", "", "sqlite")
 //                    ->join("torrent_previewable_files", "torrents.id", "=",
@@ -2541,7 +2542,7 @@ void TestOrm::testQueryBuilder()
         // Also part of the Restore
         /* QueryBuilder::remove() - with limit */
         {
-            qDebug() << "\n\nQueryBuilder::remove() - with limit\n---";
+            qInfo() << "\n\nQueryBuilder::remove() - with limit\n---";
 
             auto [affected, _] = DB::table("torrent_previewable_files")
                     ->where("torrent_id", "=", 5)
@@ -2564,7 +2565,7 @@ void TestOrm::testQueryBuilder()
 
     /* QueryBuilder::update() - restore from previous updates */
     {
-        qDebug() << "\n\nQueryBuilder::update() - restore from previous updates\n---";
+        qInfo() << "\n\nQueryBuilder::update() - restore from previous updates\n---";
 
         {
             auto [affected, _] = DB::table("torrents")
@@ -2758,6 +2759,10 @@ void TestOrm::jsonConfig()
 
 void TestOrm::standardPaths()
 {
+    // Exclude from prod. builds for better performance measurement accuracy
+    if (!QLibraryInfo::isDebugBuild())
+        return;
+
     qDebug() << QStandardPaths::displayName(QStandardPaths::AppDataLocation);
     qDebug() << QStandardPaths::displayName(QStandardPaths::AppLocalDataLocation);
     qDebug() << QStandardPaths::displayName(QStandardPaths::ApplicationsLocation);

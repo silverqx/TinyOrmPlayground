@@ -19,7 +19,8 @@ DEFINES += TINYORM_DEBUG_SQL
 # Qt defines
 # ---
 
-#DEFINES += QT_NO_DEBUG_OUTPUT
+# Disable debug output in prod. builds for better performance measurement accuracy
+CONFIG(release, debug|release): DEFINES += QT_NO_DEBUG_OUTPUT
 
 # The following define makes your compiler emit warnings if you use
 # any Qt feature that has been marked deprecated (the exact warnings
