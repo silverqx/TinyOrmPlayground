@@ -812,7 +812,7 @@ void TestOrm::testTinyOrm()
                            });
 
         Q_ASSERT(!torrent.exists);
-        Q_ASSERT(torrent["id"] != QVariant());
+        Q_ASSERT(!torrent.getAttributesHash().contains("id"));
         Q_ASSERT(torrent["name"] == QVariant("test10"));
         Q_ASSERT(torrent["size"] == QVariant(20));
         Q_ASSERT(torrent["progress"] == QVariant(800));
