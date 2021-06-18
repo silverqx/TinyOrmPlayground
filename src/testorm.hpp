@@ -1,3 +1,4 @@
+#pragma once
 #ifndef TESTORM_H
 #define TESTORM_H
 
@@ -19,6 +20,7 @@ private:
     void testConnection();
     void testTinyOrm();
     void testQueryBuilder();
+    void testQueryBuilderDbSpecific();
     void ctorAggregate();
     void jsonConfig();
     void standardPaths();

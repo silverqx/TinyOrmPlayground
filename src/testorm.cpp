@@ -118,6 +118,23 @@ TestOrm &TestOrm::connectToDatabase()
             {"options",         QVariantHash()},
         }},
 
+        {"mysql_laravel8", {
+            {"driver",    "QMYSQL"},
+            {"host",      qEnvironmentVariable("DB_MYSQL_LARAVEL_HOST", "127.0.0.1")},
+            {"port",      qEnvironmentVariable("DB_MYSQL_LARAVEL_PORT", "3306")},
+            {"database",  qEnvironmentVariable("DB_MYSQL_LARAVEL_DATABASE", "")},
+            {"username",  qEnvironmentVariable("DB_MYSQL_LARAVEL_USERNAME", "")},
+            {"password",  qEnvironmentVariable("DB_MYSQL_LARAVEL_PASSWORD", "")},
+            {"charset",   qEnvironmentVariable("DB_MYSQL_LARAVEL_CHARSET", "utf8mb4")},
+            {"collation", qEnvironmentVariable("DB_MYSQL_LARAVEL_COLLATION",
+                                               "utf8mb4_0900_ai_ci")},
+            {"timezone",        "SYSTEM"},
+            {"prefix",          ""},
+            {"strict",          true},
+            {"isolation_level", "REPEATABLE READ"},
+            {"options",         QVariantHash()},
+        }},
+
         {"sqlite", {
             {"driver",    "QSQLITE"},
             {"database",  qEnvironmentVariable("DB_SQLITE_DATABASE", "")},
@@ -162,7 +179,8 @@ TestOrm &TestOrm::connectToDatabase()
             {"timezone", "LOCAL"},
             {"prefix",   ""},
             {"options",  QVariantHash()},
-        }}
+        }},
+
     }, "mysql");
 
     // Create connections eagerly, so I can enable counters
@@ -182,6 +200,8 @@ TestOrm &TestOrm::run()
 //    ctorAggregate();
     anotherTests();
     testConnection();
+
+    testQueryBuilderDbSpecific();
 
     /* Main test playground code */
     for (const auto &connection : CONNECTIONS_TO_TEST) {
@@ -2634,6 +2654,56 @@ void TestOrm::testQueryBuilder()
 //    ok_s ? qDebug() << "truncate was successful"
 //            : qDebug() << "truncate was unsuccessful";
     //    qt_noop();
+
+    /* QueryBuilder::fromRaw() */
+    {
+        qInfo() << "\n\nQueryBuilder::fromRaw()\n---";
+
+        auto query = DB::query()
+                     ->fromRaw("(select id, name from torrents where id < ?) as t", {5})
+                     .where("id", "<", 3)
+                     .get();
+
+        while (query.next())
+            qDebug() << "id :" << query.value("id").value<quint64>() << ";"
+                     << "name :" << query.value("name").value<QString>();
+
+        qt_noop();
+    }
+
+    logQueryCounters(__FUNCTION__, timer.elapsed());
+}
+
+void TestOrm::testQueryBuilderDbSpecific()
+{
+    QElapsedTimer timer;
+    timer.start();
+
+    resetAllQueryLogCounters();
+
+    qInfo().nospace()
+            << "\n\n===================================="
+            << "\n  QueryBuilder - database specific  "
+            << "\n====================================";
+
+    /* QueryBuilder::fromSub() - cross database query */
+    {
+        qInfo() << "\n\nQueryBuilder::fromSub() - cross database query\n---";
+
+        auto query1 = DB::query("mysql_laravel8")->from("users")
+                     .select({"id", "name"});
+
+        auto query = DB::query("mysql")
+                     ->fromSub(query1, "u")
+                     .where("id", "<", 3)
+                     .get();
+
+        while (query.next())
+            qDebug() << "id :" << query.value("id").value<quint64>() << ";"
+                     << "name :" << query.value("name").value<QString>();
+
+        qt_noop();
+    }
 
     logQueryCounters(__FUNCTION__, timer.elapsed());
 }
