@@ -2299,37 +2299,70 @@ void TestOrm::testQueryBuilder()
 //        qt_noop();
     }
 
-    /* JOINs */
-//    auto e = m_db.query()->from("torrents")
-//             .rightJoin("torrent_previewable_files", "torrents.id", "=", "torrent_id")
-//             .where("torrents.id", "=", 256)
-//             .get({"torrents.id", "name", "file_index", "filepath"});
-//    qDebug() << "FIFTH :" << e.executedQuery();
-//    while (e.next()) {
-//        qDebug() << "id :" << e.value("id") << "; name :" << e.value("name")
-//                 << "file_index :" << e.value("file_index")
-//                 << "filepath :" << e.value("filepath");
-//    }
+    /* QueryBuilder::leftJoin() */
+    {
+        qInfo() << "\n\nQueryBuilder::leftJoin()\n---";
+
+        auto torrents =
+                DB::table("torrents")
+                ->leftJoin("torrent_previewable_files",
+                           "torrents.id", "=", "torrent_previewable_files.torrent_id")
+                .where("torrents.id", "=", 2)
+                .get({"torrents.id", "name", "file_index", "filepath"});
+
+        while (torrents.next())
+            qDebug() << "id :" << torrents.value("id")
+                     << "; name :" << torrents.value("name")
+                     << "file_index :" << torrents.value("file_index")
+                     << "filepath :" << torrents.value("filepath");
+    }
 
     /* QueryBuilder::join() - Advanced Join Clause */
     {
         qInfo() << "\n\nQueryBuilder::join() - Advanced Join Clause\n---";
 
         auto torrents = DB::table("torrents")
-                ->join("torrent_previewable_files", [](auto &join)
+                        ->join("torrent_previewable_files", [](auto &join)
         {
-            join.on("torrents.id", "=", "torrent_id")
-                    .where("torrents.progress", "<", 300);
+            join.on("torrents.id", "=", "torrent_previewable_files.torrent_id")
+                    .where("torrents.progress", "<", 350);
         })
 //             .where("torrents.id", "=", 256)
-            .get({"torrents.id", "name", "file_index", "filepath"});
+            .get({"torrents.id", "name", "file_index", "torrents.progress", "filepath"});
 
-        while (torrents.next()) {
+        while (torrents.next())
             qDebug() << "id :" << torrents.value("id")
                      << "; name :" << torrents.value("name")
                      << "file_index :" << torrents.value("file_index")
+                     << "progress :" << torrents.value("progress")
                      << "filepath :" << torrents.value("filepath");
-        }
+
+        qt_noop();
+    }
+
+    /* QueryBuilder::join() - Advanced Join Clause with nested where */
+    {
+        qInfo() << "\n\nQueryBuilder::join() - Advanced Join Clause "
+                   "with nested where\n---";
+
+        auto torrents = DB::table("torrents")
+                        ->join("torrent_previewable_files", [](auto &join)
+        {
+            join.on("torrents.id", "=", "torrent_previewable_files.torrent_id")
+                    .where([](auto &query)
+            {
+                query.where("torrents.progress", "<", 550)
+                        .where("torrents.progress", ">", 250);
+            });
+        })
+            .get({"torrents.id", "name", "file_index", "torrents.progress", "filepath"});
+
+        while (torrents.next())
+            qDebug() << "id :" << torrents.value("id")
+                     << "; name :" << torrents.value("name")
+                     << "file_index :" << torrents.value("file_index")
+                     << "progress :" << torrents.value("progress")
+                     << "filepath :" << torrents.value("filepath");
 
         qt_noop();
     }
@@ -2338,9 +2371,9 @@ void TestOrm::testQueryBuilder()
     {
         qInfo() << "\n\nQueryBuilder::first()\n---";
 
-        auto torrent = m_db->table("torrents")
-                ->where("torrents.id", "=", 2)
-                .first({"id", "name"});
+        auto torrent = DB::table("torrents")
+                       ->where("torrents.id", "=", 2)
+                       .first({"id", "name"});
 
         qDebug() << "id :" << torrent.value("id").value<quint64>()
                  << "; name :" << torrent.value("name").value<QString>();
@@ -2352,9 +2385,9 @@ void TestOrm::testQueryBuilder()
     {
         qInfo() << "\n\nQueryBuilder::value()\n---";
 
-        auto name = m_db->table("torrents")
-                ->where("torrents.id", "=", 2)
-                .value("name");
+        auto name = DB::table("torrents")
+                    ->where("torrents.id", "=", 2)
+                    .value("name");
 
         qDebug() << "name:" << name.value<QString>();
 
@@ -2667,6 +2700,30 @@ void TestOrm::testQueryBuilder()
         while (query.next())
             qDebug() << "id :" << query.value("id").value<quint64>() << ";"
                      << "name :" << query.value("name").value<QString>();
+
+        qt_noop();
+    }
+
+    /* QueryBuilder::joinSub() */
+    {
+        qInfo() << "\n\nQueryBuilder::joinSub()\n---";
+
+        auto query = DB::table("torrents")->joinSub([](auto &query)
+        {
+            query.from("torrent_previewable_files")
+                    .select({"id as files_id", "torrent_id", "filepath",
+                             "size as files_size"})
+                    .where("size", "<", 2050);
+        }, "files", "torrents.id", "=", "files.torrent_id", "inner")
+
+                .where("progress", "<", 500)
+                .get();
+
+        while (query.next())
+            qDebug() << "id :" << query.value("id").value<quint64>() << ";"
+                     << "progress :" << query.value("progress").value<int>() << ";"
+                     << "filepath :" << query.value("filepath").value<QString>() << ";"
+                     << "files_size :" << query.value("files_size").value<qint64>();
 
         qt_noop();
     }
