@@ -2406,18 +2406,22 @@ void TestOrm::testQueryBuilder()
         qt_noop();
     }
 
-    /* GROUP BY and HAVING */
-//    auto h = m_db.query()->from("torrents")
-//             .groupBy({"status"})
-////             .having("status", ">", 10)
-////             .having("status", ">", "Paused")
-//             .having("status", ">", static_cast<int>(TorrentStatus::Paused))
-//             .get({"id", "name", "status"});
-//    qDebug() << "NINETH :" << h.executedQuery();
-//    while (h.next()) {
-//        qDebug() << "id :" << h.value("id") << "; name :" << h.value("name")
-//                 << "status :" << h.value("status");
-//    }
+    /* QueryBuilder::groupBy()/having() without aggregate */
+    {
+        qInfo() << "\n\nQueryBuilder::groupBy()/having() without aggregate\n---";
+
+        auto torrents = DB::table("torrent_previewable_files")
+                        ->select("torrent_id")
+                        .whereNotNull("torrent_id")
+                        .groupBy("torrent_id")
+                        .having("torrent_id", "<", 4)
+                        .get();
+
+        while (torrents.next())
+            qDebug() << "torrent_id :" << torrents.value("torrent_id").value<quint64>();
+
+        qt_noop();
+    }
 
     /* INSERTs */
 //    {
