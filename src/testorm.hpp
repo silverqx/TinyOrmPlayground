@@ -52,6 +52,7 @@ private:
     /*! Connections, for which the testQueryBuilder() and testTinyOrm()
         will be ran on. */
     inline static const QStringList
+//    CONNECTIONS_TO_TEST {"mysql"};
     CONNECTIONS_TO_TEST {"mysql", "sqlite", "postgres"};
 
     /*! Database manager instance. */

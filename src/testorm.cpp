@@ -2732,6 +2732,127 @@ void TestOrm::testQueryBuilder()
         qt_noop();
     }
 
+    /* QueryBuilder::leftJoinSub() */
+    {
+        qInfo() << "\n\nQueryBuilder::leftJoinSub()\n---";
+
+        auto query = DB::table("torrents")->leftJoinSub([](auto &query)
+        {
+            query.from("torrent_previewable_files")
+                    .select({"id as files_id", "torrent_id", "filepath",
+                             "size as files_size"})
+                    .where("size", "<", 2050);
+        }, "files", "torrents.id", "=", "files.torrent_id")
+
+                .where("progress", "<", 500)
+                .get();
+
+        while (query.next())
+            qDebug() << "id :" << query.value("id").value<quint64>() << ";"
+                     << "progress :" << query.value("progress").value<int>() << ";"
+                     << "filepath :" << query.value("filepath").value<QString>() << ";"
+                     << "files_size :" << query.value("files_size").value<qint64>();
+
+        qt_noop();
+    }
+
+    /* QueryBuilder::join() - table as expression */
+    {
+        qInfo() << "\n\nQueryBuilder::join() - table as expression\n---";
+
+        auto query = DB::table("torrents")
+                ->join(DB::raw("(select id as files_id, torrent_id, filepath, "
+                                 "size as files_size "
+                               "from torrent_previewable_files "
+                               "where size < 2050) as files"),
+                       "torrents.id", "=", "files.torrent_id", "inner")
+                .where("progress", "<", 500)
+                .get();
+
+        while (query.next())
+            qDebug() << "id :" << query.value("id").value<quint64>() << ";"
+                     << "progress :" << query.value("progress").value<int>() << ";"
+                     << "filepath :" << query.value("filepath").value<QString>() << ";"
+                     << "files_size :" << query.value("files_size").value<qint64>();
+
+        qt_noop();
+    }
+
+    /* QueryBuilder::join() - with callback and table as expression */
+    {
+        qInfo() << "\n\nQueryBuilder::join() - with callback and table as "
+                   "expression\n---";
+
+        auto query = DB::table("torrents")
+                     ->join(DB::raw("(select id as files_id, torrent_id, filepath, "
+                                      "size as files_size "
+                                    "from torrent_previewable_files "
+                                    "where size < 2050) as files"),
+                            [](auto &join)
+        {
+            join.on("torrents.id", "=", "files.torrent_id");
+        }, "inner")
+                     .where("progress", "<", 500)
+                     .get();
+
+        while (query.next())
+            qDebug() << "id :" << query.value("id").value<quint64>() << ";"
+                 << "progress :" << query.value("progress").value<int>() << ";"
+                 << "filepath :" << query.value("filepath").value<QString>() << ";"
+                 << "files_size :" << query.value("files_size").value<qint64>();
+
+        qt_noop();
+    }
+
+    /* QueryBuilder::joinWhere() */
+    {
+        qInfo() << "\n\nQueryBuilder::joinWhere()\n---";
+
+        /* This is strange query, but it works like this, select torrent.id = 2 and
+           join to it every file with f_progress < 300. 👀 */
+        auto query = DB::table("torrents")
+                     ->joinWhere("torrent_previewable_files", "torrents.id", "=", 2)
+                     .where("torrent_previewable_files.progress", "<", 300)
+                     .get({"torrents.id as t_id",
+                           "torrent_previewable_files.id as f_id",
+                           "torrent_previewable_files.filepath",
+                           "torrent_previewable_files.progress as f_progress"});
+
+        while (query.next())
+            qDebug() << "t_id :" << query.value("t_id").value<quint64>() << ";"
+             << "f_id :" << query.value("f_id").value<quint64>() << ";"
+             << "f_progress :" << query.value("f_progress").value<int>() << ";"
+             << "filepath :" << query.value("filepath").value<QString>();
+
+        qt_noop();
+    }
+
+    /* QueryBuilder::joinWhere() - table as expression */
+    {
+        qInfo() << "\n\nQueryBuilder::joinWhere() - table as expression\n---";
+
+        /* This is strange query, but it works like this, select torrent.id = 2 and
+           join to it every file (from subquery size < 2050) with f_progress < 300. 👀 */
+        auto query = DB::table("torrents")
+                     ->joinWhere(DB::raw("(select id as f_id, torrent_id, filepath, "
+                                           "size as f_size, progress as f_progress "
+                                         "from torrent_previewable_files "
+                                         "where size < 2050) as files"),
+                                 "torrents.id", "=", 2)
+                     .where("files.f_progress", "<", 500)
+                     .get({"torrents.id as t_id", "f_id", "files.filepath", "f_size",
+                           "f_progress"});
+
+        while (query.next())
+            qDebug() << "t_id :" << query.value("t_id").value<quint64>() << ";"
+                     << "f_id :" << query.value("f_id").value<quint64>() << ";"
+                     << "f_progress :" << query.value("f_progress").value<int>() << ";"
+                     << "f_size :" << query.value("f_size").value<qint64>() << ";"
+                     << "filepath :" << query.value("filepath").value<QString>();
+
+        qt_noop();
+    }
+
     logQueryCounters(__FUNCTION__, timer.elapsed());
 }
 
