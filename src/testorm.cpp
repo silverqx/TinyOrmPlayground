@@ -2853,6 +2853,163 @@ void TestOrm::testQueryBuilder()
         qt_noop();
     }
 
+    /* Column expressions in QueryBuilder::select() methods */
+    {
+        qInfo() << "\n\nColumn expressions in QueryBuilder::select() methods\n---";
+
+        auto r1 = DB::table("torrents")->whereEq("id", 1).value("name");
+        auto r2 = DB::table("torrents")->whereEq("id", 1).value(DB::raw("name"));
+        auto r3 = DB::table("torrents")->whereEq("id", 1).get({"id", "name"});
+        auto r4 = DB::table("torrents")->whereEq("id", 1).get({"id", DB::raw("name")});
+        auto r5 = DB::table("torrents")->get({"id", "name"});
+        auto r6 = DB::table("torrents")->get({"id", DB::raw("name")});
+
+        auto r7 = DB::table("torrents")->select("id").whereEq("id", 1).get();
+        auto r8 = DB::table("torrents")->select(DB::raw("id")).whereEq("id", 1).get();
+        auto r9 = DB::table("torrents")->select({"id", "name"}).whereEq("id", 1).get();
+        auto r10 = DB::table("torrents")->select({"id", DB::raw("name")}).whereEq("id", 1).get();
+        auto r11 = DB::table("torrents")->addSelect("id").whereEq("id", 1).get();
+        auto r12 = DB::table("torrents")->addSelect(DB::raw("id")).whereEq("id", 1).get();
+        auto r13 = DB::table("torrents")->addSelect({"id", "name"}).whereEq("id", 1).get();
+        auto r14 = DB::table("torrents")->addSelect({"id", DB::raw("name")}).whereEq("id", 1).get();
+
+        qt_noop();
+    }
+
+    /* Column expressions in TinyBuilder::select() methods */
+    {
+        qInfo() << "\n\nColumn expressions in TinyBuilder::select() methods\n---";
+
+        auto r1 = Torrent::query()->get({"id", "name"});
+        auto r2 = Torrent::query()->get({"id", DB::raw("name")});
+        auto r3 = Torrent::query()->value("name");
+        auto r4 = Torrent::query()->value(DB::raw("name"));
+        auto r5 = Torrent::query()->find(1, {"id", "name"});
+        auto r6 = Torrent::query()->find(1, {"id", DB::raw("name")});
+        auto r7 = Torrent::query()->findOrNew(1, {"id", "name"});
+        auto r8 = Torrent::query()->findOrNew(1, {"id", DB::raw("name")});
+        auto r9 = Torrent::query()->findOrFail(1, {"id", "name"});
+        auto r10 = Torrent::query()->findOrFail(1, {"id", DB::raw("name")});
+        auto r11 = Torrent::query()->whereEq("id", 1).first({"id", "name"});
+        auto r12 = Torrent::query()->whereEq("id", 1).first({"id", DB::raw("name")});
+        auto r13 = Torrent::query()->whereEq("id", 1).firstOrFail({"id", "name"});
+        auto r14 = Torrent::query()->whereEq("id", 1).firstOrFail({"id", DB::raw("name")});
+        auto r15 = Torrent::query()->firstWhere("id", "=", 1);
+        auto r16 = Torrent::query()->firstWhere(DB::raw("id"), "=", 1);
+
+        auto r17 = Torrent::query()->select("id").whereEq("id", 1).get();
+        auto r18 = Torrent::query()->select(DB::raw("id")).whereEq("id", 1).get();
+        auto r19 = Torrent::query()->select({"id", "name"}).whereEq("id", 1).get();
+        auto r20 = Torrent::query()->select({"id", DB::raw("name")}).whereEq("id", 1).get();
+        auto r21 = Torrent::query()->addSelect("id").whereEq("id", 1).get();
+        auto r22 = Torrent::query()->addSelect(DB::raw("id")).whereEq("id", 1).get();
+        auto r23 = Torrent::query()->addSelect({"id", "name"}).whereEq("id", 1).get();
+        auto r24 = Torrent::query()->addSelect({"id", DB::raw("name")}).whereEq("id", 1).get();
+
+        qt_noop();
+    }
+
+    /* Column expressions in Model::select() methods */
+    {
+        qInfo() << "\n\nColumn expressions in Model::select() methods\n---";
+
+        auto r1 = Torrent::all({"id", "name"});
+        auto r2 = Torrent::all({"id", DB::raw("name")});
+        auto r3 = Torrent::value("name");
+        auto r4 = Torrent::value(DB::raw("name"));
+        auto r5 = Torrent::find(1, {"id", "name"});
+        auto r6 = Torrent::find(1, {"id", DB::raw("name")});
+        auto r7 = Torrent::findOrNew(1, {"id", "name"});
+        auto r8 = Torrent::findOrNew(1, {"id", DB::raw("name")});
+        auto r9 = Torrent::findOrFail(1, {"id", "name"});
+        auto r10 = Torrent::findOrFail(1, {"id", DB::raw("name")});
+        auto r11 = Torrent::whereEq("id", 1)->first({"id", "name"});
+        auto r12 = Torrent::whereEq("id", 1)->first({"id", DB::raw("name")});
+        auto r13 = Torrent::whereEq("id", 1)->firstOrFail({"id", "name"});
+        auto r14 = Torrent::whereEq("id", 1)->firstOrFail({"id", DB::raw("name")});
+        auto r15 = Torrent::firstWhere("id", "=", 1);
+        auto r16 = Torrent::firstWhere(DB::raw("id"), "=", 1);
+
+        auto r17 = Torrent::select("id")->whereEq("id", 1).get();
+        auto r18 = Torrent::select(DB::raw("id"))->whereEq("id", 1).get();
+        auto r19 = Torrent::select({"id", "name"})->whereEq("id", 1).get();
+        auto r20 = Torrent::select({"id", DB::raw("name")})->whereEq("id", 1).get();
+        auto r21 = Torrent::addSelect("id")->whereEq("id", 1).get();
+        auto r22 = Torrent::addSelect(DB::raw("id"))->whereEq("id", 1).get();
+        auto r23 = Torrent::addSelect({"id", "name"})->whereEq("id", 1).get();
+        auto r24 = Torrent::addSelect({"id", DB::raw("name")})->whereEq("id", 1).get();
+
+        qt_noop();
+    }
+
+    /* Column expressions in Relation::select() methods */
+    {
+        qInfo() << "\n\nColumn expressions in Relation::select() methods\n---";
+
+        auto r1 = Torrent::find(1)->torrentFiles()->get({"id", "filepath"});
+        auto r2 = Torrent::find(1)->torrentFiles()->get({"id", DB::raw("filepath")});
+        auto r3 = Torrent::find(1)->torrentFiles()->value("filepath");
+        auto r4 = Torrent::find(1)->torrentFiles()->value(DB::raw("filepath"));
+        auto r5 = Torrent::find(1)->torrentFiles()->find(1, {"id", "filepath"});
+        auto r6 = Torrent::find(1)->torrentFiles()->find(1, {"id", DB::raw("filepath")});
+        auto r7 = Torrent::find(1)->torrentFiles()->findOrNew(1, {"id", "filepath"});
+        auto r8 = Torrent::find(1)->torrentFiles()->findOrNew(1, {"id", DB::raw("filepath")});
+        auto r9 = Torrent::find(1)->torrentFiles()->findOrFail(1, {"id", "filepath"});
+        auto r10 = Torrent::find(1)->torrentFiles()->findOrFail(1, {"id", DB::raw("filepath")});
+        auto r11 = Torrent::find(1)->torrentFiles()->whereEq("id", 1).first({"id", "filepath"});
+        auto r12 = Torrent::find(1)->torrentFiles()->whereEq("id", 1).first({"id", DB::raw("filepath")});
+        auto r13 = Torrent::find(1)->torrentFiles()->whereEq("id", 1).firstOrFail({"id", "filepath"});
+        auto r14 = Torrent::find(1)->torrentFiles()->whereEq("id", 1).firstOrFail({"id", DB::raw("filepath")});
+        auto r15 = Torrent::find(1)->torrentFiles()->firstWhere("id", "=", 1);
+        auto r16 = Torrent::find(1)->torrentFiles()->firstWhere(DB::raw("id"), "=", 1);
+
+        auto r17 = Torrent::find(1)->torrentFiles()->select("id").whereEq("id", 1).get();
+        auto r18 = Torrent::find(1)->torrentFiles()->select(DB::raw("id")).whereEq("id", 1).get();
+        auto r19 = Torrent::find(1)->torrentFiles()->select({"id", "filepath"}).whereEq("id", 1).get();
+        auto r20 = Torrent::find(1)->torrentFiles()->select({"id", DB::raw("filepath")}).whereEq("id", 1).get();
+        auto r21 = Torrent::find(1)->torrentFiles()->addSelect("id").whereEq("id", 1).get();
+        auto r22 = Torrent::find(1)->torrentFiles()->addSelect(DB::raw("id")).whereEq("id", 1).get();
+        auto r23 = Torrent::find(1)->torrentFiles()->addSelect({"id", "filepath"}).whereEq("id", 1).get();
+        auto r24 = Torrent::find(1)->torrentFiles()->addSelect({"id", DB::raw("filepath")}).whereEq("id", 1).get();
+
+        qt_noop();
+    }
+
+    /* Column expressions in HasMany::findMany() methods */
+    {
+        qInfo() << "\n\nColumn expressions in HasMany::findMany() methods\n---";
+
+        auto r1 = Torrent::find(2)->torrentFiles()->findMany({2, 3}, {"id", "filepath"});
+        auto r2 = Torrent::find(2)->torrentFiles()->findMany({2, 3}, {"id", DB::raw("filepath")});
+
+        qt_noop();
+    }
+
+    /* Column expressions in BelongsToMany::select() methods */
+    {
+        qInfo() << "\n\nColumn expressions in BelongsToMany::select() methods\n---";
+
+        auto r1 = Torrent::find(2)->tags()->get({"id", "name"});
+        auto r2 = Torrent::find(2)->tags()->get({"id", DB::raw("name")});
+        auto r5 = Torrent::find(2)->tags()->find(1, {"id", "name"});
+        auto r6 = Torrent::find(2)->tags()->find(1, {"id", DB::raw("name")});
+        auto r7 = Torrent::find(2)->tags()->findOrNew(1, {"id", "name"});
+        auto r8 = Torrent::find(2)->tags()->findOrNew(1, {"id", DB::raw("name")});
+        auto r9 = Torrent::find(2)->tags()->findOrFail(1, {"id", "name"});
+        auto r10 = Torrent::find(2)->tags()->findOrFail(1, {"id", DB::raw("name")});
+        auto r11 = Torrent::find(2)->tags()->whereEq("id", 1).first({"id", "name"});
+        auto r12 = Torrent::find(2)->tags()->whereEq("id", 1).first({"id", DB::raw("name")});
+        auto r13 = Torrent::find(2)->tags()->whereEq("id", 1).firstOrFail({"id", "name"});
+        auto r14 = Torrent::find(2)->tags()->whereEq("id", 1).firstOrFail({"id", DB::raw("name")});
+        auto r15 = Torrent::find(2)->tags()->firstWhere("id", "=", 1);
+        auto r16 = Torrent::find(2)->tags()->firstWhere(DB::raw("id"), "=", 1);
+
+        auto r17 = Torrent::find(2)->tags()->findMany({1, 2}, {"id", "name"});
+        auto r18 = Torrent::find(2)->tags()->findMany({1, 2}, {"id", DB::raw("name")});
+
+        qt_noop();
+    }
+
     logQueryCounters(__FUNCTION__, timer.elapsed());
 }
 
