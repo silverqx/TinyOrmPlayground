@@ -2291,6 +2291,32 @@ void TestOrm::testTinyOrm()
         qt_noop();
     }
 
+    /* Model::leftJoinSub() with join on callback */
+    {
+        qInfo() << "\n\nModel::leftJoinSub() with join on callback\n---";
+
+        auto torrents = Torrent::leftJoinSub([](auto &query)
+        {
+            query.from("torrent_previewable_files")
+                    .select({"id as files_id", "torrent_id", "filepath",
+                             "size as files_size"})
+                    .where("size", "<", 2050);
+        }, "files", [](auto &join)
+        {
+            join.on("torrents.id", "=", "files.torrent_id");
+        })
+                ->where("progress", "<", 500)
+                .get();
+
+        for (auto &t : torrents)
+            qDebug() << "id :" << t.getAttribute("id").value<quint64>() << ";"
+                     << "progress :" << t.getAttribute("progress").value<int>() << ";"
+                     << "filepath :" << t.getAttribute("filepath").value<QString>() << ";"
+                     << "files_size :" << t.getAttribute("files_size").value<qint64>();
+
+        qt_noop();
+    }
+
     logQueryCounters(__FUNCTION__, timer.elapsed());
 }
 
