@@ -2317,6 +2317,30 @@ void TestOrm::testTinyOrm()
         qt_noop();
     }
 
+    /* Model::pluck() - simple overload */
+    {
+        qInfo() << "\n\nModel::pluck() - simple overload\n---";
+
+        auto names = Torrent::pluck("name");
+
+        for (auto &&name : names)
+            qDebug().noquote() << name.value<QString>();
+
+        qt_noop();
+    }
+
+    /* Model::pluck() - keyed overload */
+    {
+        qInfo() << "\n\nModel::pluck() - keyed overload\n---";
+
+        auto result = Torrent::pluck<QString>("hash", "name");
+
+        for (auto &&[name, hash] : result)
+            qDebug().noquote() << name << ":" << hash.value<QString>();
+
+        qt_noop();
+    }
+
     logQueryCounters(__FUNCTION__, timer.elapsed());
 }
 
