@@ -2341,6 +2341,47 @@ void TestOrm::testTinyOrm()
         qt_noop();
     }
 
+    /* Model::where() - value subquery - lambda expression */
+    {
+        qInfo() << "\n\nModel::where() - value subquery - lambda expression\n---";
+
+        auto torrents = Torrent::whereEq("size", 12)
+                        ->orWhere("size", ">", [](auto &q)
+        {
+            q.from("torrents", "t").selectRaw("avg(t.size)");
+        }).get();
+
+        qDebug() << "#" << "|" << "name" << "|" << "size";
+        qDebug() << "---------------";
+        for (auto &torrent : torrents)
+            qDebug().noquote()
+                    << torrent["id"]->value<quint64>() << "|"
+                    << torrent["name"]->value<QString>() << "|"
+                    << torrent["size"]->value<quint64>();
+
+        qt_noop();
+    }
+
+    /* Model::where() - value subquery - QueryBuilder & */
+    {
+        qInfo() << "\n\nModel::where() - value subquery - QueryBuilder &\n---";
+
+        auto torrents = Torrent::whereEq("size", 12)
+                        ->orWhere("size", ">",
+                                  DB::table("torrents", "t")->selectRaw("avg(t.size)"))
+                        .get();
+
+        qDebug() << "#" << "|" << "name" << "|" << "size";
+        qDebug() << "---------------";
+        for (auto &torrent : torrents)
+            qDebug().noquote()
+                    << torrent["id"]->value<quint64>() << "|"
+                    << torrent["name"]->value<QString>() << "|"
+                    << torrent["size"]->value<quint64>();
+
+        qt_noop();
+    }
+
     logQueryCounters(__FUNCTION__, timer.elapsed());
 }
 
