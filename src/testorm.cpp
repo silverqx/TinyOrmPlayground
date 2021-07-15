@@ -2382,6 +2382,30 @@ void TestOrm::testTinyOrm()
         qt_noop();
     }
 
+    /* Model::where() - column subquery - lambda expression */
+    {
+        qInfo() << "\n\nModel::where() - column subquery - lambda expression\n---";
+
+        auto torrents = Torrent::whereEq([](auto &q)
+        {
+            q.from("torrent_previewable_files")
+                    .select("file_index")
+                    .whereColumnEq("torrent_id", "torrents.id")
+                    .orderByDesc("file_index")
+                    .limit(1);
+        }, 0)
+                ->orderBy("id")
+                .get();
+
+        qDebug() << "#" << "|" << "name";
+        qDebug() << "--------";
+        for (auto &torrent : torrents)
+            qDebug().noquote() << torrent["id"]->value<quint64>() << "|"
+                               << torrent["name"]->value<QString>();
+
+        qt_noop();
+    }
+
     logQueryCounters(__FUNCTION__, timer.elapsed());
 }
 
