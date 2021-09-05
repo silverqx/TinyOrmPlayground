@@ -1,5 +1,5 @@
 # Treat Qt's headers as system headers
-QMAKE_CXXFLAGS += -isystem "$$[QT_INSTALL_HEADERS]"
+QMAKE_CXXFLAGS += -isystem $$quote($$[QT_INSTALL_HEADERS])
 for(module, QT) {
     equals(module, "testlib") {
         QMAKE_CXXFLAGS += -isystem $$quote($$[QT_INSTALL_HEADERS]/QtTest)
