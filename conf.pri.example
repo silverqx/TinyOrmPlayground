@@ -4,21 +4,22 @@
 win32-g++* {
 }
 else:win32-msvc* {
-    # includes
+    # Includes
     # range-v3
     INCLUDEPATH += $$quote(E:/xyz/vcpkg/installed/x64-windows/include)
 
-    # libraries
+    # Libraries
+    # TinyORM library path
     LIBS += $$quote(-L$$PWD/../../TinyOrm/TinyOrm-builds/build-TinyOrm-Desktop_Qt_$${TINY_QT_VERSION_UNDERSCORED}_MSVC2019_64bit-$${TINY_RELEASE_TYPE_CAMEL}/src/$${TINY_RELEASE_TYPE}/)
 }
 else:unix {
-    # includes
+    # Includes
     # range-v3
     INCLUDEPATH += $$quote(/home/xyz/vcpkg/installed/x64-linux/include)
 
-    # libraries
+    # Libraries
     # TinyORM library path
-    # ccache build link against ccache build
+    # ccache build link against a ccache build
     contains(OUT_PWD, .*ccache.*): TINY_CCACHE_BUILD = _ccache
     else: TINY_CCACHE_BUILD =
     # support gcc, clang11, and clang12
@@ -28,6 +29,7 @@ else:unix {
     }
     else:gcc: LIBS += $$quote(-L$$PWD/../../TinyOrm/TinyOrm-builds/build-TinyOrm-Desktop_Qt_$${TINY_QT_VERSION_UNDERSCORED}_GCC_64bit$${TINY_CCACHE_BUILD}-$${TINY_RELEASE_TYPE_CAMEL}/src/)
 
-    # others
+    # Use faster linkers
     clang: CONFIG *= use_lld_linker
+    else: CONFIG *= use_gold_linker
 }
