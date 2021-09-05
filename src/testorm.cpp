@@ -33,6 +33,7 @@
 
 // clazy:excludeall=unused-non-trivial-variable
 
+// BUG this causes crash of code model after upgrade to QtCreator 5 with clang 12 silverqx
 //using namespace ranges;
 
 using json = nlohmann::json;
