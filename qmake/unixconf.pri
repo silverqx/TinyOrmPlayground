@@ -25,7 +25,9 @@ QMAKE_CXXFLAGS_WARN_ON *= \
     -Wdouble-promotion \
     -Wconversion \
     -Wzero-as-null-pointer-constant \
-    -Wstrict-null-sentinel \
     -Winvalid-pch \
     -pedantic \
     -pedantic-errors \
+
+# Clang 12 still doesn't support -Wstrict-null-sentinel
+!clang: QMAKE_CXXFLAGS_WARN_ON *= -Wstrict-null-sentinel

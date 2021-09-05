@@ -61,9 +61,9 @@ private:
 
     /* Counters for the summary */
     /*! Queries execution time for the whole application. */
-    int m_appFunctionsElapsed = 0;
+    qint64 m_appFunctionsElapsed = 0;
     /*! Queries execution time for the whole application. */
-    int m_appElapsed = 0;
+    qint64 m_appElapsed = 0;
     /*! Counts executed statements in the whole application. */
     StatementsCounter m_appStatementsCounter {0, 0, 0};
     /*! Indicates if changes have been made to the database for the whole application. */

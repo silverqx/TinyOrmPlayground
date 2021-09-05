@@ -85,8 +85,6 @@ else {
 # Dependencies include and library paths
 # ---
 
-INCLUDEPATH += $$quote($$PWD/../../TinyOrm/TinyORM/include)
-
 LIBS += -lTinyOrm
 
 # Use Precompiled headers (PCH)

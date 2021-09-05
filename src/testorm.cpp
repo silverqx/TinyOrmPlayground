@@ -1001,14 +1001,14 @@ void TestOrm::testTinyOrm()
 
         const auto debugAttributes = [&torrent]
         {
-            auto files = torrent->getRelation<TorrentPreviewableFile>("torrentFiles");
-            auto file = files.first();
-            auto *fileProperty =
-                    file->getRelation<TorrentPreviewableFileProperty, One>(
+            auto files1 = torrent->getRelation<TorrentPreviewableFile>("torrentFiles");
+            auto file1 = files1.first();
+            auto *fileProperty1 =
+                    file1->getRelation<TorrentPreviewableFileProperty, One>(
                         "fileProperty");
             qDebug() << torrent->getAttribute("name").value<QString>();
-            qDebug() << file->getAttribute("filepath").value<QString>();
-            qDebug() << fileProperty->getAttribute("name").value<QString>();
+            qDebug() << file1->getAttribute("filepath").value<QString>();
+            qDebug() << fileProperty1->getAttribute("name").value<QString>();
         };
 
         debugAttributes();
@@ -2984,9 +2984,9 @@ void TestOrm::testQueryBuilder()
     {
         qInfo() << "\n\nQueryBuilder::joinSub()\n---";
 
-        auto query = DB::table("torrents")->joinSub([](auto &query)
+        auto query = DB::table("torrents")->joinSub([](auto &query_)
         {
-            query.from("torrent_previewable_files")
+            query_.from("torrent_previewable_files")
                     .select({"id as files_id", "torrent_id", "filepath",
                              "size as files_size"})
                     .where("size", "<", 2050);
@@ -3008,9 +3008,9 @@ void TestOrm::testQueryBuilder()
     {
         qInfo() << "\n\nQueryBuilder::leftJoinSub()\n---";
 
-        auto query = DB::table("torrents")->leftJoinSub([](auto &query)
+        auto query = DB::table("torrents")->leftJoinSub([](auto &query_)
         {
-            query.from("torrent_previewable_files")
+            query_.from("torrent_previewable_files")
                     .select({"id as files_id", "torrent_id", "filepath",
                              "size as files_size"})
                     .where("size", "<", 2050);
@@ -3397,7 +3397,7 @@ void TestOrm::logQueryCounters(const QString &func,
         m_appFunctionsElapsed += *functionElapsed;
 
     // Total counters for the summary
-    int summaryElapsed = -1;
+    qint64 summaryElapsed = -1;
     StatementsCounter summaryStatementsCounter;
     bool summaryRecordsHaveBeenModified = false;
 
@@ -3477,7 +3477,7 @@ void TestOrm::logQueryCountersBlock(
     if (title.contains("Application")) {
         qInfo().nospace() << "  Qt version               : "
                           << QT_VERSION_STR;
-        qInfo().nospace() << "  Build type               : "
+        qInfo().nospace() << "  Qt Build type            : "
                           << (QLibraryInfo::isDebugBuild() ? "Debug" : "Release")
                           << "\n";
 
