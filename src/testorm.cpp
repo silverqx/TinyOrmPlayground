@@ -6,7 +6,7 @@
 #include <QLibraryInfo>
 #include <QStandardPaths>
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER) && !defined(__clang__)
 #include <format>
 #endif
 #include <fstream>
@@ -19,7 +19,7 @@
 #include <range/v3/all.hpp>
 
 #include <orm/db.hpp>
-#include <orm/invalidargumenterror.hpp>
+#include <orm/exceptions/invalidargumenterror.hpp>
 #include <orm/mysqlconnection.hpp>
 #include <orm/query/joinclause.hpp>
 #include <orm/utils/type.hpp>
@@ -31,15 +31,17 @@
 #include "models/torrenteager.hpp"
 #include "models/user.hpp"
 
-using namespace ranges;
+// clazy:excludeall=unused-non-trivial-variable
+
+//using namespace ranges;
 
 using json = nlohmann::json;
 
 using Orm::AttributeItem;
 using Orm::MySqlConnection;
-using Orm::InvalidArgumentError;
+using Orm::Exceptions::InvalidArgumentError;
 using Orm::One;
-using Orm::Tiny::ModelNotFoundError;
+using Orm::Tiny::Exceptions::ModelNotFoundError;
 using Orm::Tiny::Relations::Pivot;
 
 /*
@@ -178,7 +180,7 @@ TestOrm &TestOrm::connectToDatabase()
             // I don't use timezone types in postgres anyway
             {"timezone", "LOCAL"},
             {"prefix",   ""},
-            {"options",  QVariantHash()},
+            {"options",  QVariantHash(/*{{"requiressl", 1}}*/)},
         }},
 
     }, "mysql");
@@ -332,7 +334,7 @@ void TestOrm::anotherTests()
     }
 
     /* Formatting with std::format() */
-#ifdef _MSC_VER
+#if defined(_MSC_VER) && !defined(__clang__)
     {
         qInfo().nospace()
             << "\n\n=================="
