@@ -1,0 +1,15 @@
+{
+  "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg/master/scripts/vcpkg.schema.json",
+  "name": "tinyormplayground",
+  "version-semver": "0.1.0",
+  "description": "Playground for TinyOrm user-friendly ORM",
+  "homepage": "https://github.com/silverqx/TinyOrmPlayground",
+  "documentation": "https://github.com/silverqx/TinyOrmPlayground",
+  "maintainers": "Silver Zachara <silver.zachara@gmail.com>",
+  "supports": "!(uwp | arm | android | emscripten)",
+  "dependencies": [
+    "range-v3",
+    "nlohmann-json"
+  ]
+}
+
