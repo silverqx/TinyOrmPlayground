@@ -1,0 +1,24 @@
+cmake build commands:
+---------------------
+
+vcvars64.ps1
+cd E:\c\qMedia\TinyOrmPlayground\TinyOrmPlayground-builds\build-cmake\
+cmake.exe -S E:/c/qMedia/TinyOrmPlayground/TinyOrmPlayground `
+-B E:/c/qMedia/TinyOrmPlayground/TinyOrmPlayground-builds/build-cmake `
+-GNinja `
+-DCMAKE_BUILD_TYPE:STRING=Debug `
+-DCMAKE_TOOLCHAIN_FILE:PATH=E:/c/qMedia/vcpkg/scripts/buildsystems/vcpkg.cmake
+
+cmake --build . --target all
+
+ - generate Graphviz dependency image:
+
+cmake.exe -S E:/c/qMedia/TinyOrmPlayground/TinyOrmPlayground `
+-B E:/c/qMedia/TinyOrmPlayground/TinyOrmPlayground-builds/build-cmake `
+-GNinja `
+-DCMAKE_BUILD_TYPE:STRING=Debug `
+-DCMAKE_TOOLCHAIN_FILE:PATH=E:/c/qMedia/vcpkg/scripts/buildsystems/vcpkg.cmake `
+--graphviz=E:/c/qMedia/TinyOrmPlayground/TinyOrmPlayground-builds/build-cmake/graph/graph.dot; `
+`
+dot -Tpng -o .\graph\graph.png .\graph\graph.dot; `
+.\graph\graph.png
