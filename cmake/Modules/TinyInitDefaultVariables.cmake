@@ -1,7 +1,7 @@
 include(TinyHelpers)
 
 # Initialize CMake default variables by project options
-function(tiny_init_cmake_variables)
+macro(tiny_init_cmake_variables)
 
     set(CMAKE_FIND_PACKAGE_SORT_ORDER NATURAL)
     set(CMAKE_FIND_PACKAGE_SORT_DIRECTION DEC)
@@ -27,4 +27,4 @@ function(tiny_init_cmake_variables)
         )
     endif()
 
-endfunction()
+endmacro()
