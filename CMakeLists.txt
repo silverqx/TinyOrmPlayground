@@ -17,7 +17,11 @@ project(TinyOrmPlayground
 )
 
 # Specify the C++ standard
-set(CMAKE_CXX_STANDARD 23)
+if(MINGW)
+    set(CMAKE_CXX_STANDARD 20)
+else()
+    set(CMAKE_CXX_STANDARD 23)
+endif()
 set(CMAKE_CXX_STANDARD_REQUIRED YES)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
@@ -44,8 +48,6 @@ feature_option(BUILD_SHARED_LIBS
     "Build using shared libraries" ON)
 feature_option(MSVC_RUNTIME_DYNAMIC
     "Use MSVC dynamic runtime library (-MD) instead of static (-MT)" ON)
-feature_option(PRECOMPILE_HEADERS
-    "Enables support for the use of precompiled headers." ON)
 feature_option(VERBOSE_CONFIGURE
     "Show information about PACKAGES_FOUND and PACKAGES_NOT_FOUND in the configure \
 output" OFF)
@@ -59,9 +61,10 @@ works on some older versions of Visual Studio). Setting to \
 ON lets the toolchain decide how many threads to use. Set to \
 OFF to disable /MP completely.")
 
-# Initialize default cmake variables
+# Initialize Tiny and default cmake variables
 include(TinyInitDefaultVariables)
 tiny_init_cmake_variables()
+tiny_init_tiny_variables()
 
 # TinyORM library header and source files
 # ---
@@ -69,13 +72,19 @@ tiny_init_cmake_variables()
 include(TinySources)
 tiny_sources()
 
-set(TinyOrmPlayground_target TinyOrmPlayground)
 add_executable(${TinyOrmPlayground_target}
     ${headers}
     ${sources}
 )
 
-target_compile_features(${TinyOrmPlayground_target} PRIVATE cxx_std_20)
+if(MINGW)
+    target_compile_options(${TinyOrmPlayground_target}
+        PRIVATE
+            $<$<CONFIG:DEBUG>:-Wa,-mbig-obj>
+            # Avoid string table overflow
+            $<$<CONFIG:DEBUG>:-O1>
+    )
+endif()
 
 # Use Precompiled headers (PCH)
 # ---
@@ -84,7 +93,7 @@ target_precompile_headers(${TinyOrmPlayground_target}
     PRIVATE $<$<COMPILE_LANGUAGE:CXX>:"pch.h">
 )
 
-if(PRECOMPILE_HEADERS)
+if(NOT CMAKE_DISABLE_PRECOMPILE_HEADERS)
     target_compile_definitions(${TinyOrmPlayground_target} PRIVATE USING_PCH)
 endif()
 
@@ -102,7 +111,7 @@ set_target_properties(${TinyOrmPlayground_target}
 target_include_directories(${TinyOrmPlayground_target} PRIVATE
     "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src>"
     "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src/models>"
-    "$<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/src>"
+    "$<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/${TINY_BUILD_GENDIR}/include>"
 )
 
 # TinyOrmPlayground defines
@@ -128,7 +137,9 @@ endif()
 # ---
 
 include(TinyFileVersionAndManifest)
-tiny_file_version_and_manifest(${TinyOrmPlayground_target} "src/")
+tiny_file_version_and_manifest(${TinyOrmPlayground_target} "src/"
+    "${TINY_BUILD_GENDIR}/include/"
+)
 
 # Resolve and link dependencies
 # ---
@@ -208,8 +219,7 @@ set_package_properties(TinyOrm
 )
 
 if(VERBOSE_CONFIGURE)
-    # TODO test with CMAKE_CONFIGURATION_TYPES, multi config generators silverqx
-    if(NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
+    if(NOT TINY_IS_MULTI_CONFIG AND NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
         message(STATUS "Disabling debug output")
     endif()
 
