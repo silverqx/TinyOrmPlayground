@@ -64,7 +64,8 @@ function(tiny_qt_common target alias)
             /nologo
             /guard:cf
             /utf-8
-            # TODO This is by default for msvc c++20, solve when will do clang/gcc build silverqx
+            # Set by default by c++20 but from VS 16.11, can be removed when
+            # minMsvcVersion will be >= 16.11
             /permissive-
             /bigobj
             # Has to be enabled explicitly
@@ -92,7 +93,6 @@ function(tiny_qt_common target alias)
         target_compile_options(${target} INTERFACE /EHsc)
     endif(MSVC)
 
-    # TODO verify silverqx
     if(MINGW)
         target_link_options(${target} INTERFACE
             $<$<OR:$<CONFIG:Debug>,$<CONFIG:RelWithDebInfo>>:LINKER:--dynamicbase>
