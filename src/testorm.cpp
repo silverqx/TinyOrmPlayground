@@ -6,8 +6,14 @@
 #include <QLibraryInfo>
 #include <QStandardPaths>
 
-#if defined(_MSC_VER) && !defined(__clang__)
-#include <format>
+#ifdef __has_include
+#  if __has_include(<version>)
+#    include <version>
+#  endif
+#endif
+
+#if defined(__cpp_lib_format) && __cpp_lib_format >= 201907
+#  include <format>
 #endif
 #include <fstream>
 #include <iomanip>
@@ -335,7 +341,7 @@ void TestOrm::anotherTests()
     }
 
     /* Formatting with std::format() */
-#if defined(_MSC_VER) && !defined(__clang__)
+#if defined(__cpp_lib_format) && __cpp_lib_format >= 201907
     {
         qInfo().nospace()
             << "\n\n=================="
