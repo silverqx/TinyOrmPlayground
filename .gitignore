@@ -74,3 +74,5 @@ Thumbs.db
 /tmp.sql
 conf.pri
 /CMakeUserPresets.json
+/vcpkg_installed/
+/CMakeLists.txt.user
