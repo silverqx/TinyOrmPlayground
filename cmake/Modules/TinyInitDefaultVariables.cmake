@@ -3,28 +3,104 @@ include(TinyHelpers)
 # Initialize CMake default variables by project options
 macro(tiny_init_cmake_variables)
 
-    set(CMAKE_FIND_PACKAGE_SORT_ORDER NATURAL)
-    set(CMAKE_FIND_PACKAGE_SORT_DIRECTION DEC)
-    set(CMAKE_WARN_ON_ABSOLUTE_INSTALL_DESTINATION YES)
+    set(CMAKE_FIND_PACKAGE_SORT_ORDER NATURAL CACHE STRING
+        "The default order for sorting packages found using find_package()")
+    set(CMAKE_FIND_PACKAGE_SORT_DIRECTION DEC CACHE STRING
+        "The sorting direction used by CMAKE_FIND_PACKAGE_SORT_ORDER")
 
-    tiny_invert_bool(PRECOMPILE_HEADERS ${PRECOMPILE_HEADERS})
-    set(CMAKE_DISABLE_PRECOMPILE_HEADERS ${PRECOMPILE_HEADERS})
+    set(CMAKE_WARN_ON_ABSOLUTE_INSTALL_DESTINATION ON CACHE BOOL
+        "Ask cmake_install.cmake script to warn each time a file with absolute INSTALL \
+DESTINATION is encountered")
 
-    if(MSVC_RUNTIME_DYNAMIC)
-        set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
-    else()
-        set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+    mark_as_advanced(
+        CMAKE_FIND_PACKAGE_SORT_ORDER
+        CMAKE_FIND_PACKAGE_SORT_DIRECTION
+        CMAKE_WARN_ON_ABSOLUTE_INSTALL_DESTINATION
+    )
+
+    # Allow to select dynamic/static MSVC runtime
+    if(MSVC AND NOT MSVC_RUNTIME_DYNAMIC STREQUAL MSVC_RUNTIME_DYNAMIC-NOTFOUND)
+        if(MSVC_RUNTIME_DYNAMIC)
+            set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
+        else()
+            set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+        endif()
     endif()
+
+    # TODO test on unix silverqx
+#    set(CMAKE_POSITION_INDEPENDENT_CODE TRUE)
 
     # Fix install prefix for the x64 toolchain
     if(WIN32 AND CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT
             AND CMAKE_SIZEOF_VOID_P EQUAL 8
     )
-        get_property(intall_prefix_docs CACHE CMAKE_INSTALL_PREFIX PROPERTY HELPSTRING)
+        get_property(help_string CACHE CMAKE_INSTALL_PREFIX PROPERTY HELPSTRING)
+        if(NOT help_string)
+            set(help_string "Install path prefix, prepended onto install directories")
+        endif()
 
         set(CMAKE_INSTALL_PREFIX "C:/Program Files/${PROJECT_NAME}"
-            CACHE PATH "${intall_prefix_docs}" FORCE
+            CACHE PATH "${help_string}" FORCE
         )
     endif()
+
+    # Avoid to link a release type builds against a debug build
+    set(helpStringTemplate
+        "Map from <CONFIG> project configuration to an imported target's configuration")
+
+    string(REPLACE "<CONFIG>" "Release" release_helpString ${helpStringTemplate})
+    string(REPLACE "<CONFIG>" "RelWithDebInfo" relWithDebInfo_helpString
+        ${helpStringTemplate})
+    string(REPLACE "<CONFIG>" "MinSizeRel" minSizeRel_helpString ${helpStringTemplate})
+    string(REPLACE "<CONFIG>" "Debug" debug_helpString ${helpStringTemplate})
+
+    set(CMAKE_MAP_IMPORTED_CONFIG_RELEASE Release RelWithDebInfo MinSizeRel ""
+        CACHE STRING ${release_helpString})
+    set(CMAKE_MAP_IMPORTED_CONFIG_RELWITHDEBINFO RelWithDebInfo Release MinSizeRel ""
+        CACHE STRING ${relWithDebInfo_helpString})
+    set(CMAKE_MAP_IMPORTED_CONFIG_MINSIZEREL MinSizeRel RelWithDebInfo Release ""
+        CACHE STRING ${minSizeRel_helpString})
+
+    # MSVC runtime library crashes if you do not link a debug build against a debug build
+    if(MSVC)
+        set(CMAKE_MAP_IMPORTED_CONFIG_DEBUG Debug "" CACHE STRING ${debug_helpString})
+    else()
+        set(CMAKE_MAP_IMPORTED_CONFIG_DEBUG Debug RelWithDebInfo Release MinSizeRel ""
+            CACHE STRING ${debug_helpString})
+    endif()
+
+    mark_as_advanced(
+        CMAKE_MAP_IMPORTED_CONFIG_RELEASE
+        CMAKE_MAP_IMPORTED_CONFIG_RELWITHDEBINFO
+        CMAKE_MAP_IMPORTED_CONFIG_MINSIZEREL
+        CMAKE_MAP_IMPORTED_CONFIG_DEBUG
+    )
+
+    if(VERBOSE_CONFIGURE)
+        message(STATUS "${TinyOrm_ns}: Set up defaults for \
+CMAKE_MAP_IMPORTED_CONFIG_<CONFIG> to avoid link a release type builds against a debug \
+build
+
+ * CMAKE_MAP_IMPORTED_CONFIG_RELEASE        = ${CMAKE_MAP_IMPORTED_CONFIG_RELEASE}
+ * CMAKE_MAP_IMPORTED_CONFIG_RELWITHDEBINFO = ${CMAKE_MAP_IMPORTED_CONFIG_RELWITHDEBINFO}
+ * CMAKE_MAP_IMPORTED_CONFIG_MINSIZEREL     = ${CMAKE_MAP_IMPORTED_CONFIG_MINSIZEREL}
+ * CMAKE_MAP_IMPORTED_CONFIG_DEBUG          = ${CMAKE_MAP_IMPORTED_CONFIG_DEBUG}
+")
+    endif()
+
+endmacro()
+
+# Initialize Tiny variables
+macro(tiny_init_tiny_variables)
+
+    set(TinyOrmPlayground_target TinyOrmPlayground)
+
+    set(TINY_BUILD_GENDIR "${TinyOrm_target}_generated" CACHE INTERNAL
+        "Generated content in the build tree")
+
+    get_property(isMultiConfig GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
+    set(TINY_IS_MULTI_CONFIG "${isMultiConfig}" CACHE INTERNAL
+        "True when using a multi-configuration generator")
+    unset(isMultiConfig)
 
 endmacro()
