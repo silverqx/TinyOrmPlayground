@@ -57,7 +57,7 @@ private:
     CONNECTIONS_TO_TEST {"mysql", "sqlite", "postgres"};
 
     /*! Database manager instance. */
-    std::unique_ptr<Orm::DatabaseManager> m_db;
+    std::unique_ptr<Orm::DatabaseManager> m_db = nullptr;
 
     /* Counters for the summary */
     /*! Queries execution time for the whole application. */
