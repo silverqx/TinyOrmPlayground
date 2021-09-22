@@ -62,7 +62,7 @@ else:CONFIG(debug, debug|release) {
 win32:VERSION = 0.1.0.0
 else:VERSION = 0.1.0
 
-win32-msvc* {
+win32-msvc {
     QMAKE_TARGET_PRODUCT = TinyOrmPlayground
     QMAKE_TARGET_DESCRIPTION = Playground for TinyORM user-friendly ORM
     QMAKE_TARGET_COMPANY = Crystal Studio
@@ -105,7 +105,7 @@ include(src/src.pri)
 # ---
 
 CONFIG(release, debug|release) {
-    win32-msvc*: target.path = C:/optx64/$${TARGET}
+    win32-msvc: target.path = C:/optx64/$${TARGET}
 #    else: unix:!android: target.path = /opt/$${TARGET}/bin
     !isEmpty(target.path): INSTALLS += target
 }

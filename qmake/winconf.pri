@@ -14,7 +14,7 @@ DEFINES += NOMINMAX
 # Compiler and Linker options
 # ---
 
-win32-msvc* {
+win32-msvc {
     # strict-c++ does not enable -permissive- on MSVC
     QMAKE_CXXFLAGS += -guard:cf -bigobj -permissive- -Zc:ternary
     QMAKE_CXXFLAGS_DEBUG += -RTC1
