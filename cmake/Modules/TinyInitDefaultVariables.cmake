@@ -77,7 +77,7 @@ DESTINATION is encountered")
     )
 
     if(VERBOSE_CONFIGURE)
-        message(STATUS "${TinyOrm_ns}: Set up defaults for \
+        message(STATUS "${TinyOrmPlayground_ns}: Set up defaults for \
 CMAKE_MAP_IMPORTED_CONFIG_<CONFIG> to avoid link a release type builds against a debug \
 build
 
@@ -90,10 +90,20 @@ build
 
 endmacro()
 
+# Initialize Tiny variables, earlier init.
+macro(tiny_init_tiny_variables_pre)
+
+    # Top level project name, used for alias namespaces, CMAKE_MESSAGE_CONTEXT, or as
+    # a main package name
+    set(TinyOrmPlayground_ns ${CMAKE_PROJECT_NAME})
+    # Target names
+    set(TinyOrmPlayground_target TinyOrmPlayground)
+
+endmacro()
+
 # Initialize Tiny variables
 macro(tiny_init_tiny_variables)
 
-    set(TinyOrmPlayground_target TinyOrmPlayground)
 
     set(TINY_BUILD_GENDIR "${TinyOrm_target}_generated" CACHE INTERNAL
         "Generated content in the build tree")

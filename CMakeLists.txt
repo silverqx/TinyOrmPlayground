@@ -43,6 +43,10 @@ tiny_toolchain_requirement(MSVC ${minMsvcVersion})
 
 include(FeatureSummary)
 include(TinyFeatureOptions)
+include(TinyInitDefaultVariables)
+
+# Initialize Tiny variables, earlier init.
+tiny_init_tiny_variables_pre()
 
 feature_option(BUILD_SHARED_LIBS
     "Build using shared libraries" ON)
@@ -62,7 +66,6 @@ ON lets the toolchain decide how many threads to use. Set to \
 OFF to disable /MP completely.")
 
 # Initialize Tiny and default cmake variables
-include(TinyInitDefaultVariables)
 tiny_init_cmake_variables()
 tiny_init_tiny_variables()
 
