@@ -6,7 +6,7 @@ TEMPLATE = app
 # Configuration
 # ---
 
-CONFIG *= console c++2a strict_c++ warn_on utf8_source link_prl silent
+CONFIG *= console c++2a strict_c++ warn_on utf8_source link_prl hide_symbols silent
 CONFIG -= c++11 app_bundle
 
 # TinyOrmPlayground defines
