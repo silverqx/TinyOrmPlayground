@@ -6,6 +6,11 @@
 # Gentoo - emerge dev-cpp/range-v3
 # Ubuntu - apt install librange-v3-dev
 
+# nlohmann_json library (header only)
+# Arch   - pacman -S nlohmann-json
+# Gentoo - emerge dev-cpp/nlohmann_json
+# Ubuntu - apt install nlohmann-json3-dev
+
 TINY_MAIN_DIR = $$quote($$PWD/../../TinyOrm)
 TINY_TINYORM_BUILDS_DIR = $$quote($$TINY_MAIN_DIR/TinyOrm-builds-qmake)
 
@@ -14,6 +19,13 @@ INCLUDEPATH += $$quote($$TINY_MAIN_DIR/TinyORM/include)
 
 # MinGW
 win32-g++|win32-clang-g++ {
+    # Libraries
+    # TinyORM library path
+    # Support gcc and clang
+    # build-TinyOrm-Desktop_Qt_5_15_2_MSYS2_UCRT64_clang_64bit-Debug
+    clang: LIBS += $$quote(-L$$TINY_TINYORM_BUILDS_DIR/build-TinyOrm-Desktop_Qt_$${TINY_QT_VERSION_UNDERSCORED}_MSYS2_UCRT64_clang_64bit-$${TINY_RELEASE_TYPE_CAMEL}/src/$${TINY_RELEASE_TYPE})
+    else:gcc: LIBS += $$quote(-L$$TINY_TINYORM_BUILDS_DIR/build-TinyOrm-Desktop_Qt_$${TINY_QT_VERSION_UNDERSCORED}_MSYS2_UCRT64_64bit-$${TINY_RELEASE_TYPE_CAMEL}/src/$${TINY_RELEASE_TYPE}/)
+
     # Use faster linker
     QMAKE_LFLAGS *= -fuse-ld=lld
 }
