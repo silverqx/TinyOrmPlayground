@@ -32,4 +32,5 @@ win32-g++ {
 win32-clang-g++ {
     # -mthreads is unused on Clang
     QMAKE_CXXFLAGS_EXCEPTIONS_ON -= -mthreads
+    QMAKE_LFLAGS_EXCEPTIONS_ON -= -mthreads
 }
