@@ -41,7 +41,7 @@ DEFINES += TINYORM_LINKING_SHARED
 # ---
 win32: include(qmake/winconf.pri)
 macx: include(qmake/macxconf.pri)
-unix:!macx: include(qmake/unixconf.pri)
+mingw|if(unix:!macx): include(qmake/unixconf.pri)
 
 # My variables
 # ---
@@ -85,7 +85,9 @@ else {
 # Dependencies include and library paths
 # ---
 
-LIBS += -lTinyOrm
+# TODO I don't know if this is qmake bug, but I tried hard to find out around 6 hours, qmake goes into infinite loop when -lTinyOrm is passed silverqx
+win32-clang-g++: LIBS += -llibTinyOrm0
+else: LIBS += -lTinyOrm
 
 # Use Precompiled headers (PCH)
 # ---

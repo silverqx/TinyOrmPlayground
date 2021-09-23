@@ -22,3 +22,14 @@ win32-msvc {
     QMAKE_LFLAGS += /guard:cf /WX
     QMAKE_LFLAGS_RELEASE += /OPT:REF,ICF=5
 }
+
+win32-g++ {
+    QMAKE_CXXFLAGS_DEBUG += -Wa,-mbig-obj
+    # Avoid string table overflow
+    QMAKE_CXXFLAGS_DEBUG += -O1
+}
+
+win32-clang-g++ {
+    # -mthreads is unused on Clang
+    QMAKE_CXXFLAGS_EXCEPTIONS_ON -= -mthreads
+}

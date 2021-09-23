@@ -1,13 +1,21 @@
 # Dependencies include and library paths
 # ---
 
+# range-v3 library (header only)
+# Arch   - pacman -S range-v3
+# Gentoo - emerge dev-cpp/range-v3
+# Ubuntu - apt install librange-v3-dev
+
 TINY_MAIN_DIR = $$quote($$PWD/../../TinyOrm)
 TINY_TINYORM_BUILDS_DIR = $$quote($$TINY_MAIN_DIR/TinyOrm-builds-qmake)
 
 # TinyORM header files
 INCLUDEPATH += $$quote($$TINY_MAIN_DIR/TinyORM/include)
 
-win32-g++ {
+# MinGW
+win32-g++|win32-clang-g++ {
+    # Use faster linker
+    QMAKE_LFLAGS *= -fuse-ld=lld
 }
 else:win32-msvc {
     # Includes
