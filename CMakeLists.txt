@@ -142,6 +142,7 @@ endif()
 include(TinyFileVersionAndManifest)
 tiny_file_version_and_manifest(${TinyOrmPlayground_target} "src/"
     "${TINY_BUILD_GENDIR}/include/"
+    "${TINY_BUILD_GENDIR}/tmp/"
 )
 
 # Resolve and link dependencies
