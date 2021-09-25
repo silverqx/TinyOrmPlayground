@@ -105,7 +105,7 @@ endmacro()
 macro(tiny_init_tiny_variables)
 
 
-    set(TINY_BUILD_GENDIR "${TinyOrm_target}_generated" CACHE INTERNAL
+    set(TINY_BUILD_GENDIR "${TinyOrmPlayground_target}_generated" CACHE INTERNAL
         "Generated content in the build tree")
 
     get_property(isMultiConfig GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
