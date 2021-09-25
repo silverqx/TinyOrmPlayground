@@ -1,6 +1,6 @@
 #pragma once
-#ifndef VERSION_HPP
-#define VERSION_HPP
+#ifndef TINYORMPLAY_VERSION_HPP
+#define TINYORMPLAY_VERSION_HPP
 
 #define TINY_VERSION_MAJOR @TinyOrmPlayground_VERSION_MAJOR@
 #define TINY_VERSION_MINOR @TinyOrmPlayground_VERSION_MINOR@
@@ -33,4 +33,4 @@
 
 #define TINY_ORIGINAL_FILENAME "$<TARGET_FILE_NAME:@TinyOrmPlayground_target@>"
 
-#endif // VERSION_HPP
+#endif // TINYORMPLAY_VERSION_HPP
