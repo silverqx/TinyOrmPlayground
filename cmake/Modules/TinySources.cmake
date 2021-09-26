@@ -5,6 +5,7 @@ function(tiny_sources)
     set(headers
         common.hpp
         testorm.hpp
+        version.hpp.in
     )
 
     set(sources
