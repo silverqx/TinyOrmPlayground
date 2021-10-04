@@ -51,5 +51,5 @@ VS_VERSION_INFO VERSIONINFO
 /* End of Version info */
 
 #ifdef __MINGW32__
-CREATEPROCESS_MANIFEST_RESOURCE_ID RT_MANIFEST "@TinyOrmPlayground_target@@TinyOrmPlayground_targetExt@.manifest"
+CREATEPROCESS_MANIFEST_RESOURCE_ID RT_MANIFEST "@TinyOrmPlayground_target@$<TARGET_FILE_SUFFIX:@TinyOrmPlayground_target@>.manifest"
 #endif
