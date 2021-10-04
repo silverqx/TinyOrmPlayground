@@ -29,6 +29,7 @@
 #include <orm/mysqlconnection.hpp>
 #include <orm/query/joinclause.hpp>
 #include <orm/utils/type.hpp>
+#include <orm/version.hpp>
 
 #include "common.hpp"
 #include "models/filepropertyproperty.hpp"
@@ -36,6 +37,7 @@
 #include "models/torrent.hpp"
 #include "models/torrenteager.hpp"
 #include "models/user.hpp"
+#include "version.hpp"
 
 // clazy:excludeall=unused-non-trivial-variable
 
@@ -364,6 +366,22 @@ void TestOrm::anotherTests()
         qt_noop();
     }
 #endif
+
+    /* TinyORM and TinyOrmPlayground version info */
+    {
+        qInfo() << "\n\nTinyORM and TinyOrmPlayground version info\n---\n";
+
+        qInfo() << "TINYORM_VERSION :" << TINYORM_VERSION;
+        qInfo() << "TINYORM_VERSION_STR :" << TINYORM_VERSION_STR;
+        qInfo() << "TINYORM_VERSION_STR_2 :" << TINYORM_VERSION_STR_2;
+        qInfo() << "TINYORM_FILEVERSION_STR :" << TINYORM_FILEVERSION_STR;
+
+        qInfo() << "TINYPLAY_VERSION :" << TINYPLAY_VERSION;
+        qInfo() << "TINYPLAY_VERSION_STR :" << TINYPLAY_VERSION_STR;
+        qInfo() << "TINYPLAY_VERSION_STR_2 :" << TINYPLAY_VERSION_STR_2;
+        qInfo() << "TINYPLAY_FILEVERSION_STR :" << TINYPLAY_FILEVERSION_STR
+                << "\n";
+    }
 
     logQueryCounters(__FUNCTION__, timer.elapsed());
 }
@@ -3475,16 +3493,21 @@ void TestOrm::logQueryCountersBlock(
         qInfo() << "---";
     }
 
-#ifdef _MSC_VER
-    if (title.contains("Application"))
-        qInfo() << "⚙ _MSC_VER                 :" << _MSC_VER;
-#endif
 
     if (title.contains("Application")) {
-        qInfo().nospace() << "  Qt version               : "
+#ifdef _MSC_VER
+        qInfo().nospace() << "⚙ _MSC_VER                  : "
+                          << _MSC_VER;
+#endif
+        qInfo().nospace() << "  Qt version                : "
                           << QT_VERSION_STR;
-        qInfo().nospace() << "  Qt Build type            : "
-                          << (QLibraryInfo::isDebugBuild() ? "Debug" : "Release")
+        qInfo().nospace() << "  Qt Build type             : "
+                          << (QLibraryInfo::isDebugBuild() ? "Debug" : "Release");
+
+        qInfo().nospace() << "⚙ TinyORM version           : "
+                          << TINYORM_VERSION_STR;
+        qInfo().nospace() << "  TinyOrmPlayground version : "
+                          << TINYPLAY_VERSION_STR
                           << "\n";
 
         // All Functions execution time
