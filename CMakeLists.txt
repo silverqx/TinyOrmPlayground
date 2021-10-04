@@ -6,14 +6,30 @@ list(APPEND CMAKE_MODULE_PATH
     "${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules"
 )
 
+# Initialize Project Version
+# ---
+
+include(TinyHelpers)
+include(TinyInitDefaultVariables)
+
+# Initialize Tiny variables, early init.
+tiny_init_tiny_variables_pre()
+
+tiny_read_version(TINY_VERSION
+    TINY_VERSION_MAJOR TINY_VERSION_MINOR TINY_VERSION_PATCH TINY_VERSION_TWEAK
+    VERSION_HEADER "${CMAKE_CURRENT_SOURCE_DIR}/src/version.hpp"
+    PREFIX TINYPLAY
+    HEADER_FOR "${TinyOrmPlayground_ns}"
+)
+
 # Basic project and cmake build setup
 # ---
 
-project(TinyOrmPlayground
+project(${TinyOrmPlayground_ns}
     DESCRIPTION "Playground for TinyOrm user-friendly ORM"
     HOMEPAGE_URL "https://github.com/silverqx/TinyOrmPlayground"
     LANGUAGES CXX
-    VERSION 0.1.0.0
+    VERSION ${TINY_VERSION}
 )
 
 # Specify the C++ standard
@@ -34,7 +50,6 @@ set(minRangeV3Version 0.11.0)
 set(minNlohmannJsonVersion 3.9.1)
 set(minTinyOrmVersion 0.1.0)
 
-include(TinyHelpers)
 # Make minimum toolchain version a requirement
 tiny_toolchain_requirement(MSVC ${minMsvcVersion})
 
@@ -43,18 +58,19 @@ tiny_toolchain_requirement(MSVC ${minMsvcVersion})
 
 include(FeatureSummary)
 include(TinyFeatureOptions)
-include(TinyInitDefaultVariables)
-
-# Initialize Tiny variables, earlier init.
-tiny_init_tiny_variables_pre()
 
 feature_option(BUILD_SHARED_LIBS
-    "Build using shared libraries" ON)
-feature_option(MSVC_RUNTIME_DYNAMIC
-    "Use MSVC dynamic runtime library (-MD) instead of static (-MT)" ON)
+    "Build using shared libraries" ON
+)
+feature_option_dependent(MSVC_RUNTIME_DYNAMIC
+    "Use MSVC dynamic runtime library (-MD) instead of static (-MT), also considers \
+a Debug configuration (-MTd, -MDd)" ON
+    "MSVC;NOT DEFINED CMAKE_MSVC_RUNTIME_LIBRARY" MSVC_RUNTIME_DYNAMIC-NOTFOUND
+)
 feature_option(VERBOSE_CONFIGURE
     "Show information about PACKAGES_FOUND and PACKAGES_NOT_FOUND in the configure \
-output" OFF)
+output" OFF
+)
 
 # MSVC_PARALLEL option
 include(TinyMsvcParallel)
@@ -65,29 +81,23 @@ works on some older versions of Visual Studio). Setting to \
 ON lets the toolchain decide how many threads to use. Set to \
 OFF to disable /MP completely.")
 
-# Initialize Tiny and default cmake variables
+# Initialize Tiny and default CMake variables
 tiny_init_cmake_variables()
 tiny_init_tiny_variables()
 
-# TinyORM library header and source files
+# TinyOrmPlayground executable header and source files
 # ---
 
 include(TinySources)
-tiny_sources()
+tiny_sources(${TinyOrmPlayground_target}_headers ${TinyOrmPlayground_target}_sources)
 
 add_executable(${TinyOrmPlayground_target}
-    ${headers}
-    ${sources}
+    ${${TinyOrmPlayground_target}_headers}
+    ${${TinyOrmPlayground_target}_sources}
 )
-
-if(MINGW)
-    target_compile_options(${TinyOrmPlayground_target}
-        PRIVATE
-            $<$<CONFIG:DEBUG>:-Wa,-mbig-obj>
-            # Avoid string table overflow
-            $<$<CONFIG:DEBUG>:-O1>
-    )
-endif()
+add_executable(${TinyOrmPlayground_ns}::${TinyOrmPlayground_target}
+    ALIAS ${TinyOrmPlayground_target}
+)
 
 # Use Precompiled headers (PCH)
 # ---
@@ -109,22 +119,32 @@ set_target_properties(${TinyOrmPlayground_target}
         CXX_VISIBILITY_PRESET "hidden"
         VISIBILITY_INLINES_HIDDEN YES
         VERSION ${PROJECT_VERSION}
+        # Append a major version number after the executable
+        OUTPUT_NAME "${TinyOrmPlayground_target}${PROJECT_VERSION_MAJOR}"
 )
 
 target_include_directories(${TinyOrmPlayground_target} PRIVATE
     "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src>"
     "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src/models>"
-    "$<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/${TINY_BUILD_GENDIR}/include>"
 )
+
+# TinyOrmPlayground compiler options
+# ---
+
+if(MINGW)
+    target_compile_options(${TinyOrmPlayground_target}
+        PRIVATE
+            $<$<CONFIG:DEBUG>:-Wa,-mbig-obj>
+            # Avoid a string table overflow
+            $<$<CONFIG:DEBUG>:-O1>
+    )
+endif()
 
 # TinyOrmPlayground defines
 # ---
 
 target_compile_definitions(${TinyOrmPlayground_target}
-    PRIVATE
-        PROJECT_TINYORM_PLAYGROUND
-        # Log queries with a time measurement
-        TINYORM_DEBUG_SQL
+    PRIVATE PROJECT_TINYORMPLAYGROUND
 )
 
 # TinyORM defines
@@ -136,14 +156,22 @@ if(BUILD_SHARED_LIBS)
     )
 endif()
 
-# File version and Windows resource and manifest
+target_compile_definitions(${TinyOrmPlayground_target}
+    PRIVATE
+        # Log queries with a time measurement
+        TINYORM_DEBUG_SQL
+)
+
+# Windows resource and manifest files
 # ---
 
-include(TinyFileVersionAndManifest)
-tiny_file_version_and_manifest(${TinyOrmPlayground_target} "src/"
-    "${TINY_BUILD_GENDIR}/include/"
-    "${TINY_BUILD_GENDIR}/tmp/"
-)
+# Find Windows manifest file
+if(MINGW)
+    tiny_set_rc_flags("-I \"${CMAKE_CURRENT_SOURCE_DIR}/resources\"")
+endif()
+
+include(TinyResourceAndManifest)
+tiny_resource_and_manifest(${TinyOrmPlayground_target} "${TINY_BUILD_GENDIR}/tmp/")
 
 # Resolve and link dependencies
 # ---

@@ -1,11 +1,11 @@
 # TinyOrmPlayground header and source files
 # Create header and source files lists and return them
-function(tiny_sources)
+function(tiny_sources out_headers out_sources)
 
     set(headers
         common.hpp
         testorm.hpp
-        version.hpp.in
+        version.hpp
     )
 
     set(sources
@@ -16,7 +16,7 @@ function(tiny_sources)
     list(TRANSFORM headers PREPEND "src/")
     list(TRANSFORM sources PREPEND "src/")
 
-    set(headers ${headers} PARENT_SCOPE)
-    set(sources ${sources} PARENT_SCOPE)
+    set(${out_headers} ${headers} PARENT_SCOPE)
+    set(${out_sources} ${sources} PARENT_SCOPE)
 
 endfunction()
