@@ -2,12 +2,12 @@
 #ifndef TINYPLAY_VERSION_HPP
 #define TINYPLAY_VERSION_HPP
 
-#define TINYPLAY_VERSION_MAJOR @TinyOrmPlayground_VERSION_MAJOR@
-#define TINYPLAY_VERSION_MINOR @TinyOrmPlayground_VERSION_MINOR@
-#define TINYPLAY_VERSION_BUGFIX @TinyOrmPlayground_VERSION_PATCH@
-#define TINYPLAY_VERSION_BUILD @TinyOrmPlayground_VERSION_TWEAK@
+#define TINYPLAY_VERSION_MAJOR 0
+#define TINYPLAY_VERSION_MINOR 1
+#define TINYPLAY_VERSION_BUGFIX 0
+#define TINYPLAY_VERSION_BUILD 0
 // Should be empty for stable releases, and use hypen before for SemVer compatibility!
-#define TINYPLAY_VERSION_STATUS "-beta"
+#define TINYPLAY_VERSION_STATUS ""
 
 #define TINYPLAY__STRINGIFY(x) #x
 #define TINYPLAY_STRINGIFY(x) TINYPLAY__STRINGIFY(x)

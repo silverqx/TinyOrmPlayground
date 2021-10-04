@@ -15,7 +15,7 @@ TINY_MAIN_DIR = $$quote($$PWD/../../TinyOrm)
 TINY_TINYORM_BUILDS_DIR = $$quote($$TINY_MAIN_DIR/TinyOrm-builds-qmake)
 
 # TinyORM header files
-INCLUDEPATH += $$quote($$TINY_MAIN_DIR/TinyORM/include)
+INCLUDEPATH += $$quote($$TINY_MAIN_DIR/TinyORM/include/)
 
 # MinGW
 win32-g++|win32-clang-g++ {
@@ -23,8 +23,8 @@ win32-g++|win32-clang-g++ {
     # TinyORM library path
     # Support gcc and clang
     # build-TinyOrm-Desktop_Qt_5_15_2_MSYS2_UCRT64_clang_64bit-Debug
-    clang: LIBS += $$quote(-L$$TINY_TINYORM_BUILDS_DIR/build-TinyOrm-Desktop_Qt_$${TINY_QT_VERSION_UNDERSCORED}_MSYS2_UCRT64_clang_64bit-$${TINY_RELEASE_TYPE_CAMEL}/src/$${TINY_RELEASE_TYPE})
-    else:gcc: LIBS += $$quote(-L$$TINY_TINYORM_BUILDS_DIR/build-TinyOrm-Desktop_Qt_$${TINY_QT_VERSION_UNDERSCORED}_MSYS2_UCRT64_64bit-$${TINY_RELEASE_TYPE_CAMEL}/src/$${TINY_RELEASE_TYPE}/)
+    clang: LIBS += $$quote(-L$$TINY_TINYORM_BUILDS_DIR/build-TinyOrm-Desktop_Qt_$${TINY_QT_VERSION_UNDERSCORED}_MSYS2_UCRT64_clang_64bit-$${TINY_RELEASE_TYPE_CAMEL}/src$${TINY_RELEASE_TYPE}/)
+    else:gcc: LIBS += $$quote(-L$$TINY_TINYORM_BUILDS_DIR/build-TinyOrm-Desktop_Qt_$${TINY_QT_VERSION_UNDERSCORED}_MSYS2_UCRT64_64bit-$${TINY_RELEASE_TYPE_CAMEL}/src$${TINY_RELEASE_TYPE}/)
 
     # Use faster linker
     QMAKE_LFLAGS *= -fuse-ld=lld
@@ -32,16 +32,16 @@ win32-g++|win32-clang-g++ {
 else:win32-msvc {
     # Includes
     # range-v3
-    INCLUDEPATH += $$quote(E:/xyz/vcpkg/installed/x64-windows/include)
+    INCLUDEPATH += $$quote(E:/xyz/vcpkg/installed/x64-windows/include/)
 
     # Libraries
     # TinyORM library path
-    LIBS += $$quote(-L$$TINY_TINYORM_BUILDS_DIR/build-TinyOrm-Desktop_Qt_$${TINY_QT_VERSION_UNDERSCORED}_MSVC2019_64bit-$${TINY_RELEASE_TYPE_CAMEL}/src/$${TINY_RELEASE_TYPE}/)
+    LIBS += $$quote(-L$$TINY_TINYORM_BUILDS_DIR/build-TinyOrm-Desktop_Qt_$${TINY_QT_VERSION_UNDERSCORED}_MSVC2019_64bit-$${TINY_RELEASE_TYPE_CAMEL}/src$${TINY_RELEASE_TYPE}/)
 }
 else:unix {
     # Includes
     # range-v3
-    QMAKE_CXXFLAGS += -isystem $$quote(/home/xyz/vcpkg/installed/x64-linux/include)
+    QMAKE_CXXFLAGS += -isystem $$quote(/home/xyz/vcpkg/installed/x64-linux/include/)
 
     # Libraries
     # TinyORM library path
@@ -50,10 +50,10 @@ else:unix {
     else: TINY_CCACHE_BUILD =
     # Support gcc, clang11, and clang12
     clang {
-        equals(QMAKE_CLANG_MAJOR_VERSION, 11): LIBS += $$quote(-L$$TINY_TINYORM_BUILDS_DIR/build-TinyOrm-Desktop_Qt_$${TINY_QT_VERSION_UNDERSCORED}_clang11_64bit$${TINY_CCACHE_BUILD}-$${TINY_RELEASE_TYPE_CAMEL}/src/)
-        else:equals(QMAKE_CLANG_MAJOR_VERSION, 12): LIBS += $$quote(-L$$TINY_TINYORM_BUILDS_DIR/build-TinyOrm-Desktop_Qt_$${TINY_QT_VERSION_UNDERSCORED}_clang12_64bit$${TINY_CCACHE_BUILD}-$${TINY_RELEASE_TYPE_CAMEL}/src/)
+        equals(QMAKE_CLANG_MAJOR_VERSION, 11): LIBS += $$quote(-L$$TINY_TINYORM_BUILDS_DIR/build-TinyOrm-Desktop_Qt_$${TINY_QT_VERSION_UNDERSCORED}_clang11_64bit$${TINY_CCACHE_BUILD}-$${TINY_RELEASE_TYPE_CAMEL}/src$${TINY_RELEASE_TYPE}/)
+        else:equals(QMAKE_CLANG_MAJOR_VERSION, 12): LIBS += $$quote(-L$$TINY_TINYORM_BUILDS_DIR/build-TinyOrm-Desktop_Qt_$${TINY_QT_VERSION_UNDERSCORED}_clang12_64bit$${TINY_CCACHE_BUILD}-$${TINY_RELEASE_TYPE_CAMEL}/src$${TINY_RELEASE_TYPE}/)
     }
-    else:gcc: LIBS += $$quote(-L$$TINY_TINYORM_BUILDS_DIR/build-TinyOrm-Desktop_Qt_$${TINY_QT_VERSION_UNDERSCORED}_GCC_64bit$${TINY_CCACHE_BUILD}-$${TINY_RELEASE_TYPE_CAMEL}/src/)
+    else:gcc: LIBS += $$quote(-L$$TINY_TINYORM_BUILDS_DIR/build-TinyOrm-Desktop_Qt_$${TINY_QT_VERSION_UNDERSCORED}_GCC_64bit$${TINY_CCACHE_BUILD}-$${TINY_RELEASE_TYPE_CAMEL}/src$${TINY_RELEASE_TYPE}/)
 
     # Use faster linkers
     clang: CONFIG *= use_lld_linker

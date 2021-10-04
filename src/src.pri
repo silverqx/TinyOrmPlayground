@@ -3,10 +3,11 @@ include(models/models.pri)
 
 INCLUDEPATH += $$PWD
 
-SOURCES += \
-    $$PWD/main.cpp \
-    $$PWD/testorm.cpp \
-
 HEADERS += \
     $$PWD/common.hpp \
     $$PWD/testorm.hpp \
+    $$PWD/version.hpp \
+
+SOURCES += \
+    $$PWD/main.cpp \
+    $$PWD/testorm.cpp \

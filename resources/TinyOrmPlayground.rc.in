@@ -1,6 +1,6 @@
 #pragma code_page(65001) // UTF-8
 
-//IDI_ICON1 ICON "icons/TinyOrmPlayground.ico"
+//IDI_ICON1 ICON "icons/@TinyOrmPlayground_target@.ico"
 
 #include <windows.h>
 #include "version.hpp"
@@ -13,10 +13,10 @@
 
 #define VER_ORIGINALFILENAME_STR    "$<TARGET_FILE_NAME:@TinyOrmPlayground_target@>\0"
 
-#ifndef DEBUG
-#  define VER_DEBUG                 0
-#else
+#ifdef _DEBUG
 #  define VER_DEBUG                 VS_FF_DEBUG
+#else
+#  define VER_DEBUG                 0
 #endif
 
 VS_VERSION_INFO VERSIONINFO
@@ -49,3 +49,7 @@ VS_VERSION_INFO VERSIONINFO
         END
     END
 /* End of Version info */
+
+#ifdef __MINGW32__
+CREATEPROCESS_MANIFEST_RESOURCE_ID RT_MANIFEST "@TinyOrmPlayground_target@@TinyOrmPlayground_targetExt@.manifest"
+#endif
