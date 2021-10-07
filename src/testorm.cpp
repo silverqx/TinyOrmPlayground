@@ -24,6 +24,7 @@
 #include <nlohmann/json.hpp>
 #include <range/v3/all.hpp>
 
+#include <orm/constants.hpp>
 #include <orm/db.hpp>
 #include <orm/exceptions/invalidargumenterror.hpp>
 #include <orm/mysqlconnection.hpp>
@@ -379,8 +380,19 @@ void TestOrm::anotherTests()
         qInfo() << "TINYPLAY_VERSION :" << TINYPLAY_VERSION;
         qInfo() << "TINYPLAY_VERSION_STR :" << TINYPLAY_VERSION_STR;
         qInfo() << "TINYPLAY_VERSION_STR_2 :" << TINYPLAY_VERSION_STR_2;
-        qInfo() << "TINYPLAY_FILEVERSION_STR :" << TINYPLAY_FILEVERSION_STR
-                << "\n";
+        qInfo() << "TINYPLAY_FILEVERSION_STR :" << TINYPLAY_FILEVERSION_STR;
+    }
+
+    /* TinyORM constants */
+    {
+        qInfo() << "\n\nTinyORM constants\n---\n";
+
+        qInfo() << "COLON (QChar)      :" << COLON;
+        qInfo() << "DOT (QChar)        :" << DOT;
+        qInfo() << "UNDERSCORE (QChar) :" << UNDERSCORE;
+        qInfo() << "ASTERISK (QString) :" << ASTERISK;
+        qInfo() << "COMMA (QString)    :" << COMMA;
+        qInfo() << "INNER (QString)    :" << INNER;
     }
 
     logQueryCounters(__FUNCTION__, timer.elapsed());
