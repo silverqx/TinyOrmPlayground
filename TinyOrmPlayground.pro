@@ -31,13 +31,6 @@ DEFINES += QT_NO_CAST_FROM_BYTEARRAY
 DEFINES += QT_USE_QSTRINGBUILDER
 DEFINES += QT_STRICT_ITERATORS
 
-# TinyORM defines
-# ---
-
-# Log queries with a time measurement
-DEFINES += TINYORM_DEBUG_SQL
-DEFINES += TINYORM_LINKING_SHARED
-
 # Platform specific configuration
 # ---
 
@@ -61,27 +54,9 @@ tiny_version_numbers()
 # Windows resource and manifest files
 # ---
 
-win32 {
-    # Find icons, Windows manifest on MinGW and orm/version.hpp
-    RC_INCLUDEPATH = \
-        $$quote($$PWD/resources/) \
-        $$quote($$PWD/src/)
-
-    load(tiny_resource_and_manifest)
-    tiny_resource_and_manifest()
-}
-
-# File version and windows manifest
-# ---
-
-#win32-msvc {
-#    QMAKE_TARGET_PRODUCT = TinyOrmPlayground
-#    QMAKE_TARGET_DESCRIPTION = Playground for TinyORM user-friendly ORM
-#    QMAKE_TARGET_COMPANY = Crystal Studio
-#    QMAKE_TARGET_COPYRIGHT = Copyright (©) 2021 Crystal Studio
-##    RC_ICONS = images/TinyOrmPlayground.ico
-#    RC_LANG = 1033
-#}
+# Find icons, Windows manifest on MinGW and orm/version.hpp
+load(tiny_resource_and_manifest)
+tiny_resource_and_manifest($$quote($$PWD/resources/) $$quote($$PWD/src/))
 
 # Use Precompiled headers (PCH)
 # ---
@@ -89,7 +64,7 @@ win32 {
 precompile_header: \
     include($$PWD/src/pch.pri)
 
-# Deployment
+# Default rules for deployment
 # ---
 
 CONFIG(release, debug|release) {
@@ -115,6 +90,11 @@ CONFIG(release, debug|release) {
 
 include(qmake/common.pri)
 
+# Link against TinyORM library (also adds defines and include headers)
+# ---
+
+include($$PWD/../../TinyOrm/TinyORM/qmake/TinyOrm.pri)
+
 # User Configuration
 # ---
 
@@ -125,7 +105,7 @@ else: \
     error( "'conf.pri' for '$${TARGET}' project does not exist. See an example\
             configuration in 'conf.pri.example' in the project's root." )
 
-# Dependencies include and library paths
+# Link against TinyORM library
 # ---
 
-LIBS += -lTinyOrm
+LIBS *= -lTinyOrm
