@@ -2,7 +2,6 @@ QT *= core sql
 QT -= gui
 
 TEMPLATE = app
-TARGET = TinyOrmPlayground
 
 # Configuration
 # ---
@@ -24,6 +23,7 @@ DEFINES += PROJECT_TINYORM_PLAYGROUND
 # Disables all the APIs deprecated before Qt 6.0.0
 DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000
 
+#DEFINES += QT_ASCII_CAST_WARNINGS
 #DEFINES += QT_NO_CAST_FROM_ASCII
 #DEFINES += QT_RESTRICTED_CAST_FROM_ASCII
 DEFINES += QT_NO_CAST_TO_ASCII
@@ -54,9 +54,13 @@ tiny_version_numbers()
 # Windows resource and manifest files
 # ---
 
-# Find icons, Windows manifest on MinGW and orm/version.hpp
+# Find version.hpp
+tinyRcIncludepath = $$quote($$PWD/src/)
+# Find Windows manifest
+mingw: tinyRcIncludepath += $$quote($$PWD/resources/)
+
 load(tiny_resource_and_manifest)
-tiny_resource_and_manifest($$quote($$PWD/resources/) $$quote($$PWD/src/))
+tiny_resource_and_manifest($$tinyRcIncludepath)
 
 # Use Precompiled headers (PCH)
 # ---
@@ -76,12 +80,12 @@ CONFIG(release, debug|release) {
 # Some info output
 # ---
 
-CONFIG(debug, debug|release): message( "Project is built in DEBUG mode." )
-CONFIG(release, debug|release): message( "Project is built in RELEASE mode." )
+CONFIG(debug, debug|release):!build_pass: message( "Project is built in DEBUG mode." )
+CONFIG(release, debug|release):!build_pass: message( "Project is built in RELEASE mode." )
 
 # Disable debug output in release mode
 CONFIG(release, debug|release) {
-    message( "Disabling debug output." )
+    !build_pass: message( "Disabling debug output." )
     DEFINES += QT_NO_DEBUG_OUTPUT
 }
 

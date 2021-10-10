@@ -94,7 +94,7 @@ function(target_optional_compile_definitions target scope)
         target_compile_definitions(${target} ${scope} ${TINY_DISABLED})
     endif()
 
-    if(${TINY_FEATURE})
+    if(TINY_FEATURE)
         add_feature_info(${TINY_NAME} ${TINY_NAME} "${TINY_DESCRIPTION}")
     endif()
 
@@ -194,3 +194,13 @@ macro(tiny_set_rc_flags)
     set(TINY_RC_FLAGS_BACKUP "${ARGN}")
 
 endmacro()
+
+# Throw a fatal error for unsupported environments
+function(tiny_check_unsupported_build)
+
+    if(MINGW AND CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND NOT BUILD_SHARED_LIBS)
+        message(FATAL_ERROR "MinGW clang static build is not supported, problem with \
+inline constants :/.")
+    endif()
+
+endfunction()

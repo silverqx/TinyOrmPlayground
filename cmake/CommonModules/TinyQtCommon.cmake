@@ -27,6 +27,7 @@ function(tiny_qt_common target)
         # Disables all the APIs deprecated before Qt 6.0.0
         QT_DISABLE_DEPRECATED_BEFORE=0x060000
 
+        #QT_ASCII_CAST_WARNINGS
         #QT_NO_CAST_FROM_ASCII
         #QT_RESTRICTED_CAST_FROM_ASCII
         QT_NO_CAST_TO_ASCII
@@ -43,11 +44,13 @@ function(tiny_qt_common target)
 
     if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
         target_compile_definitions(${target} INTERFACE
+            # All have to be defined because of checks at the beginning of <qt_windows.h>
             # Windows 10 1903 "19H1" - 0x0A000007
-            NTDDI_VERSION=0x0A000007
-            # Windows 10 - 0x0A00
-            _WIN32_WINNT=0x0A00
-            _WIN32_IE=0x0A00
+            WINVER=_WIN32_WINNT_WIN10
+            NTDDI_VERSION=NTDDI_WIN10_19H1
+            _WIN32_WINNT=_WIN32_WINNT_WIN10
+            # Internet Explorer 11
+            _WIN32_IE=_WIN32_IE_IE110
             UNICODE _UNICODE
             # Exclude unneeded header files
             WIN32_LEAN_AND_MEAN
@@ -112,6 +115,8 @@ function(tiny_qt_common target)
             -Wall
             -Wextra
             -Weffc++
+            -Werror
+            -Wfatal-errors
             -Wcast-qual
             -Wcast-align
             -Woverloaded-virtual
