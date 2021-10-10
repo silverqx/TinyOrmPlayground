@@ -71,6 +71,11 @@ using Orm::Tiny::Relations::Pivot;
            - 247ms all queries
          - tst_model prod. build on MySQL connection only ( createConnections({MYSQL}) )
            - 181ms
+     - 10. oct 2021 ( 621 queries executed, TinyORM 878bb1f0 )
+       - Qt 5.15.2 ; msvc 16.11.4 x64
+         - prod. build LTO with disabled debug output ( QT_NO_DEBUG_OUTPUT )
+           - around 670ms / min. 630ms all functions
+           - around 350ms / min. 305ms all queries
 */
 
 const QString TestOrm::CHECK_DATABASE_EXISTS_FILE = getCheckDatabaseExistsFile();
