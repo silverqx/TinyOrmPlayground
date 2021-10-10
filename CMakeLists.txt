@@ -85,6 +85,9 @@ OFF to disable /MP completely.")
 tiny_init_cmake_variables()
 tiny_init_tiny_variables()
 
+# Throw a fatal error for unsupported environments
+tiny_check_unsupported_build()
+
 # TinyOrmPlayground executable header and source files
 # ---
 
