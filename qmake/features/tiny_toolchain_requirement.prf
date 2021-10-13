@@ -1,0 +1,27 @@
+gcc|clang: TINY_COMPILER_VERSION = $$system("$${QMAKE_CXX} -dumpversion")
+else:win32-msvc: TINY_COMPILER_VERSION = $$QMAKE_MSC_VER
+else: TINY_COMPILER_VERSION =
+
+win32-msvc: \
+!versionAtLeast(TINY_COMPILER_VERSION, $$replace(tinyMinReqMsvc, \., "")): \
+    error( "Minimum required MSVC version was not satisfied, required version\
+            >=$${tinyMinReqMsvc}, your version is $${TINY_COMPILER_VERSION}, upgrade\
+            Visual Studio." )
+
+!versionAtLeast(QT_VERSION, $$tinyMinRecQt): \
+!build_pass: \
+    message( "Minimum recommended Qt Framework version was not satisfied, recommended\
+              version >=$${tinyMinRecQt}, your version is $${QT_VERSION}, upgrade\
+              Qt Framework.")
+
+!build_pass:if(gcc|clang) {
+    clang:!versionAtLeast(TINY_COMPILER_VERSION, $$tinyMinRecClang): \
+        message( "Minimum recommended Clang compiler version was not satisfied,\
+                  recommended version >=$${tinyMinRecClang}, your version is\
+                  $${TINY_COMPILER_VERSION}, upgrade Clang compiler.")
+
+    gcc:!versionAtLeast(TINY_COMPILER_VERSION, $$tinyMinRecGCC): \
+        message( "Minimum recommended GCC compiler version was not satisfied,\
+                  recommended version >=$${tinyMinRecGCC}, your version is\
+                  $${TINY_COMPILER_VERSION}, upgrade GCC compiler.")
+}
