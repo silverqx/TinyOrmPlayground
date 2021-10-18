@@ -6,7 +6,7 @@ macro(tiny_init_cmake_variables)
     # Especially important for multi-config generators, I leave it to also kick-in for
     # single-config generators
     set(CMAKE_DEBUG_POSTFIX d CACHE STRING
-        "Default filename postfix for libraries for Debug configuration")
+        "Default filename postfix for executable for Debug configuration")
 
     set(CMAKE_FIND_PACKAGE_SORT_ORDER NATURAL CACHE STRING
         "The default order for sorting packages found using find_package()")
@@ -18,6 +18,7 @@ macro(tiny_init_cmake_variables)
 DESTINATION is encountered")
 
     mark_as_advanced(
+        CMAKE_DEBUG_POSTFIX
         CMAKE_FIND_PACKAGE_SORT_ORDER
         CMAKE_FIND_PACKAGE_SORT_DIRECTION
         CMAKE_WARN_ON_ABSOLUTE_INSTALL_DESTINATION
