@@ -3,6 +3,11 @@ include(TinyHelpers)
 # Initialize CMake default variables by project options
 macro(tiny_init_cmake_variables)
 
+    # Especially important for multi-config generators, I leave it to also kick-in for
+    # single-config generators
+    set(CMAKE_DEBUG_POSTFIX d CACHE STRING
+        "Default filename postfix for libraries for Debug configuration")
+
     set(CMAKE_FIND_PACKAGE_SORT_ORDER NATURAL CACHE STRING
         "The default order for sorting packages found using find_package()")
     set(CMAKE_FIND_PACKAGE_SORT_DIRECTION DEC CACHE STRING

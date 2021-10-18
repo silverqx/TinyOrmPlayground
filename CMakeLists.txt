@@ -143,6 +143,7 @@ set_target_properties(${TinyOrmPlayground_target}
         VERSION ${PROJECT_VERSION}
         # Append a major version number after the executable
         OUTPUT_NAME "${TinyOrmPlayground_target}${PROJECT_VERSION_MAJOR}"
+        DEBUG_POSTFIX ${CMAKE_DEBUG_POSTFIX}
 )
 
 target_include_directories(${TinyOrmPlayground_target} PRIVATE
