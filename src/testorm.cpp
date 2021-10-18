@@ -78,7 +78,9 @@ using Orm::Tiny::Relations::Pivot;
            - around 350ms / min. 305ms all queries
 */
 
-const QString TestOrm::CHECK_DATABASE_EXISTS_FILE = getCheckDatabaseExistsFile();
+TestOrm::TestOrm()
+    : m_checkDatabaseExistsFile(getCheckDatabaseExistsFile())
+{}
 
 TestOrm &TestOrm::connectToDatabase()
 {
@@ -173,13 +175,13 @@ TestOrm &TestOrm::connectToDatabase()
 
         {"sqlite_check_exists_true", {
             {"driver",    "QSQLITE"},
-            {"database",  CHECK_DATABASE_EXISTS_FILE},
+            {"database",  m_checkDatabaseExistsFile},
             {"check_database_exists", true},
         }},
 
         {"sqlite_check_exists_false", {
             {"driver",    "QSQLITE"},
-            {"database",  CHECK_DATABASE_EXISTS_FILE},
+            {"database",  m_checkDatabaseExistsFile},
             {"check_database_exists", false},
         }},
 
@@ -449,8 +451,8 @@ void TestOrm::testConnection()
     /* SQLite database - check_database_exists */
     {
         // Remove the SQLite database file
-        QFile::remove(CHECK_DATABASE_EXISTS_FILE);
-        Q_ASSERT(!QFile::exists(CHECK_DATABASE_EXISTS_FILE));
+        QFile::remove(m_checkDatabaseExistsFile);
+        Q_ASSERT(!QFile::exists(m_checkDatabaseExistsFile));
 
         /* SQLite database [sqlite_check_exists_true] - check_database_exists - true */
         {
@@ -470,10 +472,11 @@ void TestOrm::testConnection()
             qInfo() << "\n\nSQLite database [sqlite_check_exists_false] - "
                        "check_database_exists - false\n---";
 
+            // QSqlDatabase automatically creates a SQLite database file
             DB::connection("sqlite_check_exists_false")
                     .statement("create table tbl1 (one varchar(10), two smallint)");
 
-            Q_ASSERT(QFile::exists(CHECK_DATABASE_EXISTS_FILE));
+            Q_ASSERT(QFile::exists(m_checkDatabaseExistsFile));
 
             qt_noop();
         }
@@ -482,8 +485,8 @@ void TestOrm::testConnection()
         QSqlDatabase::database("sqlite_check_exists_false").close();
 
         // Remove the SQLite database file
-        QFile::remove(CHECK_DATABASE_EXISTS_FILE);
-        Q_ASSERT(!QFile::exists(CHECK_DATABASE_EXISTS_FILE));
+        QFile::remove(m_checkDatabaseExistsFile);
+        Q_ASSERT(!QFile::exists(m_checkDatabaseExistsFile));
     }
 
     logQueryCounters(__FUNCTION__, timer.elapsed());

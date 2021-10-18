@@ -10,6 +10,8 @@ class TestOrm
 public:
 //    using KeyType = quint64;
 
+    TestOrm();
+
     TestOrm &connectToDatabase();
     TestOrm &run();
 
@@ -37,14 +39,14 @@ private:
 
     /*! Get the filepath to the SQLite database file, for testing the 'check_database_exists'
         configuration option. */
-    static QString getCheckDatabaseExistsFile();
+    QString getCheckDatabaseExistsFile();
 
     /*! Reset all counters on counted connections. */
     void resetAllQueryLogCounters() const;
 
     /*! Path to the SQLite database file, for testing the 'check_database_exists'
         configuration option. */
-    static const QString CHECK_DATABASE_EXISTS_FILE;
+    const QString m_checkDatabaseExistsFile;
 
     /*! Connections to count on statements and execution times. */
     inline static const QStringList
