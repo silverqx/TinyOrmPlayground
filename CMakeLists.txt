@@ -225,6 +225,8 @@ target_link_libraries(${TinyOrmPlayground_target}
 # Some info output
 # ---
 
+tiny_print_linking_against(TinyOrm::TinyOrm)
+
 set_package_properties(QT
     PROPERTIES
         URL "https://doc.qt.io/qt-${QT_VERSION_MAJOR}/"
