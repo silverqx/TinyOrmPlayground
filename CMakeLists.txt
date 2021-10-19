@@ -167,7 +167,12 @@ endif()
 # ---
 
 target_compile_definitions(${TinyOrmPlayground_target}
-    PRIVATE PROJECT_TINYORMPLAYGROUND
+    PRIVATE
+        PROJECT_TINYORMPLAYGROUND
+        # Release build
+        $<$<NOT:$<CONFIG:Debug>>:TINYPLAY_NO_DEBUG>
+        # Debug build
+        $<$<CONFIG:Debug>:TINYPLAY_DEBUG>
 )
 
 # TinyORM defines
@@ -183,6 +188,10 @@ target_compile_definitions(${TinyOrmPlayground_target}
     PRIVATE
         # Log queries with a time measurement
         TINYORM_DEBUG_SQL
+        # Release build
+        $<$<NOT:$<CONFIG:Debug>>:TINYORM_NO_DEBUG>
+        # Debug build
+        $<$<CONFIG:Debug>:TINYORM_DEBUG>
 )
 
 # Windows resource and manifest files
@@ -279,7 +288,7 @@ set_package_properties(TinyOrm
 
 if(VERBOSE_CONFIGURE)
     if(NOT TINY_IS_MULTI_CONFIG AND NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
-        message(STATUS "Disabling debug output")
+        message(STATUS "Disabled debug output and assert")
     endif()
 
     feature_summary(WHAT ALL)

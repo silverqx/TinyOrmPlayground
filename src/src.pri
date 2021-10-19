@@ -5,6 +5,7 @@ INCLUDEPATH += $$PWD
 
 HEADERS += \
     $$PWD/common.hpp \
+    $$PWD/config.hpp \
     $$PWD/testorm.hpp \
     $$PWD/version.hpp \
 

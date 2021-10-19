@@ -27,10 +27,14 @@
 #include <orm/constants.hpp>
 #include <orm/db.hpp>
 #include <orm/exceptions/invalidargumenterror.hpp>
+#include <orm/libraryinfo.hpp>
+#include <orm/macros/compilerdetect.hpp>
 #include <orm/mysqlconnection.hpp>
 #include <orm/query/joinclause.hpp>
 #include <orm/utils/type.hpp>
 #include <orm/version.hpp>
+
+#include "config.hpp"
 
 #include "common.hpp"
 #include "models/filepropertyproperty.hpp"
@@ -48,6 +52,7 @@
 using json = nlohmann::json;
 
 using Orm::AttributeItem;
+using Orm::LibraryInfo;
 using Orm::MySqlConnection;
 using Orm::Exceptions::InvalidArgumentError;
 using Orm::One;
@@ -3516,19 +3521,30 @@ void TestOrm::logQueryCountersBlock(
 
 
     if (title.contains("Application")) {
-#ifdef _MSC_VER
-        qInfo().nospace() << "⚙ _MSC_VER                  : "
-                          << _MSC_VER;
-#endif
-        qInfo().nospace() << "  Qt version                : "
+        qInfo().nospace() << "⚙ Compiler version             : "
+                          << TINYORM_COMPILER_STRING;
+        qInfo().nospace() << "⚙ Qt version                   : "
                           << QT_VERSION_STR;
-        qInfo().nospace() << "  Qt Build type             : "
+        qInfo().nospace() << "  Qt build type                : "
                           << (QLibraryInfo::isDebugBuild() ? "Debug" : "Release");
+        qInfo().nospace() << "  Qt full build type           : "
+                          << QLibraryInfo::build() << "\n";
 
-        qInfo().nospace() << "⚙ TinyORM version           : "
+        qInfo().nospace() << "⚙ TinyORM version              : "
                           << TINYORM_VERSION_STR;
-        qInfo().nospace() << "  TinyOrmPlayground version : "
-                          << TINYPLAY_VERSION_STR
+        qInfo().nospace() << "  TinyORM build type           : "
+                          << (LibraryInfo::isDebugBuild() ? "Debug" : "Release");
+        qInfo().nospace() << "  TinyORM full build type      : "
+                          << LibraryInfo::build();
+
+        qInfo().nospace() << "⚙ TinyOrmPlayground version    : "
+                          << TINYPLAY_VERSION_STR;
+        qInfo().nospace() << "  TinyOrmPlayground build type : "
+#ifdef TINYPLAY_NO_DEBUG
+                          << "Release"
+#else
+                          << "Debug"
+#endif
                           << "\n";
 
         // All Functions execution time

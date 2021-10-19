@@ -29,6 +29,11 @@ CONFIG -= c++11 app_bundle
 
 DEFINES += PROJECT_TINYORM_PLAYGROUND
 
+# Release build
+CONFIG(release, debug|release): DEFINES += TINYPLAY_NO_DEBUG
+# Debug build
+CONFIG(debug, debug|release): DEFINES *= TINYPLAY_DEBUG
+
 # Qt defines
 # ---
 
@@ -38,13 +43,16 @@ DEFINES += PROJECT_TINYORM_PLAYGROUND
 # Disables all the APIs deprecated before Qt 6.0.0
 DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000
 
-#DEFINES += QT_ASCII_CAST_WARNINGS
-#DEFINES += QT_NO_CAST_FROM_ASCII
-#DEFINES += QT_RESTRICTED_CAST_FROM_ASCII
-DEFINES += QT_NO_CAST_TO_ASCII
-DEFINES += QT_NO_CAST_FROM_BYTEARRAY
-DEFINES += QT_USE_QSTRINGBUILDER
-DEFINES += QT_STRICT_ITERATORS
+#DEFINES *= QT_ASCII_CAST_WARNINGS
+#DEFINES *= QT_NO_CAST_FROM_ASCII
+#DEFINES *= QT_RESTRICTED_CAST_FROM_ASCII
+DEFINES *= QT_NO_CAST_TO_ASCII
+DEFINES *= QT_NO_CAST_FROM_BYTEARRAY
+DEFINES *= QT_USE_QSTRINGBUILDER
+DEFINES *= QT_STRICT_ITERATORS
+
+# Disable debug output in release mode
+CONFIG(release, debug|release): DEFINES *= QT_NO_DEBUG_OUTPUT
 
 # Platform specific configuration
 # ---
@@ -96,13 +104,8 @@ CONFIG(release, debug|release) {
 # ---
 
 CONFIG(debug, debug|release):!build_pass: message( "Project is built in DEBUG mode." )
-CONFIG(release, debug|release):!build_pass: message( "Project is built in RELEASE mode." )
-
-# Disable debug output in release mode
-CONFIG(release, debug|release) {
-    !build_pass: message( "Disabling debug output." )
-    DEFINES += QT_NO_DEBUG_OUTPUT
-}
+CONFIG(release, debug|release):!build_pass: \
+    message( "Project is built in RELEASE mode (disabled debug output and assert)." )
 
 # Common Logic
 # ---
