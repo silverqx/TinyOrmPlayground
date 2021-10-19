@@ -194,7 +194,9 @@ if(MINGW)
 endif()
 
 include(TinyResourceAndManifest)
-tiny_resource_and_manifest(${TinyOrmPlayground_target} "${TINY_BUILD_GENDIR}/tmp/")
+tiny_resource_and_manifest(${TinyOrmPlayground_target}
+    OUTPUT_DIR "${TINY_BUILD_GENDIR}/tmp/"
+)
 
 # Resolve and link dependencies
 # ---
