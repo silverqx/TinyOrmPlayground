@@ -137,6 +137,7 @@ TestOrm &TestOrm::connectToDatabase()
             {"options",         QVariantHash()},
         }},
 
+        // To test a cross database query
         {"mysql_laravel8", {
             {"driver",    "QMYSQL"},
             {"host",      qEnvironmentVariable("DB_MYSQL_LARAVEL_HOST", "127.0.0.1")},
