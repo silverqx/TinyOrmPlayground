@@ -2,6 +2,8 @@
 #ifndef TESTORM_H
 #define TESTORM_H
 
+#include <optional>
+
 #include <orm/databasemanager.hpp>
 #include <orm/types/statementscounter.hpp>
 
