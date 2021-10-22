@@ -170,6 +170,7 @@ target_compile_definitions(${TinyOrmPlayground_target}
     PRIVATE
         PROJECT_TINYORMPLAYGROUND
         # Release build
+        $<$<NOT:$<CONFIG:Debug>>:QT_NO_DEBUG_OUTPUT>
         $<$<NOT:$<CONFIG:Debug>>:TINYPLAY_NO_DEBUG>
         # Debug build
         $<$<CONFIG:Debug>:TINYPLAY_DEBUG>
@@ -186,12 +187,12 @@ endif()
 
 target_compile_definitions(${TinyOrmPlayground_target}
     PRIVATE
-        # Log queries with a time measurement
-        TINYORM_DEBUG_SQL
         # Release build
         $<$<NOT:$<CONFIG:Debug>>:TINYORM_NO_DEBUG>
+        $<$<NOT:$<CONFIG:Debug>>:TINYORM_NO_DEBUG_SQL>
         # Debug build
         $<$<CONFIG:Debug>:TINYORM_DEBUG>
+        $<$<CONFIG:Debug>:TINYORM_DEBUG_SQL>
 )
 
 # Windows resource and manifest files

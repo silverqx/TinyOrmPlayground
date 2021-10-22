@@ -87,6 +87,12 @@ DESTINATION is encountered")
         CMAKE_MAP_IMPORTED_CONFIG_DEBUG
     )
 
+    unset(debug_helpString)
+    unset(minSizeRel_helpString)
+    unset(relWithDebInfo_helpString)
+    unset(release_helpString)
+    unset(helpStringTemplate)
+
     if(VERBOSE_CONFIGURE)
         message(STATUS "${TinyOrmPlayground_ns}: Set up defaults for \
 CMAKE_MAP_IMPORTED_CONFIG_<CONFIG> to avoid link a release type builds against a debug \
@@ -111,6 +117,8 @@ build
 
         set(CMAKE_RC_FLAGS "${CMAKE_RC_FLAGS} -nologo" CACHE STRING ${help_string} FORCE)
     endif()
+
+    unset(help_string)
 
 endmacro()
 
