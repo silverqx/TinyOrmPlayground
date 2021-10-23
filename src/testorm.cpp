@@ -2182,7 +2182,7 @@ void TestOrm::testTinyOrm()
                     {{"name", "tag4"}},
                     {{"name", "tag4"},
 #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-                     {"note", QVariant(QMetaType::QString)}},
+                     {"note", QVariant(QMetaType(QMetaType::QString))}},
 #else
                      {"note", QVariant(QVariant::String)}},
 #endif
