@@ -4,14 +4,20 @@
 
 #include "orm/tiny/model.hpp"
 
-#include "models/filepropertyproperty.hpp"
 #include "models/torrentpreviewablefile.hpp"
+
+// Has to be after torrentpreviewablefile.hpp
+#include "models/filepropertyproperty.hpp"
+
+namespace Models
+{
 
 using Orm::Tiny::Relations::HasMany;
 
 class FilePropertyProperty;
 class TorrentPreviewableFile;
 
+// NOLINTNEXTLINE(misc-no-recursion)
 class TorrentPreviewableFileProperty final :
         public Model<TorrentPreviewableFileProperty, TorrentPreviewableFile,
                      FilePropertyProperty>
@@ -24,7 +30,8 @@ public:
     std::unique_ptr<BelongsTo<TorrentPreviewableFileProperty, TorrentPreviewableFile>>
     torrentFile()
     {
-        return belongsTo<TorrentPreviewableFile>("previewable_file_id", {}, __func__);
+        return belongsTo<TorrentPreviewableFile>(
+                    "previewable_file_id", {}, static_cast<const char *>(__func__));
     }
 
     /*! Get a property property associated with the file property. */
@@ -55,5 +62,7 @@ private:
     /*! All of the relationships to be touched. */
     QStringList u_touches {"torrentFile"};
 };
+
+} // namespace Models
 
 #endif // TORRENTPREVIEWABLEFILEPROPERTY_HPP

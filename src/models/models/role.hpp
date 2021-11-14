@@ -2,18 +2,21 @@
 #ifndef ROLE_HPP
 #define ROLE_HPP
 
-#include <orm/tiny/model.hpp>
+#include "orm/tiny/model.hpp"
 
 #include "models/roleuser.hpp"
+#include "models/user.hpp"
 
-using namespace Orm::Constants;
+namespace Models
+{
 
+using Orm::Constants::NAME;
 using Orm::Tiny::Model;
 using Orm::Tiny::Relations::BelongsToMany;
-using Orm::Tiny::Relations::Pivot;
 
 class User;
 
+// NOLINTNEXTLINE(misc-no-recursion)
 class Role final : public Model<Role, User, RoleUser>
 {
     friend Model;
@@ -39,12 +42,14 @@ private:
     };
 
     /*! The attributes that are mass assignable. */
-    inline static QStringList u_fillable {
+    inline static const QStringList u_fillable { // NOLINT(cppcoreguidelines-interfaces-global-init)
         NAME,
     };
 
     /*! Indicates if the model should be timestamped. */
     bool u_timestamps = false;
 };
+
+} // namespace Models
 
 #endif // ROLE_HPP

@@ -4,6 +4,7 @@
 
 #include "orm/db.hpp"
 #include "orm/tiny/model.hpp"
+#include "orm/tiny/relations/pivot.hpp"
 
 #include "models/tag.hpp"
 #include "models/tagged.hpp"
@@ -11,9 +12,11 @@
 #include "models/torrentpreviewablefile.hpp"
 #include "models/user.hpp"
 
-using namespace Orm::Constants;
+namespace Models
+{
 
 //using Orm::AttributeItem;
+using Orm::Constants::ID;
 using Orm::Tiny::Model;
 using Orm::Tiny::Relations::BelongsTo;
 using Orm::Tiny::Relations::BelongsToMany;
@@ -23,8 +26,12 @@ using Orm::Tiny::Relations::Pivot;
 
 /* This class serves as a showcase, so all possible features are defined / used. */
 
+class Tag;
+class TorrentPeer;
 class TorrentPreviewableFile;
+class User;
 
+// NOLINTNEXTLINE(misc-no-recursion)
 class Torrent final :
         public Model<Torrent, TorrentPreviewableFile, TorrentPeer, Tag, User, Pivot>
 //        public Model<Torrent, TorrentPreviewableFile, TorrentPeer, Tag, User, Tagged>
@@ -97,9 +104,9 @@ public:
 
 private:
     /*! The name of the "created at" column. */
-    inline static const QString CREATED_AT = Orm::CREATED_AT;
+    inline static const QString CREATED_AT = Orm::CREATED_AT; // NOLINT(cppcoreguidelines-interfaces-global-init)
     /*! The name of the "updated at" column. */
-    inline static const QString UPDATED_AT = Orm::UPDATED_AT;
+    inline static const QString UPDATED_AT = Orm::UPDATED_AT; // NOLINT(cppcoreguidelines-interfaces-global-init)
 
     /*! The table associated with the model. */
     QString u_table {"torrents"};
@@ -145,7 +152,7 @@ private:
 //    };
 
     /*! The attributes that are mass assignable. */
-    inline static QStringList u_fillable {
+    inline static const QStringList u_fillable { // NOLINT(cppcoreguidelines-interfaces-global-init)
         ID,
         NAME,
         "size",
@@ -175,7 +182,9 @@ private:
 //    QStringList u_touches {"relation_name"};
 };
 
+} // namespace Models
+
 // TODO finish this, move to base class and test eg in qvector, qhash, etc silverqx
-//QDebug operator<<(QDebug debug, const Torrent &c);
+//QDebug operator<<(QDebug debug, const Models::Torrent &c);
 
 #endif // TORRENT_HPP

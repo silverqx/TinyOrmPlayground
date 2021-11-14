@@ -7,12 +7,17 @@
 #include "models/torrent.hpp"
 #include "models/torrentpreviewablefileproperty.hpp"
 
+namespace Models
+{
+
+using Orm::Constants::NAME;
 using Orm::Tiny::Relations::BelongsTo;
 using Orm::Tiny::Relations::HasOne;
 
 class Torrent;
 class TorrentPreviewableFileProperty;
 
+// NOLINTNEXTLINE(misc-no-recursion)
 class TorrentPreviewableFile final :
         public Model<TorrentPreviewableFile, Torrent, TorrentPreviewableFileProperty>
 {
@@ -113,5 +118,7 @@ private:
     /*! All of the relationships to be touched. */
     QStringList u_touches {"torrent"};
 };
+
+} // namespace Models
 
 #endif // TORRENTPREVIEWABLEFILE_HPP
