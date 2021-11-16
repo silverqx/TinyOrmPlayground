@@ -5,6 +5,11 @@
 #include <QFile>
 #include <QLibraryInfo>
 #include <QStandardPaths>
+#include <QTextStream>
+
+#ifdef _MSC_VER
+#include <qt_windows.h>
+#endif
 
 #ifdef __has_include
 #  if __has_include(<version>)
@@ -24,24 +29,25 @@
 #include <nlohmann/json.hpp>
 #include <range/v3/all.hpp>
 
-#include <orm/constants.hpp>
 #include <orm/db.hpp>
 #include <orm/exceptions/invalidargumenterror.hpp>
 #include <orm/libraryinfo.hpp>
 #include <orm/macros/compilerdetect.hpp>
 #include <orm/mysqlconnection.hpp>
 #include <orm/query/joinclause.hpp>
+#include <orm/utils/thread.hpp>
 #include <orm/utils/type.hpp>
 #include <orm/version.hpp>
 
-#include "config.hpp"
-
-#include "common.hpp"
-#include "models/filepropertyproperty.hpp"
 #include "models/setting.hpp"
 #include "models/torrent.hpp"
 #include "models/torrenteager.hpp"
-#include "models/user.hpp"
+
+#include "config.hpp"
+
+#include "macros.hpp"
+#include "support/globals.hpp"
+#include "support/utils.hpp"
 #include "version.hpp"
 
 // clazy:excludeall=unused-non-trivial-variable
@@ -51,13 +57,64 @@
 
 using json = nlohmann::json;
 
+using Models::FilePropertyProperty;
+using Models::Role;
+using Models::RoleUser;
+using Models::Tag;
+using Models::TagProperty;
+using Models::Tagged;
+using Models::Torrent;
+using Models::TorrentEager;
+using Models::TorrentPeer;
+using Models::TorrentPeerEager_NoRelations;
+using Models::TorrentPreviewableFile;
+using Models::TorrentPreviewableFileProperty;
+using Models::User;
+
 using Orm::AttributeItem;
+using Orm::Constants::ASTERISK;
+using Orm::Constants::COLON;
+using Orm::Constants::COMMA;
+using Orm::Constants::DOT;
+using Orm::Constants::INNER;
+using Orm::Constants::UNDERSCORE;
+using Orm::Constants::H127001;
+using Orm::Constants::P3306;
+using Orm::Constants::P5432;
+using Orm::Constants::QMYSQL;
+using Orm::Constants::QPSQL;
+using Orm::Constants::QSQLITE;
+using Orm::Constants::SYSTEM;
+using Orm::Constants::UTF8;
+using Orm::Constants::UTF8MB4;
+using Orm::Constants::charset_;
+using Orm::Constants::check_database_exists;
+using Orm::Constants::collation_;
+using Orm::Constants::database_;
+using Orm::Constants::driver_;
+using Orm::Constants::foreign_key_constraints;
+using Orm::Constants::host_;
+using Orm::Constants::isolation_level;
+using Orm::Constants::LOCAL;
+using Orm::Constants::options_;
+using Orm::Constants::password_;
+using Orm::Constants::port_;
+using Orm::Constants::prefix_;
+using Orm::Constants::PUBLIC;
+using Orm::Constants::schema_;
+using Orm::Constants::strict_;
+using Orm::Constants::timezone_;
+using Orm::Constants::username_;
+using Orm::Exceptions::InvalidArgumentError;
+using Orm::Exceptions::LogicError; using Orm::Exceptions::RuntimeError;
 using Orm::LibraryInfo;
 using Orm::MySqlConnection;
-using Orm::Exceptions::InvalidArgumentError;
 using Orm::One;
 using Orm::Tiny::Exceptions::ModelNotFoundError;
 using Orm::Tiny::Relations::Pivot;
+using Orm::Utils::Thread;
+
+using TinyPlay::Utils;
 
 /*
    Notes:
@@ -83,67 +140,51 @@ using Orm::Tiny::Relations::Pivot;
            - around 350ms / min. 305ms all queries
 */
 
+namespace TinyPlay
+{
+
 TestOrm::TestOrm()
     : m_checkDatabaseExistsFile(getCheckDatabaseExistsFile())
-{}
-
-TestOrm &TestOrm::connectToDatabase()
+    , m_configurations(getConfigurations())
+    , m_mysqlMainThreadConnection(getMySqlMainThreadConnection())
 {
-    // Create a default database connection
-//    m_db = DB::create({
-//        {driver_,    QMYSQL},
-//        {host_,      qEnvironmentVariable("DB_HOST", H127001)},
-//        {port_,      qEnvironmentVariable("DB_PORT", P3306)},
-//        {database_,  qEnvironmentVariable("DB_DATABASE", "")},
-//        {username_,  qEnvironmentVariable("DB_USERNAME", "")},
-//        {password_,  qEnvironmentVariable("DB_PASSWORD", "")},
-//        {charset_,   qEnvironmentVariable("DB_CHARSET", UTF8MB4)},
-//        {collation_, qEnvironmentVariable("DB_COLLATION",
-//                                          QStringLiteral("utf8mb4_0900_ai_ci"))},
-//        {prefix_,    ""},
-//        {strict_,    true},
-//        {options_,   QVariantHash()},
-//    });
+    // Secure that the main thread will be first everytime
+    newCountersForAppSummary("main");
+}
 
-    /* Create database connections: mysql, sqlite and mysql_alt, and make
-       mysql default database connection. */
-    m_db = DB::create({
-        {"mysql", {
-            {driver_,    QMYSQL},
-            {host_,      qEnvironmentVariable("DB_MYSQL_HOST", H127001)},
-            {port_,      qEnvironmentVariable("DB_MYSQL_PORT", P3306)},
-            {database_,  qEnvironmentVariable("DB_MYSQL_DATABASE", "")},
-            {username_,  qEnvironmentVariable("DB_MYSQL_USERNAME", "")},
-            {password_,  qEnvironmentVariable("DB_MYSQL_PASSWORD", "")},
-            {charset_,   qEnvironmentVariable("DB_MYSQL_CHARSET", UTF8MB4)},
-            {collation_, qEnvironmentVariable("DB_MYSQL_COLLATION",
-                                              QStringLiteral("utf8mb4_0900_ai_ci"))},
-            // CUR add timezone names to the MySQL server and test them silverqx
-            {timezone_,       SYSTEM},
-            {prefix_,         ""},
-            {strict_,         true},
-            {isolation_level, QStringLiteral("REPEATABLE READ")},
-            {options_,        QVariantHash()},
-        }},
+const TestOrm::OrmConfigurationsType &TestOrm::getConfigurations() const
+{
+    static const QVariantHash mysqlConnection {
+        {driver_,    QMYSQL},
+        {host_,      qEnvironmentVariable("DB_MYSQL_HOST", H127001)},
+        {port_,      qEnvironmentVariable("DB_MYSQL_PORT", P3306)},
+        {database_,  qEnvironmentVariable("DB_MYSQL_DATABASE", "")},
+        {username_,  qEnvironmentVariable("DB_MYSQL_USERNAME", "")},
+        {password_,  qEnvironmentVariable("DB_MYSQL_PASSWORD", "")},
+        {charset_,   qEnvironmentVariable("DB_MYSQL_CHARSET", UTF8MB4)},
+        {collation_, qEnvironmentVariable("DB_MYSQL_COLLATION",
+                                          QStringLiteral("utf8mb4_0900_ai_ci"))},
+        // CUR add timezone names to the MySQL server and test them silverqx
+        {timezone_,       SYSTEM},
+        {prefix_,         ""},
+        {strict_,         true},
+        {isolation_level, QStringLiteral("REPEATABLE READ")},
+        {options_,        QVariantHash()},
+    };
 
-        {"mysql_alt", {
-            {driver_,    QMYSQL},
-            {host_,      qEnvironmentVariable("DB_MYSQL_HOST", H127001)},
-            {port_,      qEnvironmentVariable("DB_MYSQL_PORT", P3306)},
-            {database_,  qEnvironmentVariable("DB_MYSQL_DATABASE", "")},
-            {username_,  qEnvironmentVariable("DB_MYSQL_USERNAME", "")},
-            {password_,  qEnvironmentVariable("DB_MYSQL_PASSWORD", "")},
-            {charset_,   qEnvironmentVariable("DB_MYSQL_CHARSET", UTF8MB4)},
-            {collation_, qEnvironmentVariable("DB_MYSQL_COLLATION",
-                                              QStringLiteral("utf8mb4_0900_ai_ci"))},
-            {timezone_,       SYSTEM},
-            {prefix_,         ""},
-            {strict_,         true},
-            {isolation_level, QStringLiteral("REPEATABLE READ")},
-            {options_,        QVariantHash()},
-        }},
+    static const OrmConfigurationsType cached {
+        // Main MySQL connection in test loop
+        {"mysql", mysqlConnection},
 
-        // To test a cross database query
+        // Used in the Torrent model as u_connection
+        {"mysql_alt", mysqlConnection},
+
+        /* Used as MySQL connection name in the main thread when connections in threads
+           is enabled to avoid MySQL connection name collision. */
+        {"mysql_mainthread", mysqlConnection},
+
+        /* Used in the testQueryBuilderDbSpecific() only to test a cross-database query,
+           a connection to the "laravel_8" database. */
         {"mysql_laravel8", {
             {driver_,    QMYSQL},
             {host_,      qEnvironmentVariable("DB_MYSQL_LARAVEL_HOST", H127001)},
@@ -161,6 +202,7 @@ TestOrm &TestOrm::connectToDatabase()
             {options_,        QVariantHash()},
         }},
 
+        // Main SQLite connection in test loop
         {"sqlite", {
             {driver_,    QSQLITE},
             {database_,  qEnvironmentVariable("DB_SQLITE_DATABASE", "")},
@@ -171,6 +213,7 @@ TestOrm &TestOrm::connectToDatabase()
             {check_database_exists,   true},
         }},
 
+        // Used in the testConnection() only to test SQLite :memory: driver
         {"sqlite_memory", {
             {driver_,    QSQLITE},
             {database_,  QStringLiteral(":memory:")},
@@ -180,18 +223,23 @@ TestOrm &TestOrm::connectToDatabase()
                                                            QStringLiteral("true"))},
         }},
 
+        /* Used in the testConnection() only to test behavior when the configuration
+           option check_database_exists = true. */
         {"sqlite_check_exists_true", {
             {driver_,    QSQLITE},
             {database_,  m_checkDatabaseExistsFile},
             {check_database_exists, true},
         }},
 
+        /* Used in the testConnection() only to test behavior when the configuration
+           option check_database_exists = true. */
         {"sqlite_check_exists_false", {
             {driver_,    QSQLITE},
             {database_,  m_checkDatabaseExistsFile},
             {check_database_exists, false},
         }},
 
+        // Main PostgreSQL connection in test loop
         {"postgres", {
             {driver_,   QPSQL},
             {host_,     qEnvironmentVariable("DB_PGSQL_HOST",     H127001)},
@@ -206,17 +254,23 @@ TestOrm &TestOrm::connectToDatabase()
             {prefix_,   ""},
             {options_,  QVariantHash(/*{{"requiressl", 1}}*/)},
         }},
+    };
 
-    }, "mysql");
+    return cached;
+}
 
-    // Create connections eagerly, so I can enable counters
-    for (const auto &connection : CONNECTIONS_TO_COUNT)
-        DB::connection(connection);
+TestOrm &TestOrm::connectToDatabase()
+{
+    throwIfAlreadyCalled();
 
-    // BUG also decide how to behave when connection is not created and user enable counters silverqx
+    /* Create database connections: mysql, sqlite and mysql_alt, and make
+       mysql default database connection. */
+    m_db = DB::create(computeConfigurationsToAdd(), "mysql");
+
+    CONNECTIONS_TO_COUNT = computeConnectionsToCount();
+
     // Enable counters on all database connections
-    DB::enableElapsedCounters(CONNECTIONS_TO_COUNT);
-    DB::enableStatementCounters(CONNECTIONS_TO_COUNT);
+    enableAllQueryLogCounters();
 
     return *this;
 }
@@ -230,22 +284,19 @@ TestOrm &TestOrm::run()
     testQueryBuilderDbSpecific();
 
     /* Main test playground code */
-    for (const auto &connection : CONNECTIONS_TO_TEST) {
-        DB::setDefaultConnection(connection);
-
-        testQueryBuilder();
-        testTinyOrm();
-    }
-    DB::setDefaultConnection("mysql");
+    testAllConnections();
 
     /* Other tests/tries */
 //    jsonConfig();
 //    standardPaths();
 
+    // Add counters for main thread
+    saveCountersForAppSummary("main");
+
     // Whole application Summary
     logQueryCountersBlock(QStringLiteral("Application Summary"),
-                          m_appElapsed, m_appStatementsCounter,
-                          m_appRecordsHaveBeenModified);
+                          m_threadQueriesElapsed, m_threadStatementsCounter,
+                          m_threadRecordsHaveBeenModified);
 
     return *this;
 }
@@ -348,7 +399,7 @@ void TestOrm::anotherTests()
                 << "\n==================\n\n";
 
         printf("Function name __FUNCTION__ : %s\n", __FUNCTION__);
-        printf("Function name __func__ : %s\n", __func__);
+        printf("Function name __func__ : %s\n", static_cast<const char *>(__func__));
 #ifdef _MSC_VER
         printf("Decorated function name __FUNCDNAME__ : %s\n", __FUNCDNAME__);
 #endif
@@ -429,8 +480,9 @@ void TestOrm::testConnection()
         qInfo() << "\n\nDatabaseConnection::isMaria() - on MySQL connection\n---";
 
         [[maybe_unused]]
-        const auto isMaria =
-                dynamic_cast<MySqlConnection &>(DB::connection("mysql")).isMaria();
+        const auto isMaria = dynamic_cast<MySqlConnection &>(
+                                 DB::connection(m_mysqlMainThreadConnection))
+                             .isMaria();
         Q_ASSERT(!isMaria);
 
         qt_noop();
@@ -499,6 +551,123 @@ void TestOrm::testConnection()
     logQueryCounters(__FUNCTION__, timer.elapsed());
 }
 
+namespace
+{
+    /*! Log file for log messages from threads. */
+    QFile logFile {TestOrm::getLogFilepath()};
+    /*! Text stream for log messages from threads. */
+    QTextStream logThreadStream;
+
+    /*! All log messages from a given thread. */
+    struct LogFromThreadItem
+    {
+        /*! Name of a thread to which log messages belong to. */
+        TestOrm::ThreadName threadName;
+        /*! All log messages. */
+        std::vector<TinyPlay::Support::MessageLogItem> logMessages;
+    };
+
+    /*! Log messages from all threads. */
+    std::vector<LogFromThreadItem> logsFromThreads;
+    /*! Index of LogFromThreadItem for log messages from all threads. */
+    using logFromThreadIdx = std::size_t;
+    /*! Fast lookup map for application counters. */
+    std::unordered_map<TestOrm::ThreadName, logFromThreadIdx> logsFromThreadsMap;
+
+    /*! Mutex to secure writes for log messages in threads. */
+    std::mutex mx_dataLogStream;
+} // namespace
+
+void TestOrm::testAllConnections()
+{
+    throwIfConnsToRunEmpty();
+    initThreadLogging();
+    santizeConnectionsToRunInThread();
+
+    {
+        // BUG QDateTime is not reentrant, this avoids crashes in threads during added calendar to the Registry silverqx
+        [[maybe_unused]]
+        auto _ = QDateTime::fromString("st jan 6 14:51:23 2021");
+
+        // To join threads at the current block
+        std::vector<std::jthread> threads;
+
+        for (const auto &connection : CONNECTIONS_TO_TEST) {
+            // Run connection in the worker thread
+            if (m_connectionsInThreads &&
+                m_connectionsToRunInThread.contains(connection)
+            ) {
+                threads.emplace_back(&TestOrm::testConnectionInWorkerThread, this,
+                                     connection);
+                continue;
+            }
+
+            // Otherwise run in the main thread
+            testConnectionInMainThread(connection);
+        }
+    } // join threads
+
+    // Restore default connection
+    DB::setDefaultConnection("mysql");
+
+    if (!m_isLoggingToFile)
+        replayThrdLogToConsole();
+}
+
+void TestOrm::testConnectionInMainThread(const QString &connection)
+{
+    DB::setDefaultConnection(connection);
+
+    testQueryBuilder();
+    testTinyOrm();
+}
+
+
+QTextStream &operator<<(
+        QTextStream &stream,
+        const std::vector<TinyPlay::Support::MessageLogItem> &logFromThread)
+{
+    for (const auto &[type, message] : logFromThread)
+        stream << message << "\n";
+
+    return stream;
+}
+
+void TestOrm::testConnectionInWorkerThread(const QString &connection)
+{
+    try {
+        Thread::nameThreadForDebugging(connection);
+
+        throwIfNoConfig(connection);
+
+        Support::g_inThread = true;
+
+        m_db->addConnections(computeConfigurationsToAdd(connection));
+
+        DB::setDefaultConnection(connection);
+
+        CONNECTIONS_TO_COUNT = computeConnectionsToCount(connection);
+
+        // Enable counters on all database connections to count
+        enableAllQueryLogCounters();
+
+        testQueryBuilder();
+        testTinyOrm();
+
+        // Save counters from a current thread for Application Summary
+        saveCountersForAppSummary(connection);
+
+        saveLogsFromThread(connection);
+
+    } catch (const std::exception &e) {
+        // Secure that an exception will be logged to the console
+        Support::g_inThread = false;
+
+        Utils::logException(e);
+    }
+}
+
+// NOLINTNEXTLINE(readability-function-cognitive-complexity, readability-function-size)
 void TestOrm::testTinyOrm()
 {
     QElapsedTimer timer;
@@ -530,8 +699,7 @@ void TestOrm::testTinyOrm()
     /* Basic get all get() */
     {
         qInfo() << "\n\nBasic get all get()\n---";
-        Torrent torrent;
-        auto torrents = torrent.query()->get();
+        auto torrents = Torrent::query()->get();
 
         for (auto &t : torrents)
             qDebug() << "id :" << t.getAttribute("id").value<quint64>() << ";"
@@ -629,7 +797,8 @@ void TestOrm::testTinyOrm()
 ////    var |= actions::sort([](QVariant a, QVariant b) {
 ////           return a.value<KeyType>() == b.value<KeyType>();
 ////       })/* | actions::unique*/;
-//    auto nn = std::move(var) | actions::sort(less {}, &QVariant::value<KeyType>) | actions::unique;
+//    auto nn = std::move(var) | actions::sort(less {}, &QVariant::value<KeyType>)
+//              | actions::unique;
 ////    var |= actions::sort(less {}, &QVariant::value<KeyType>) | actions::unique;
 //    qDebug() << nn;
 //    qt_noop();
@@ -726,7 +895,9 @@ void TestOrm::testTinyOrm()
 
     /* Model::save() update - success */
 //    {
-//        auto torrentFile = TorrentPreviewableFile().query()->where("id", "=", 1012).first();
+//        auto torrentFile = TorrentPreviewableFile().query()
+//                           ->where("id", "=", 1012)
+//                           .first();
 
 //        torrentFile->setAttribute("file_index", 10);
 //        torrentFile->setAttribute("filepath", "test1_file10.mkv");
@@ -750,7 +921,9 @@ void TestOrm::testTinyOrm()
 
     /* Model::save() update - failed */
 //    {
-//        auto torrentFile = TorrentPreviewableFile().query()->where("id", "=", 8).first();
+//        auto torrentFile = TorrentPreviewableFile().query()
+//                           ->where("id", "=", 8)
+//                           .first();
 
 //        torrentFile->setAttribute("file_indexx", 11);
 
@@ -1030,7 +1203,8 @@ void TestOrm::testTinyOrm()
         // eager load
 //        auto files = torrent->getRelation<TorrentPreviewableFile>("torrentFiles");
 //        auto *file = files.first();
-//        auto *fileProperty = file->getRelation<TorrentPreviewableFileProperty, One>("fileProperty");
+//        auto *fileProperty =
+//                file->getRelation<TorrentPreviewableFileProperty, One>("fileProperty");
 
         // lazy load
         auto files = torrent->getRelationValue<TorrentPreviewableFile>("torrentFiles");
@@ -1053,7 +1227,7 @@ void TestOrm::testTinyOrm()
         const auto debugAttributes = [&torrent]
         {
             auto files1 = torrent->getRelation<TorrentPreviewableFile>("torrentFiles");
-            auto file1 = files1.first();
+            auto *file1 = files1.first();
             auto *fileProperty1 =
                     file1->getRelation<TorrentPreviewableFileProperty, One>(
                         "fileProperty");
@@ -1092,20 +1266,27 @@ void TestOrm::testTinyOrm()
 //                        << file->getAttribute("filepath").value<QString>()
 //                        << "(" << file->getAttribute("id").value<quint64>() << ")";
 
-//                auto fileProperty = file->getRelation<TorrentPreviewableFileProperty, One>("fileProperty");
+//                auto fileProperty =
+//                        file->getRelation<TorrentPreviewableFileProperty, One>(
+//                            "fileProperty");
 
 //                qDebug().nospace().noquote()
 //                        << fileProperty->getAttribute("name").value<QString>()
-//                        << "(" << fileProperty->getAttribute("id").value<quint64>() << ")";
+//                        << "("
+//                        << fileProperty->getAttribute("id").value<quint64>()
+//                        << ")";
 //                qt_noop();
 //            }
 //        }
 
         // lazy load
         {
-            qDebug() << "\nlazy load, !!comment out 'with' relation to prevent eager load";
-            qDebug() << "\n↓↓↓ lazy load works, if an Executed query is logged under this comment:";
-            auto files = torrent->getRelationValue<TorrentPreviewableFile>("torrentFiles");
+            qDebug() << "\nlazy load, !!comment out 'with' relation to prevent eager "
+                        "load";
+            qDebug() << "\n↓↓↓ lazy load works, if an Executed query is logged under "
+                        "this comment:";
+            auto files =
+                    torrent->getRelationValue<TorrentPreviewableFile>("torrentFiles");
 
             for (auto *file : files) {
                 qDebug().nospace().noquote()
@@ -1113,9 +1294,11 @@ void TestOrm::testTinyOrm()
                         << file->getAttribute("filepath").value<QString>()
                         << "(" << file->getAttribute("id").value<quint64>() << ")";
 
-                auto fileProperty = file->getRelationValue<TorrentPreviewableFileProperty, One>("fileProperty");
+                auto *fileProperty =
+                        file->getRelationValue<TorrentPreviewableFileProperty, One>(
+                            "fileProperty");
 
-                if (fileProperty)
+                if (fileProperty != nullptr)
                     qDebug().nospace().noquote()
                             << fileProperty->getAttribute("name").value<QString>()
                             << "(" << fileProperty->getAttribute("id").value<quint64>()
@@ -1174,11 +1357,13 @@ void TestOrm::testTinyOrm()
                               torrent->getAttribute("progress").value<uint>() + 1);
 
         const auto &updatedAt = torrent->getUpdatedAtColumn();
-        qDebug() << updatedAt << "before :" << torrent->getAttribute(updatedAt).toDateTime();
+        qDebug() << updatedAt << "before :"
+                 << torrent->getAttribute(updatedAt).toDateTime();
 
         torrent->save();
         qDebug() << "progress after :" << torrent->getAttribute("progress");
-        qDebug() << updatedAt << "after :" << torrent->getAttribute(updatedAt).toDateTime();
+        qDebug() << updatedAt << "after :"
+                 << torrent->getAttribute(updatedAt).toDateTime();
         qt_noop();
     }
 
@@ -1192,11 +1377,13 @@ void TestOrm::testTinyOrm()
                               torrent->getAttribute("progress").value<uint>() + 1);
 
         const auto &updatedAt = torrent->getUpdatedAtColumn();
-        qDebug() << updatedAt << "before :" << torrent->getAttribute(updatedAt).toDateTime();
+        qDebug() << updatedAt << "before :"
+                 << torrent->getAttribute(updatedAt).toDateTime();
 
         torrent->save();
         qDebug() << "progress after :" << torrent->getAttribute("progress");
-        qDebug() << updatedAt << "after :" << torrent->getAttribute(updatedAt).toDateTime();
+        qDebug() << updatedAt << "after :"
+                 << torrent->getAttribute(updatedAt).toDateTime();
         qt_noop();
     }
 
@@ -1224,13 +1411,16 @@ void TestOrm::testTinyOrm()
                                            filePropertyProperty->getAttribute("value")
                                            .value<uint>() + 1);
 
-        const auto &updatedAtFilePropertyProperty = filePropertyProperty->getUpdatedAtColumn();
+        const auto &updatedAtFilePropertyProperty =
+                filePropertyProperty->getUpdatedAtColumn();
         qDebug() << "FilePropertyProperty" << updatedAtFilePropertyProperty << "before :"
-                 << filePropertyProperty->getAttribute(updatedAtFilePropertyProperty).toDateTime();
+                 << filePropertyProperty
+                    ->getAttribute(updatedAtFilePropertyProperty).toDateTime();
 
         auto fileProperty = TorrentPreviewableFileProperty::find(3);
         const auto &updatedAtFileProperty = fileProperty->getUpdatedAtColumn();
-        qDebug() << "TorrentPreviewableFileProperty" << updatedAtFileProperty << "before :"
+        qDebug() << "TorrentPreviewableFileProperty"
+                 << updatedAtFileProperty << "before :"
                  << fileProperty->getAttribute(updatedAtFileProperty).toDateTime();
 
         auto torrentFile = TorrentPreviewableFile::find(4);
@@ -1250,7 +1440,8 @@ void TestOrm::testTinyOrm()
         // Fetch fresh model
         auto filePropertyProperty1 = FilePropertyProperty::find(4);
         qDebug() << "FilePropertyProperty" << updatedAtFilePropertyProperty << "after :"
-                 << filePropertyProperty1->getAttribute(updatedAtFilePropertyProperty).toDateTime();
+                 << filePropertyProperty1
+                    ->getAttribute(updatedAtFilePropertyProperty).toDateTime();
 
         fileProperty = TorrentPreviewableFileProperty::find(3);
         qDebug() << "TorrentPreviewableFileProperty" << updatedAtFileProperty << "after :"
@@ -1280,10 +1471,12 @@ void TestOrm::testTinyOrm()
 
         [[maybe_unused]]
         auto result = torrentFile.save();
-        const auto &createdAt = torrentFile.getCreatedAtColumn();
-        qDebug() << createdAt << "after :" << torrentFile.getAttribute(createdAt).toDateTime();
-        const auto &updatedAt = torrentFile.getUpdatedAtColumn();
-        qDebug() << updatedAt << "after :" << torrentFile.getAttribute(updatedAt).toDateTime();
+        const auto &createdAt = TorrentPreviewableFile::getCreatedAtColumn();
+        qDebug() << createdAt << "after :"
+                 << torrentFile.getAttribute(createdAt).toDateTime();
+        const auto &updatedAt = TorrentPreviewableFile::getUpdatedAtColumn();
+        qDebug() << updatedAt << "after :"
+                 << torrentFile.getAttribute(updatedAt).toDateTime();
         qt_noop();
 
         const auto removeResult = torrentFile.remove();
@@ -1316,7 +1509,8 @@ void TestOrm::testTinyOrm()
         Torrent::whereEq("id", 1)->increment("size", 2, {{"progress", 111}});
 
         torrent = Torrent::find(1);
-        qDebug() << "size after increment:" << torrent->getAttribute("size").value<uint>();
+        qDebug() << "size after increment:"
+                 << torrent->getAttribute("size").value<uint>();
         qDebug() << updatedAt << "after increment:"
                  << torrent->getAttribute(updatedAt).toDateTime();
         qDebug() << "progress after increment:"
@@ -1325,7 +1519,8 @@ void TestOrm::testTinyOrm()
         Torrent::whereEq("id", 1)->decrement("size", 2, {{"progress", 100}});
 
         torrent = Torrent::find(1);
-        qDebug() << "size after decrement:" << torrent->getAttribute("size").value<uint>();
+        qDebug() << "size after decrement:"
+                 << torrent->getAttribute("size").value<uint>();
         qDebug() << updatedAt << "after decrement:"
                  << torrent->getAttribute(updatedAt).toDateTime();
         qDebug() << "progress after decrement:"
@@ -1505,7 +1700,7 @@ void TestOrm::testTinyOrm()
                 torrent->getRelationValue<TorrentPreviewableFile>("torrentFiles");
         auto filepathOriginal =
                 filesOriginal.first()->getAttribute("filepath");
-        auto peerOriginal =
+        auto *peerOriginal =
                 torrent->getRelationValue<TorrentPeer, One>("torrentPeer");
         auto seedsOriginal =
                 peerOriginal->getAttribute("seeds");
@@ -1546,7 +1741,7 @@ void TestOrm::testTinyOrm()
         auto filesRefreshed =
                 torrent->getRelationValue<TorrentPreviewableFile>("torrentFiles");
         auto filepathRefreshed = filesRefreshed.first()->getAttribute("filepath");
-        auto peerRefreshed =
+        auto *peerRefreshed =
                 torrent->getRelationValue<TorrentPeer, One>("torrentPeer");
         auto seedsRefreshed = peerRefreshed->getAttribute("seeds");
         Q_ASSERT(filepathOriginal == filepathRefreshed);
@@ -1595,7 +1790,8 @@ void TestOrm::testTinyOrm()
         auto *tagProperty = tags.first()->getRelation<TagProperty, One>("tagProperty");
         qDebug() << "TagProperty:";
         qDebug() << "id :" << tagProperty->getAttribute("id").value<quint64>() << ";"
-                 << "color :" << tagProperty->getAttribute("color").value<QString>() << ";"
+                 << "color :" << tagProperty->getAttribute("color").value<QString>()
+                 << ";"
                  << "position :" << tagProperty->getAttribute("position").value<uint>();
 
         qt_noop();
@@ -1650,7 +1846,7 @@ void TestOrm::testTinyOrm()
         file.save();
 
         [[maybe_unused]]
-        auto verifyTorrent5 = file.getRelation<Torrent, One>("torrent");
+        auto *verifyTorrent5 = file.getRelation<Torrent, One>("torrent");
 
         /* Have to unset current relationship, this is clearly visible in the Eqloquent's
            associate implementation. */
@@ -1660,7 +1856,7 @@ void TestOrm::testTinyOrm()
         file.save();
 
         [[maybe_unused]]
-        auto verifyTorrent4 = file.getRelation<Torrent, One>("torrent");
+        auto *verifyTorrent4 = file.getRelation<Torrent, One>("torrent");
 
         // Restore db
         fileRef.remove();
@@ -1686,7 +1882,7 @@ void TestOrm::testTinyOrm()
         file.save();
 
         [[maybe_unused]]
-        auto verifyTorrent = file.getRelation<Torrent, One>("torrent");
+        auto *verifyTorrent = file.getRelation<Torrent, One>("torrent");
 
         // Restore db
         fileRef.remove();
@@ -1954,7 +2150,8 @@ void TestOrm::testTinyOrm()
                                 ->getAttribute("active");
 
                 // Should not use timestamps
-                auto useTimestamps = role->getRelation<RoleUser, Orm::One>("subscription")
+                auto useTimestamps =
+                        role->getRelation<RoleUser, Orm::One>("subscription")
                         ->usesTimestamps();
                 qDebug() << "Timestamps :"  << useTimestamps;
                 Q_ASSERT(!useTimestamps);
@@ -2752,7 +2949,8 @@ void TestOrm::testQueryBuilder()
 //                        {{"name", "first"}, {"size", 2048}, {"progress", 300},
 //                         {"hash", "xxxx61defa3daecacfde5bde0214c4a439351d4d"},
 //                         {"created_at", QDateTime().currentDateTime()}});
-////                         {"created_at", QDateTime().currentDateTime().toString(Qt::ISODate)}});
+////                         {"created_at", QDateTime().currentDateTime()
+////                                                   .toString(Qt::ISODate)}});
 //        qDebug() << "TENTH";
 //        qDebug() << "last id :" << id;
 
@@ -2763,7 +2961,8 @@ void TestOrm::testQueryBuilder()
 //    {
 //        auto q = DB::table("torrents")->insert(
 //                     {{"name", "bool test"}, {"size", 2048}, {"progress", 300},
-////                      {"added_on", QDateTime().currentDateTime().toString(Qt::ISODate)},
+////                      {"added_on", QDateTime().currentDateTime()
+////                                              .toString(Qt::ISODate)},
 //                      {"hash", "xxxx61defa3daecacfde5bde0214c4a439351d4d"},
 //                      {"bool", false}});
 //        qt_noop();
@@ -2779,10 +2978,10 @@ void TestOrm::testQueryBuilder()
 
 //    const auto id_i = 278;
 //    auto j = m_db.query()->from("torrent_previewable_files").insert({
-//        {{"torrent_id", id_i}, {"file_index", 0}, {"filepath", "abc.mkv"}, {"size", 2048},
-//            {"progress", 10}},
-//        {{"torrent_id", id_i}, {"file_index", 1}, {"filepath", "xyz.mkv"}, {"size", 1024},
-//            {"progress", 15}}});
+//        {{"torrent_id", id_i}, {"file_index", 0}, {"filepath", "abc.mkv"},
+//         {"size", 2048}, {"progress", 10}},
+//        {{"torrent_id", id_i}, {"file_index", 1}, {"filepath", "xyz.mkv"},
+//         {"size", 1024}, {"progress", 15}}});
 //    qDebug() << "ELEVEN :" << j->executedQuery();
 //    if (ok_j) {
 //        qDebug() << "last id :" << j->lastInsertId()
@@ -2972,7 +3171,8 @@ void TestOrm::testQueryBuilder()
 
 //    auto [affected_o, o] = m_db.query()->from("torrents")
 //            .where("id", "=", 277)
-//            .update({{"name", QVariant::fromValue(Expression("first"))}, {"progress", 350}});
+//            .update({{"name", QVariant::fromValue(Expression("first"))},
+//                     {"progress", 350}});
 ////            .update({{"name", x}, {"progress", 350}});
 //    qDebug() << "FIFTEEN :" << o.executedQuery();
 //    qDebug() << "affected rows :" << affected_o;
@@ -3241,14 +3441,14 @@ void TestOrm::testQueryBuilderDbSpecific()
             << "\n  QueryBuilder - database specific  "
             << "\n====================================";
 
-    /* QueryBuilder::fromSub() - cross database query */
+    /* QueryBuilder::fromSub() - cross-database query */
     {
-        qInfo() << "\n\nQueryBuilder::fromSub() - cross database query\n---";
+        qInfo() << "\n\nQueryBuilder::fromSub() - cross-database query\n---";
 
         auto query1 = DB::query("mysql_laravel8")->from("users")
                      .select({"id", "name"});
 
-        auto query = DB::query("mysql")
+        auto query = DB::query(m_mysqlMainThreadConnection)
                      ->fromSub(query1, "u")
                      .where("id", "<", 3)
                      .get();
@@ -3324,7 +3524,7 @@ void TestOrm::jsonConfig()
 //    }
 
     {
-        auto s = R"(
+        const auto *s = R"(
 {
     "default": "mysql",
 
@@ -3445,10 +3645,10 @@ void TestOrm::logQueryCounters(const QString &func,
                       << (functionElapsed ? *functionElapsed : -1) << "ms";
 
     if (functionElapsed)
-        m_appFunctionsElapsed += *functionElapsed;
+        m_threadFunctionsElapsed += *functionElapsed;
 
     // Total counters for the summary
-    qint64 summaryElapsed = -1;
+    qint64 summaryQueriesElapsed = -1;
     StatementsCounter summaryStatementsCounter;
     bool summaryRecordsHaveBeenModified = false;
 
@@ -3458,18 +3658,18 @@ void TestOrm::logQueryCounters(const QString &func,
     if (DB::anyCountingStatements())
         summaryStatementsCounter = {0, 0, 0};
     if (DB::anyCountingElapsed())
-        summaryElapsed = 0;
+        summaryQueriesElapsed = 0;
 
     // Log all connections
-    for (const auto &connectionName : CONNECTIONS_TO_COUNT) {
+    for (const auto &connectionName : std::as_const(CONNECTIONS_TO_COUNT)) {
         auto &connection = DB::connection(connectionName);
 
         // Queries execution time
-        const auto elapsed = connection.takeElapsedCounter();
+        const auto queriesElapsed = connection.takeElapsedCounter();
         // Don't count if counting is not enabled
         if (connection.countingElapsed()) {
-            summaryElapsed += elapsed;
-            m_appElapsed += elapsed;
+            summaryQueriesElapsed += queriesElapsed;
+            m_threadQueriesElapsed += queriesElapsed;
         }
 
         // Executed statements counter
@@ -3480,37 +3680,45 @@ void TestOrm::logQueryCounters(const QString &func,
             summaryStatementsCounter.affecting     += statementsCounter.affecting;
             summaryStatementsCounter.transactional += statementsCounter.transactional;
 
-            m_appStatementsCounter.normal        += statementsCounter.normal;
-            m_appStatementsCounter.affecting     += statementsCounter.affecting;
-            m_appStatementsCounter.transactional += statementsCounter.transactional;
+            m_threadStatementsCounter.normal        += statementsCounter.normal;
+            m_threadStatementsCounter.affecting     += statementsCounter.affecting;
+            m_threadStatementsCounter.transactional += statementsCounter.transactional;
         }
 
         // Whether recods have been modified
         const auto recordsHaveBeenModified = connection.getRecordsHaveBeenModified();
         summaryRecordsHaveBeenModified |= recordsHaveBeenModified;
-        m_appRecordsHaveBeenModified |= recordsHaveBeenModified;
+        m_threadRecordsHaveBeenModified |= recordsHaveBeenModified;
 
         // Log connection statistics
         logQueryCountersBlock(
                     QStringLiteral("Connection name - '%1'").arg(connectionName),
-                    elapsed, statementsCounter, recordsHaveBeenModified);
+                    queriesElapsed, statementsCounter, recordsHaveBeenModified);
     }
 
     // Summary
     logQueryCountersBlock(QStringLiteral("Summary"),
-                          summaryElapsed, summaryStatementsCounter,
+                          summaryQueriesElapsed, summaryStatementsCounter,
                           summaryRecordsHaveBeenModified);
 
     qInfo().noquote() << line;
 }
 
 void TestOrm::logQueryCountersBlock(
-            const QString &title, const qint64 elapsed,
+            const QString &title, const qint64 queriesElapsed,
             const StatementsCounter statementsCounter,
             const bool recordsHaveBeenModified) const
 {
+    const auto loggingAppSummary = title.contains("Application");
+    const auto &[
+        functionsElapsedPrintable, queriesElapsedPrintable, statementsCounterPrintable,
+        recordsHaveBeenModifiedPrintable
+    ] = getAppCountersPrintable(
+            loggingAppSummary, m_threadFunctionsElapsed, queriesElapsed,
+            statementsCounter, recordsHaveBeenModified);
+
     // Header
-    if (title.contains("Application")) {
+    if (loggingAppSummary) {
         qInfo() << "\n-----------------------";
         qInfo().noquote().nospace() << "  " << title;
         qInfo() << "-----------------------";
@@ -3520,8 +3728,8 @@ void TestOrm::logQueryCountersBlock(
         qInfo() << "---";
     }
 
-
-    if (title.contains("Application")) {
+    // General informations about the environment
+    if (loggingAppSummary) {
         qInfo().nospace() << "⚙ Compiler version             : "
                           << TINYORM_COMPILER_STRING;
         qInfo().nospace() << "⚙ Qt version                   : "
@@ -3549,44 +3757,41 @@ void TestOrm::logQueryCountersBlock(
                           << "\n";
 
         // All Functions execution time
-        qInfo().nospace() << "⚡ Functions execution time : "
-                          << m_appFunctionsElapsed << "ms\n";
+        qInfo().noquote().nospace() << "⚡ Functions execution time : "
+                                    << functionsElapsedPrintable << "\n";
     }
 
-    // Counters on connections
-    if (title.contains("Summary"))
-        qInfo().nospace() << "∑ " << "Counted connections    "
-                          << (title.contains("Application") ? "  " : "")
-                          << ": "
-                          << CONNECTIONS_TO_COUNT.size();
+    // Counted connections
+    if (title.contains("Summary")) {
+        const auto &countedConnections = countedConnectionsPrintable(loggingAppSummary);
+        const auto countedSize = countedConnections.size();
+
+        qInfo().nospace().noquote()
+                << "∑ " << "Counted connections    "
+                << (loggingAppSummary ? "  " : "")
+                << ": "
+                << countedSize
+                << (countedSize > 1 || loggingAppSummary
+                    ? QStringLiteral(" (%1)").arg(countedConnections.join(COMMA))
+                    : "");
+    }
 
     // Queries execution time
-    qInfo().nospace() << "⚡ Queries execution time "
-                      << (title.contains("Application") ? "  " : "")
-                      << ": "
-                      << elapsed << (elapsed > -1 ? "ms" : "");
+    qInfo().noquote().nospace() << "⚡ Queries execution time "
+                                << (loggingAppSummary ? "  " : "")
+                                << ": " << queriesElapsedPrintable;
 
     // Whether records have been modified on the current connection
-    qInfo().nospace() << "✎ Records was modified   "
-                      << (title.contains("Application") ? "  " : "")
-                      << ": "
-                      << (recordsHaveBeenModified ? "yes" : "no");
+    qInfo().noquote().nospace() << "✎ Records was modified   "
+                                << (loggingAppSummary ? "  " : "")
+                                << ": " << recordsHaveBeenModifiedPrintable;
 
-    // Count total executed queries
-    const auto &[normal, affecting, transactional] = statementsCounter;
-    int total = normal == -1 && affecting == -1 && transactional == -1 ? -1 : 0;
-    if (normal != -1)
-        total += normal;
-    if (affecting != -1)
-        total += affecting;
-    if (transactional != -1)
-        total += transactional;
-
+    // Type of executed queries counters
     qInfo() << "⚖ Statements counters";
-    qInfo() << "  Normal        :" << normal;
-    qInfo() << "  Affecting     :" << affecting;
-    qInfo() << "  Transaction   :" << transactional;
-    qInfo() << "  Total         :" << total;
+    qInfo().noquote() << "  Normal        :" << statementsCounterPrintable.normal;
+    qInfo().noquote() << "  Affecting     :" << statementsCounterPrintable.affecting;
+    qInfo().noquote() << "  Transaction   :" << statementsCounterPrintable.transactional;
+    qInfo().noquote() << "  Total         :" << statementsCounterPrintable.total;
     qInfo() << "---";
 }
 
@@ -3608,6 +3813,548 @@ void TestOrm::resetAllQueryLogCounters() const
     DB::resetElapsedCounters(CONNECTIONS_TO_COUNT);
     DB::resetStatementCounters(CONNECTIONS_TO_COUNT);
 
-    for (const auto &connection : CONNECTIONS_TO_COUNT)
+    for (const auto &connection : std::as_const(CONNECTIONS_TO_COUNT))
         DB::forgetRecordModificationState(connection);
 }
+
+void TestOrm::enableAllQueryLogCounters() const
+{
+    // Create connections eagerly, so I can enable counters
+    for (const auto &connection : std::as_const(CONNECTIONS_TO_COUNT))
+        DB::connection(connection);
+
+    // BUG also decide how to behave when connection is not created and user enable counters silverqx
+    // Enable counters on all database connections
+    DB::enableElapsedCounters(CONNECTIONS_TO_COUNT);
+    DB::enableStatementCounters(CONNECTIONS_TO_COUNT);
+}
+
+const QString &TestOrm::getMySqlMainThreadConnection() const
+{
+    static const QString cached =
+            m_connectionsInThreads ? QStringLiteral("mysql_mainthread")
+                                   : QStringLiteral("mysql");
+    return cached;
+}
+
+TestOrm::OrmConfigurationsType
+TestOrm::computeConfigurationsToAdd(const QString &connection)
+{
+    // Connections in threads are disabled
+    if (!m_connectionsInThreads)
+        return configurationsWhenSingleThread();
+
+    // All below - Connections in threads are enabled
+
+    throwIfNonEmptyConn(connection);
+
+    // Called from main thread
+    if (!Support::g_inThread)
+        return configsForMainThrdWhenMultiThrd();
+
+    throwIfEmptyConn(connection);
+
+    // Otherwise called from a non-main/worker thread
+    return configsForWorkerThrdWhenMultiThrd(connection);
+}
+
+TestOrm::OrmConfigurationsType TestOrm::configurationsWhenSingleThread() const
+{
+    OrmConfigurationsType configurations;
+
+    auto itConfig = m_configurations.constBegin();
+    while (itConfig != m_configurations.constEnd()) {
+        const auto &key = itConfig.key();
+
+        if (key != "mysql_mainthread")
+            configurations.insert(key, itConfig.value());
+
+        ++itConfig;
+    }
+
+    return configurations;
+}
+
+TestOrm::OrmConfigurationsType TestOrm::configsForMainThrdWhenMultiThrd() const
+{
+    OrmConfigurationsType configurationsForMainThread;
+    configurationsForMainThread.reserve(m_configurations.size());
+
+    auto itConfig = m_configurations.constBegin();
+    while (itConfig != m_configurations.constEnd()) {
+        const auto &key = itConfig.key();
+        const auto &value = itConfig.value();
+
+        if (!m_connectionsToRunInThread.contains(key))
+            configurationsForMainThread.insert(key, value);
+
+        ++itConfig;
+    }
+
+    return configurationsForMainThread;
+}
+
+
+TestOrm::OrmConfigurationsType
+TestOrm::configsForWorkerThrdWhenMultiThrd(const QString &connection) const
+{
+    const QStringList mappedConnections = getMappedConnections(connection);
+
+    OrmConfigurationsType configurationsForWorkerThread;
+    configurationsForWorkerThread.reserve(mappedConnections.size());
+
+    for (const auto &connection : mappedConnections)
+        configurationsForWorkerThread.insert(connection,
+                                             m_configurations[connection]);
+
+    return configurationsForWorkerThread;
+}
+
+QStringList TestOrm::computeConnectionsToCount(const QString &connection) const
+{
+    // CUR duplicate silverqx
+    throwIfNonEmptyConn(connection);
+    throwIfEmptyConn(connection);
+
+    // Called from a non-main/worker thread
+    if (!connection.isEmpty())
+        return computeConnectionsToCountForWorkerThread(connection);
+
+    // Otherwise called from main thread
+    return computeConnectionsToCountForMainThread();
+}
+
+QStringList TestOrm::computeConnectionsToCountForMainThread() const
+{
+    throwIfInThread();
+
+    QStringList connectionsToCount;
+    connectionsToCount.reserve(m_countableConnections.size());
+
+    std::copy_if(m_countableConnections.cbegin(), m_countableConnections.cend(),
+                 std::back_inserter(connectionsToCount),
+                 [this](const auto &connection)
+    {
+        const auto &mappedConnection = m_connectionsMapReverse.contains(connection)
+                                       ? m_connectionsMapReverse.at(connection)
+                                       : connection;
+
+        return !m_removableConnections.contains(mappedConnection) ||
+                /* I will not provide special mapping for this case, just simply remove
+                   this connection in single-thread mode. */
+                mappedConnection == "mysql_mainthread" ||
+                (!m_connectionsInThreads &&
+                 CONNECTIONS_TO_TEST.contains(mappedConnection)) ||
+                (m_connectionsInThreads &&
+                 CONNECTIONS_TO_TEST.contains(mappedConnection) &&
+                 !m_connectionsToRunInThread.contains(mappedConnection));
+    });
+
+    return connectionsToCount;
+}
+
+QStringList
+TestOrm::computeConnectionsToCountForWorkerThread(const QString &connection) const
+{
+    return getMappedConnections(connection);
+}
+
+QStringList TestOrm::getMappedConnections(const QString &connection) const
+{
+    if (m_connectionsMap.contains(connection))
+        return m_connectionsMap.find(connection)->second;
+
+    return {connection};
+}
+
+void TestOrm::santizeConnectionsToRunInThread()
+{
+    if (!m_connectionsInThreads)
+        return;
+
+    const auto removeEnd = std::remove_if(m_connectionsToRunInThread.begin(), // clazy:exclude=detaching-member
+                                          m_connectionsToRunInThread.end(), // clazy:exclude=detaching-member
+                                          [](const auto &connection)
+    {
+        return !CONNECTIONS_TO_TEST.contains(connection);
+    });
+
+    m_connectionsToRunInThread.erase(removeEnd, m_connectionsToRunInThread.end()); // clazy:exclude=detaching-member
+}
+
+void TestOrm::initThreadLogging() const
+{
+    logThreadStream.setDevice(&logFile);
+    openLogFile();
+}
+
+void TestOrm::openLogFile() const
+{
+    if (!m_connectionsInThreads || !m_isLoggingToFile)
+        return;
+
+    if (!logFile.open(QFile::WriteOnly | QFile::Truncate))
+        throw RuntimeError(
+                QStringLiteral(
+                    "Can not open log file 'logFile(%1)': %2 "
+                    "[QFileDevice::FileError(%3)].")
+                .arg(logFile.fileName(), logFile.errorString())
+                .arg(logFile.error()));
+}
+
+void TestOrm::saveLogsFromThread(const ThreadName &threadName) const
+{
+    std::scoped_lock lock(mx_dataLogStream);
+
+    /* Log to the file/std::vector, when logging to the file is disabled then
+       the output will be logged to the console at the end of testAllConnections()
+       to not pollute the console log. */
+    if (m_isLoggingToFile)
+        logThreadStream << Support::g_logFromThread;
+    else {
+#ifdef __clang__
+        logsFromThreads.push_back({threadName, Support::g_logFromThread});
+#else
+        logsFromThreads.emplace_back(threadName, Support::g_logFromThread);
+#endif
+        logsFromThreadsMap.emplace(threadName, logsFromThreads.size());
+    }
+}
+
+void TestOrm::replayThrdLogToConsole()
+{
+    throwIfInThread();
+
+    for (const auto &[threadName, logsFromThread] : logsFromThreads) {
+        qInfo().noquote().nospace()
+                << QStringLiteral("\n\n-- Replaying log from %1 thread")
+                   .arg(threadName);
+
+        for (const auto &[type, message] : logsFromThread)
+            QDebug(type).noquote().nospace() << message;
+    }
+}
+
+void TestOrm::saveCountersForAppSummary(const ThreadName &threadName)
+{
+    std::scoped_lock lock(m_countersMutex);
+
+    if (m_appCountersMap.contains(threadName))
+        addCountersForAppSummary(threadName);
+    else
+        newCountersForAppSummary(threadName);
+}
+
+void TestOrm::newCountersForAppSummary(const ThreadName &threadName)
+{
+#ifdef __clang__
+    m_appFunctionsElapsed.push_back({threadName, m_threadFunctionsElapsed});
+    m_appQueriesElapsed.push_back({threadName, m_threadQueriesElapsed});
+    m_appStatementsCounter.push_back({threadName, m_threadStatementsCounter});
+    m_appRecordsHaveBeenModified.push_back({threadName,
+                                            m_threadRecordsHaveBeenModified});
+#else
+    m_appFunctionsElapsed.emplace_back(threadName, m_threadFunctionsElapsed);
+    m_appQueriesElapsed.emplace_back(threadName, m_threadQueriesElapsed);
+    m_appStatementsCounter.emplace_back(threadName, m_threadStatementsCounter);
+    m_appRecordsHaveBeenModified.emplace_back(threadName,
+                                              m_threadRecordsHaveBeenModified);
+#endif
+
+    m_appCountersMap.emplace(threadName, m_appFunctionsElapsed.size() - 1);
+}
+
+void TestOrm::addCountersForAppSummary(const ThreadName &threadName)
+{
+    m_appFunctionsElapsed.at(m_appCountersMap[threadName]).value +=
+            m_threadFunctionsElapsed;
+    m_appQueriesElapsed.at(m_appCountersMap[threadName]).value +=
+            m_threadQueriesElapsed;
+    m_appRecordsHaveBeenModified.at(m_appCountersMap[threadName]).value |=
+            m_threadRecordsHaveBeenModified;
+    m_appStatementsCounter.at(m_appCountersMap[threadName]).value.normal +=
+            m_threadStatementsCounter.normal;
+    m_appStatementsCounter.at(m_appCountersMap[threadName]).value.affecting +=
+            m_threadStatementsCounter.affecting;
+    m_appStatementsCounter.at(m_appCountersMap[threadName]).value.transactional +=
+            m_threadStatementsCounter.transactional;
+}
+
+const QStringList &
+TinyPlay::TestOrm::countedConnectionsPrintable(const bool loggingAppSummary) const
+{
+    if (!loggingAppSummary)
+        return CONNECTIONS_TO_COUNT;
+
+    static const QStringList cachedCountedConnections = appCountedConnectionsPrintable();
+    return cachedCountedConnections;
+}
+
+QStringList TestOrm::appCountedConnectionsPrintable() const
+{
+    QStringList countedConnections;
+    countedConnections.reserve(m_countableConnections.size());
+
+    std::copy_if(m_countableConnections.cbegin(), m_countableConnections.cend(),
+                 std::back_inserter(countedConnections),
+                 [this](const auto &connection)
+    {
+        const auto &mappedConnection = m_connectionsMapReverse.contains(connection)
+                                       ? m_connectionsMapReverse.at(connection)
+                                       : connection;
+
+        return !m_removableConnections.contains(mappedConnection) ||
+                CONNECTIONS_TO_TEST.contains(mappedConnection);
+    });
+
+    return countedConnections;
+}
+
+void TestOrm::throwIfNonEmptyConn(const QString &connection) const
+{
+    if (!Support::g_inThread && !connection.isEmpty())
+        throw InvalidArgumentError(
+                "The 'connection' argument is supported only when "
+                "g_inThread = true.");
+};
+
+void TestOrm::throwIfEmptyConn(const QString &connection) const
+{
+    if (Support::g_inThread && connection.isEmpty())
+        throw InvalidArgumentError(
+                "You have to pass the 'connection' argument when g_inThread = true.");
+};
+
+void TestOrm::throwIfInThread() const
+{
+    if (Support::g_inThread)
+        throw InvalidArgumentError(
+                "This method can be called only from the main thread, when the "
+                "g_inThread = false.");
+}
+
+void TestOrm::throwIfConnsToRunEmpty() const
+{
+    if (m_connectionsInThreads && m_connectionsToRunInThread.isEmpty())
+        throw LogicError(
+                "m_connectionsInThreads = true but m_connectionsToRunInThread is empty.");
+}
+
+void TestOrm::throwIfNoConfig(const QString &connection) const
+{
+    if (!m_configurations.contains(connection))
+        throw InvalidArgumentError(
+                QStringLiteral("m_configurations does not contain '%1' "
+                               "configuration.")
+                .arg(connection));
+}
+
+void TestOrm::throwIfAlreadyCalled() const
+{
+    if (m_db != nullptr)
+        throw LogicError("TestOrm::connectToDatabase() can be called once only.");
+}
+
+namespace
+{
+    /*! Common template for application counters. */
+    const auto countersTmpl = QStringLiteral("%1 (%2)");
+    /*! Common template for elapsed application counters. */
+    const auto countersElapsedTmpl = QStringLiteral("%1ms (%2)");
+    /*! Common template for application statement counters. */
+    const auto statementsCounterTmpl = QStringLiteral("%1 [%2]");
+} // namespace
+
+QString TestOrm::appElapsedCounterPrintable(
+        const std::vector<AppCounterItem<qint64>> &counters) const
+{
+    QStringList result;
+    result.reserve(static_cast<int>(counters.size()));
+
+    for (const auto &[threadName, value] : counters)
+        result << countersElapsedTmpl.arg(value).arg(threadName);
+
+    return result.join(COMMA);
+}
+
+QString TestOrm::appBoolCounterPrintable(
+        const std::vector<AppCounterItem<bool>> &counters) const
+{
+    QStringList result;
+    result.reserve(static_cast<int>(counters.size()));
+
+    for (const auto &[threadName, value] : counters)
+        result << countersTmpl.arg(value ? QStringLiteral("yes") : QStringLiteral("no"),
+                                   threadName);
+
+    return result.join(COMMA);
+}
+
+TestOrm::StatementsCounterPrintable
+TestOrm::appStatementsCounterPrintable(
+        const std::vector<AppCounterItem<StatementsCounter>> &counters) const
+{
+    StatementsCounterPrintable result;
+
+    // Sum up normal/affected/transactional counters
+    StatementsCounterTotal sumCounters;
+
+    // Set counters to 0 when any of the counters is enabled/counting
+    appZeroCounters(counters, sumCounters);
+
+    // Sum up the total and also sum up individual statement counters
+    appSumUpCounters(counters, sumCounters);
+
+    // Counters by thread in printable format
+    QStringList normal;
+    QStringList affecting;
+    QStringList transactional;
+    QStringList total;
+
+    const auto countersSize = static_cast<QList<QStringList>::size_type>(counters.size());
+    normal.reserve(countersSize);
+    affecting.reserve(countersSize);
+    transactional.reserve(countersSize);
+    total.reserve(countersSize);
+
+    for (const auto &[threadName, statementsCounter] : counters) {
+        normal << countersTmpl.arg(statementsCounter.normal).arg(threadName);
+        affecting << countersTmpl.arg(statementsCounter.affecting).arg(threadName);
+        transactional << countersTmpl
+                         .arg(statementsCounter.transactional).arg(threadName);
+
+        // Sum up total for a given thread
+        {
+            const auto &[
+                normalThrd, affectingThrd, transactionalThrd
+            ] = statementsCounter;
+            qint64 sumThrd = -1;
+
+            // Show -1 when any statements were not executed
+            if (normalThrd > -1 || affectingThrd > -1 || transactionalThrd > -1)
+                sumThrd = 0;
+
+            // Sum up the total and also sum up individual statement counters
+            if (normalThrd > -1)
+                sumThrd += normalThrd;
+            if (affectingThrd > -1)
+                sumThrd += affectingThrd;
+            if (transactionalThrd > -1)
+                sumThrd += transactionalThrd;
+
+            total << countersTmpl.arg(sumThrd).arg(threadName);
+        }
+    }
+
+    // Result
+    result.normal = sumCounters.normal < 1
+                    ? QString::number(sumCounters.normal)
+                    : statementsCounterTmpl.arg(sumCounters.normal)
+                                           .arg(normal.join(COMMA));
+    result.affecting = sumCounters.affecting < 1
+                       ? QString::number(sumCounters.affecting)
+                       : statementsCounterTmpl.arg(sumCounters.affecting)
+                                              .arg(affecting.join(COMMA));
+    result.transactional = sumCounters.transactional < 1
+                           ? QString::number(sumCounters.transactional)
+                           : statementsCounterTmpl.arg(sumCounters.transactional)
+                                                  .arg(transactional.join(COMMA));
+    result.total = sumCounters.total < 1 ? QString::number(sumCounters.total)
+                                         : statementsCounterTmpl.arg(sumCounters.total)
+                                                                .arg(total.join(COMMA));
+
+    return result;
+}
+
+void TestOrm::appZeroCounters(
+        const std::vector<AppCounterItem<StatementsCounter>> &counters,
+        StatementsCounterTotal &sumCounters) const
+{
+    // Any of all statements counter is counting
+    const auto anyOfCounters = [&counters](const auto &condition)
+    {
+        return std::any_of(counters.cbegin(), counters.cend(),
+                           [&condition](const auto &counterItem)
+        {
+            const auto &[normal, affecting, transactional] = counterItem.value;
+
+            return std::invoke(condition, normal, affecting, transactional);
+        });
+    };
+
+    // Set counters to 0 when any of the counters below meet a given condition
+    if (anyOfCounters([](auto normal, auto affecting, auto transactional)
+            { return normal > -1 || affecting > -1 || transactional > -1; })
+    )
+        sumCounters.total = 0;
+    if (anyOfCounters([](const auto normal, auto /*unused*/, auto /*unused*/)
+            { return normal > -1; }))
+        sumCounters.normal = 0;
+    if (anyOfCounters([](auto /*unused*/, const auto affecting, auto /*unused*/)
+            { return affecting > -1; }))
+        sumCounters.affecting = 0;
+    if (anyOfCounters([](auto /*unused*/, auto /*unused*/, const auto transactional)
+            { return transactional > -1; }))
+        sumCounters.transactional = 0;
+}
+
+void TestOrm::appSumUpCounters(
+        const std::vector<AppCounterItem<StatementsCounter>> &counters,
+        StatementsCounterTotal &sumCounters) const
+{
+    for (const auto &[_, statementsCounter] : counters) {
+        const auto &[normal, affecting, transactional] = statementsCounter;
+
+        if (normal > -1) {
+            sumCounters.normal += normal;
+            sumCounters.total += normal;
+        }
+        if (affecting > -1) {
+            sumCounters.affecting += affecting;
+            sumCounters.total += affecting;
+        }
+        if (transactional > -1) {
+            sumCounters.transactional += transactional;
+            sumCounters.total += transactional;
+        }
+    }
+}
+
+TestOrm::CountersPrintable
+TestOrm::getAppCountersPrintable(
+        const bool isAppSummary, const qint64 functionsElapsed,
+        const qint64 queriesElapsed, const StatementsCounter statementsCounter,
+        const bool recordsHaveBeenModified) const
+{
+    // CUR improve this, it looks terrible, because function arguments are not used silverqx
+    if (isAppSummary && m_connectionsInThreads)
+        return {
+            appElapsedCounterPrintable(m_appFunctionsElapsed),
+            appElapsedCounterPrintable(m_appQueriesElapsed),
+            appStatementsCounterPrintable(m_appStatementsCounter),
+            appBoolCounterPrintable(m_appRecordsHaveBeenModified),
+        };
+
+    const auto &[normal, affecting, transactional] = statementsCounter;
+
+    // Show -1 when any statements were not executed
+    int total = (normal > -1 || affecting > -1 || transactional > -1) ? 0 : -1;
+
+    if (normal > -1)
+        total += normal;
+    if (affecting > -1)
+        total += affecting;
+    if (transactional > -1)
+        total += transactional;
+
+    return {
+        QStringLiteral("%1ms").arg(functionsElapsed),
+        QStringLiteral("%1%2").arg(queriesElapsed)
+                              .arg(queriesElapsed > -1 ? QStringLiteral("ms") : ""),
+        {QString::number(normal), QString::number(affecting),
+         QString::number(transactional), QString::number(total)},
+        {recordsHaveBeenModified ? QStringLiteral("yes") : QStringLiteral("no")},
+    };
+}
+
+} // namespace TinyPlay

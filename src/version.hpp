@@ -9,6 +9,7 @@
 // Should be empty for stable releases, and use hypen before for SemVer compatibility!
 #define TINYPLAY_VERSION_STATUS ""
 
+// NOLINTNEXTLINE(bugprone-reserved-identifier)
 #define TINYPLAY__STRINGIFY(x) #x
 #define TINYPLAY_STRINGIFY(x) TINYPLAY__STRINGIFY(x)
 

@@ -1,6 +1,6 @@
 #pragma once
-#ifndef COMMON_HPP
-#define COMMON_HPP
+#ifndef TINYPLAY_MACROS_COMMON_HPP
+#define TINYPLAY_MACROS_COMMON_HPP
 
 #ifndef QT_NO_EXCEPTIONS
 
@@ -41,4 +41,4 @@
 
 #endif // !QT_NO_EXCEPTIONS
 
-#endif // COMMON_HPP
+#endif // TINYPLAY_MACROS_COMMON_HPP

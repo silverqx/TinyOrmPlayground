@@ -3,14 +3,19 @@
 function(tiny_sources out_headers out_sources)
 
     set(headers
-        common.hpp
         config.hpp
+        macros.hpp
+        support/globals.hpp
+        support/messagehandler.hpp
+        support/utils.hpp
         testorm.hpp
         version.hpp
     )
 
     set(sources
         main.cpp
+        support/messagehandler.cpp
+        support/utils.cpp
         testorm.cpp
     )
 

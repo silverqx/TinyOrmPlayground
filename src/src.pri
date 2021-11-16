@@ -4,11 +4,16 @@ include(models/models.pri)
 INCLUDEPATH += $$PWD
 
 HEADERS += \
-    $$PWD/common.hpp \
     $$PWD/config.hpp \
+    $$PWD/macros.hpp \
+    $$PWD/support/globals.hpp \
+    $$PWD/support/messagehandler.hpp \
+    $$PWD/support/utils.hpp \
     $$PWD/testorm.hpp \
     $$PWD/version.hpp \
 
 SOURCES += \
     $$PWD/main.cpp \
+    $$PWD/support/messagehandler.cpp \
+    $$PWD/support/utils.cpp \
     $$PWD/testorm.cpp \
