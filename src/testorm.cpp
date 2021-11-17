@@ -277,6 +277,9 @@ TestOrm &TestOrm::connectToDatabase()
 
 TestOrm &TestOrm::run()
 {
+    qInfo() << "Threads mode :"
+            << (m_connectionsInThreads ? "multi-thread" : "single-thread") << "\n";
+
 //    ctorAggregate();
     anotherTests();
     testConnection();
