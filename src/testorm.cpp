@@ -3940,15 +3940,16 @@ QStringList TestOrm::computeConnectionsToCountForMainThread() const
                                        : connection;
 
         return !m_removableConnections.contains(mappedConnection) ||
-                /* I will not provide special mapping for this case, just simply remove
-                   this connection in single-thread mode. */
-                mappedConnection == "mysql_mainthread" ||
                 (!m_connectionsInThreads &&
                  CONNECTIONS_TO_TEST.contains(mappedConnection)) ||
                 (m_connectionsInThreads &&
                  CONNECTIONS_TO_TEST.contains(mappedConnection) &&
                  !m_connectionsToRunInThread.contains(mappedConnection));
     });
+
+    /* Do it as a separate operation and not in std::copy_if() above, to not pollute
+       logic, this is much cleaner. */
+    connectionsToCount.removeOne("mysql_mainthread");
 
     return connectionsToCount;
 }
