@@ -8,6 +8,8 @@
 #include <orm/types/statementscounter.hpp>
 
 #include "configuration.hpp"
+#include "configurationsservice.hpp"
+#include "connectionsservice.hpp"
 
 namespace TinyPlay
 {
@@ -34,10 +36,6 @@ namespace TinyPlay
         inline const Configuration &config() const;
 
     private:
-        /*! Type for the Database Configuration. */
-        using OrmConfiguration = Orm::Support::DatabaseConfiguration;
-        /*! Type used for Database Connections map. */
-        using OrmConfigurationsType = OrmConfiguration::ConfigurationsType;
         /*! Executed statements counter type. */
         using StatementsCounter = Orm::StatementsCounter;
         /*! Index of an AppCounterItem for counter vectors. */
@@ -68,21 +66,6 @@ namespace TinyPlay
     private:
         /*! Enable elapsed/statement counters, connects to the database eagerly. */
         void enableAllQueryLogCounters() const;
-
-        /*! Get configurations hash with all connections. */
-        const OrmConfigurationsType &getConfigurations() const;
-
-        /*! A common method, the single/(multi main/worker) thread version will be
-            called based on whether the connection argument was passed. */
-        OrmConfigurationsType
-        computeConfigurationsToAdd(const QString &connection = "");
-        /*! Compute connections configurations to use when threading is disabled. */
-        OrmConfigurationsType configurationsWhenSingleThread() const;
-        /*! Compute connections configurations to use when threading is enabled. */
-        OrmConfigurationsType configsForMainThrdWhenMultiThrd() const;
-        /*! Compute connections configurations to use in a worker thread. */
-        OrmConfigurationsType
-        configsForWorkerThrdWhenMultiThrd(const QString &connection) const;
 
         /*! A common method, the main/worker thread version will be called based on
             whether the connection argument was passed. */
@@ -139,8 +122,11 @@ namespace TinyPlay
         /*! Configuration for TinyOrmPlayground. */
         Configuration m_config;
 
-        /*! All connections configurations. */
-        const OrmConfigurationsType m_configurations {};
+        /*! Database connection configurations service. */
+        ConfigurationsService m_configurationsService;
+
+        /*! Database connections service. */
+        ConnectionsService m_connectionsManager;
 
         /*! Database manager instance. */
         std::unique_ptr<Orm::DatabaseManager> m_db = nullptr;

@@ -2,7 +2,7 @@
 #ifndef TINYPLAY_CONFIGURATION_HPP
 #define TINYPLAY_CONFIGURATION_HPP
 
-#include <QStringList>
+#include <orm/support/databaseconfiguration.hpp>
 
 namespace TinyPlay
 {
@@ -12,9 +12,24 @@ namespace TinyPlay
     {
         Q_DISABLE_COPY(Configuration)
 
+        /*! Type for the Database Configuration. */
+        using OrmConfiguration = Orm::Support::DatabaseConfiguration;
+        /*! Type used for Database Connections map. */
+        using OrmConfigurationsType = OrmConfiguration::ConfigurationsType;
+
     public:
         /*! Default constructor. */
         Configuration();
+
+        /*! Get configurations hash with all connections. */
+        const OrmConfigurationsType &initConfigurations() const;
+
+        /*! Path to the SQLite database file, for testing the 'check_database_exists'
+            configuration option. */
+        const QString CheckDatabaseExistsFile {initCheckDatabaseExistsFile()};
+
+        /*! All connections configurations. */
+        const OrmConfigurationsType Configurations {initConfigurations()};
 
         /*! Run connections defined in m_inThreads in threads. */
         const bool ConnectionsInThreads = true;
@@ -59,20 +74,17 @@ namespace TinyPlay
             {"mysql_alt", "mysql"},
         };
 
-        /*! Path to the SQLite database file, for testing the 'check_database_exists'
-            configuration option. */
-        const QString CheckDatabaseExistsFile;
         /*! MySQL connection name used in the main thread, based on whether
             multi-threading is enabled. */
-        const QString &MysqlMainThreadConnection;
+        const QString &MysqlMainThreadConnection {initMySqlMainThreadConnection()};
 
     private:
         /*! Get the filepath to the SQLite database file, for testing
             the 'check_database_exists' configuration option. */
-        QString getCheckDatabaseExistsFile();
+        QString initCheckDatabaseExistsFile();
         /*! Obtain MySQL connection name, it has a different name when multi-threading
             is enabled to avoid collision in connection names. */
-        const QString &getMySqlMainThreadConnection() const;
+        const QString &initMySqlMainThreadConnection() const;
     };
 
 } // namespace TinyPlay

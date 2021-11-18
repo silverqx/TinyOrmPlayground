@@ -4,7 +4,7 @@
 
 #include <QtGlobal>
 
-namespace TinyPlay
+namespace TinyPlay::Support
 {
 
     /*! Common utility library class. */
@@ -20,8 +20,13 @@ namespace TinyPlay
 
         /*! Log exception caught in the main exception handler in a current thread. */
         static void logException(const std::exception &e);
+
+        /*! Throw when a connection parameter was passed in the main thread. */
+        static void throwIfNonEmptyConn(const QString &connection);
+        /*! Throw when a connection parameter was not passed in a worker thread. */
+        static void throwIfEmptyConn(const QString &connection);
     };
 
-} // namespace TinyPlay
+} // namespace TinyPlay::Support
 
 #endif // TINYPLAY_UTILS_HPP

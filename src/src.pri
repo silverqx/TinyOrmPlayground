@@ -6,6 +6,8 @@ INCLUDEPATH += $$PWD
 HEADERS += \
     $$PWD/config.hpp \
     $$PWD/configuration.hpp \
+    $$PWD/configurationsservice.hpp \
+    $$PWD/connectionsservice.hpp \
     $$PWD/macros.hpp \
     $$PWD/support/globals.hpp \
     $$PWD/support/messagehandler.hpp \
@@ -22,6 +24,8 @@ HEADERS += \
 
 SOURCES += \
     $$PWD/configuration.cpp \
+    $$PWD/configurationsservice.cpp \
+    $$PWD/connectionsservice.cpp \
     $$PWD/main.cpp \
     $$PWD/support/messagehandler.cpp \
     $$PWD/support/utils.cpp \

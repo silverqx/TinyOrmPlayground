@@ -5,6 +5,8 @@ function(tiny_sources out_headers out_sources)
     set(headers
         config.hpp
         configuration.hpp
+        configurationsservice.hpp
+        connectionsservice.hpp
         macros.hpp
         support/globals.hpp
         support/messagehandler.hpp
@@ -22,6 +24,8 @@ function(tiny_sources out_headers out_sources)
 
     set(sources
         configuration.cpp
+        configurationsservice.cpp
+        connectionsservice.cpp
         main.cpp
         support/messagehandler.cpp
         support/utils.cpp

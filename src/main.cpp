@@ -14,7 +14,7 @@
 using Orm::Utils::Thread;
 
 using TinyPlay::TestOrm;
-using TinyPlay::Utils;
+using TinyPlay::Support::Utils;
 
 int main(int /*unused*/, char */*unused*/[])
 {

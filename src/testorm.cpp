@@ -26,33 +26,6 @@
 #include "version.hpp"
 
 using Orm::Constants::COMMA;
-using Orm::Constants::H127001;
-using Orm::Constants::P3306;
-using Orm::Constants::P5432;
-using Orm::Constants::QMYSQL;
-using Orm::Constants::QPSQL;
-using Orm::Constants::QSQLITE;
-using Orm::Constants::SYSTEM;
-using Orm::Constants::UTF8;
-using Orm::Constants::UTF8MB4;
-using Orm::Constants::charset_;
-using Orm::Constants::check_database_exists;
-using Orm::Constants::collation_;
-using Orm::Constants::database_;
-using Orm::Constants::driver_;
-using Orm::Constants::foreign_key_constraints;
-using Orm::Constants::host_;
-using Orm::Constants::isolation_level;
-using Orm::Constants::LOCAL;
-using Orm::Constants::options_;
-using Orm::Constants::password_;
-using Orm::Constants::port_;
-using Orm::Constants::prefix_;
-using Orm::Constants::PUBLIC;
-using Orm::Constants::schema_;
-using Orm::Constants::strict_;
-using Orm::Constants::timezone_;
-using Orm::Constants::username_;
 
 using Orm::Exceptions::InvalidArgumentError;
 using Orm::Exceptions::LogicError;
@@ -60,6 +33,8 @@ using Orm::Exceptions::RuntimeError;
 
 using Orm::LibraryInfo;
 using Orm::Utils::Thread;
+
+using TinyPlay::Support::Utils;
 
 /*
    Notes:
@@ -89,117 +64,10 @@ namespace TinyPlay
 {
 
 TestOrm::TestOrm()
-    : m_configurations(getConfigurations())
+    : m_configurationsService(m_config)
 {
     // Secure that the main thread will be first in all counters everytime
     newCountersForAppSummary("main");
-}
-
-const TestOrm::OrmConfigurationsType &TestOrm::getConfigurations() const
-{
-    static const QVariantHash mysqlConnection {
-        {driver_,    QMYSQL},
-        {host_,      qEnvironmentVariable("DB_MYSQL_HOST", H127001)},
-        {port_,      qEnvironmentVariable("DB_MYSQL_PORT", P3306)},
-        {database_,  qEnvironmentVariable("DB_MYSQL_DATABASE", "")},
-        {username_,  qEnvironmentVariable("DB_MYSQL_USERNAME", "")},
-        {password_,  qEnvironmentVariable("DB_MYSQL_PASSWORD", "")},
-        {charset_,   qEnvironmentVariable("DB_MYSQL_CHARSET", UTF8MB4)},
-        {collation_, qEnvironmentVariable("DB_MYSQL_COLLATION",
-                                          QStringLiteral("utf8mb4_0900_ai_ci"))},
-        // CUR add timezone names to the MySQL server and test them silverqx
-        {timezone_,       SYSTEM},
-        {prefix_,         ""},
-        {strict_,         true},
-        {isolation_level, QStringLiteral("REPEATABLE READ")},
-        {options_,        QVariantHash()},
-    };
-
-    static const OrmConfigurationsType cached {
-        // Main MySQL connection in test loop
-        {"mysql", mysqlConnection},
-
-        // Used in the Torrent model as u_connection
-        {"mysql_alt", mysqlConnection},
-
-        /* Used as MySQL connection name in the main thread when connections in threads
-           is enabled to avoid MySQL connection name collision. */
-        {"mysql_mainthread", mysqlConnection},
-
-        /* Used in the testQueryBuilderDbSpecific() only to test a cross-database query,
-           a connection to the "laravel_8" database. */
-        {"mysql_laravel8", {
-            {driver_,    QMYSQL},
-            {host_,      qEnvironmentVariable("DB_MYSQL_LARAVEL_HOST", H127001)},
-            {port_,      qEnvironmentVariable("DB_MYSQL_LARAVEL_PORT", P3306)},
-            {database_,  qEnvironmentVariable("DB_MYSQL_LARAVEL_DATABASE", "")},
-            {username_,  qEnvironmentVariable("DB_MYSQL_LARAVEL_USERNAME", "")},
-            {password_,  qEnvironmentVariable("DB_MYSQL_LARAVEL_PASSWORD", "")},
-            {charset_,   qEnvironmentVariable("DB_MYSQL_LARAVEL_CHARSET", UTF8MB4)},
-            {collation_, qEnvironmentVariable("DB_MYSQL_LARAVEL_COLLATION",
-                                              QStringLiteral("utf8mb4_0900_ai_ci"))},
-            {timezone_,       SYSTEM},
-            {prefix_,         ""},
-            {strict_,         true},
-            {isolation_level, QStringLiteral("REPEATABLE READ")},
-            {options_,        QVariantHash()},
-        }},
-
-        // Main SQLite connection in test loop
-        {"sqlite", {
-            {driver_,    QSQLITE},
-            {database_,  qEnvironmentVariable("DB_SQLITE_DATABASE", "")},
-            {prefix_,    ""},
-            {options_,   QVariantHash()},
-            {foreign_key_constraints, qEnvironmentVariable("DB_SQLITE_FOREIGN_KEYS",
-                                                           QStringLiteral("true"))},
-            {check_database_exists,   true},
-        }},
-
-        // Used in the testConnection() only to test SQLite :memory: driver
-        {"sqlite_memory", {
-            {driver_,    QSQLITE},
-            {database_,  QStringLiteral(":memory:")},
-            {prefix_,    ""},
-            {options_,   QVariantHash()},
-            {foreign_key_constraints, qEnvironmentVariable("DB_SQLITE_FOREIGN_KEYS",
-                                                           QStringLiteral("true"))},
-        }},
-
-        /* Used in the testConnection() only to test behavior when the configuration
-           option check_database_exists = true. */
-        {"sqlite_check_exists_true", {
-            {driver_,    QSQLITE},
-            {database_,  m_config.CheckDatabaseExistsFile},
-            {check_database_exists, true},
-        }},
-
-        /* Used in the testConnection() only to test behavior when the configuration
-           option check_database_exists = true. */
-        {"sqlite_check_exists_false", {
-            {driver_,    QSQLITE},
-            {database_,  m_config.CheckDatabaseExistsFile},
-            {check_database_exists, false},
-        }},
-
-        // Main PostgreSQL connection in test loop
-        {"postgres", {
-            {driver_,   QPSQL},
-            {host_,     qEnvironmentVariable("DB_PGSQL_HOST",     H127001)},
-            {port_,     qEnvironmentVariable("DB_PGSQL_PORT",     P5432)},
-            {database_, qEnvironmentVariable("DB_PGSQL_DATABASE", "")},
-            {schema_,   qEnvironmentVariable("DB_PGSQL_SCHEMA",   PUBLIC)},
-            {username_, qEnvironmentVariable("DB_PGSQL_USERNAME", "postgres")},
-            {password_, qEnvironmentVariable("DB_PGSQL_PASSWORD", "")},
-            {charset_,  qEnvironmentVariable("DB_PGSQL_CHARSET",  UTF8)},
-            // I don't use timezone types in postgres anyway
-            {timezone_, LOCAL},
-            {prefix_,   ""},
-            {options_,  QVariantHash(/*{{"requiressl", 1}}*/)},
-        }},
-    };
-
-    return cached;
 }
 
 TestOrm &TestOrm::connectToDatabase()
@@ -208,7 +76,7 @@ TestOrm &TestOrm::connectToDatabase()
 
     /* Create database connections: mysql, sqlite and mysql_alt, and make
        mysql default database connection. */
-    m_db = DB::create(computeConfigurationsToAdd(), "mysql");
+    m_db = DB::create(m_configurationsService.computeConfigurationsToAdd(), "mysql");
 
     Configuration::CONNECTIONS_TO_COUNT = computeConnectionsToCount();
 
@@ -336,7 +204,8 @@ void TestOrm::testConnectionInWorkerThread(const QString &connection)
 
         Support::g_inThread = true;
 
-        m_db->addConnections(computeConfigurationsToAdd(connection));
+        m_db->addConnections(
+                    m_configurationsService.computeConfigurationsToAdd(connection));
 
         DB::setDefaultConnection(connection);
 
@@ -553,79 +422,6 @@ void TestOrm::enableAllQueryLogCounters() const
     // Enable counters on all database connections
     DB::enableElapsedCounters(Configuration::CONNECTIONS_TO_COUNT);
     DB::enableStatementCounters(Configuration::CONNECTIONS_TO_COUNT);
-}
-
-TestOrm::OrmConfigurationsType
-TestOrm::computeConfigurationsToAdd(const QString &connection)
-{
-    // Connections in threads are disabled
-    if (!m_config.ConnectionsInThreads)
-        return configurationsWhenSingleThread();
-
-    // All below - Connections in threads are enabled
-
-    throwIfNonEmptyConn(connection);
-
-    // Called from main thread
-    if (!Support::g_inThread)
-        return configsForMainThrdWhenMultiThrd();
-
-    throwIfEmptyConn(connection);
-
-    // Otherwise called from a non-main/worker thread
-    return configsForWorkerThrdWhenMultiThrd(connection);
-}
-
-TestOrm::OrmConfigurationsType TestOrm::configurationsWhenSingleThread() const
-{
-    OrmConfigurationsType configurations;
-
-    auto itConfig = m_configurations.constBegin();
-    while (itConfig != m_configurations.constEnd()) {
-        const auto &key = itConfig.key();
-
-        if (key != "mysql_mainthread")
-            configurations.insert(key, itConfig.value());
-
-        ++itConfig;
-    }
-
-    return configurations;
-}
-
-TestOrm::OrmConfigurationsType TestOrm::configsForMainThrdWhenMultiThrd() const
-{
-    OrmConfigurationsType configurationsForMainThread;
-    configurationsForMainThread.reserve(m_configurations.size());
-
-    auto itConfig = m_configurations.constBegin();
-    while (itConfig != m_configurations.constEnd()) {
-        const auto &key = itConfig.key();
-        const auto &value = itConfig.value();
-
-        if (!m_config.ConnectionsToRunInThread.contains(key))
-            configurationsForMainThread.insert(key, value);
-
-        ++itConfig;
-    }
-
-    return configurationsForMainThread;
-}
-
-
-TestOrm::OrmConfigurationsType
-TestOrm::configsForWorkerThrdWhenMultiThrd(const QString &connection) const
-{
-    const QStringList mappedConnections = getMappedConnections(connection);
-
-    OrmConfigurationsType configurationsForWorkerThread;
-    configurationsForWorkerThread.reserve(mappedConnections.size());
-
-    for (const auto &connection : mappedConnections)
-        configurationsForWorkerThread.insert(connection,
-                                             m_configurations[connection]);
-
-    return configurationsForWorkerThread;
 }
 
 QStringList TestOrm::computeConnectionsToCount(const QString &connection) const
@@ -865,7 +661,7 @@ void TestOrm::throwIfConnsToRunEmpty() const
 
 void TestOrm::throwIfNoConfig(const QString &connection) const
 {
-    if (!m_configurations.contains(connection))
+    if (!m_config.Configurations.contains(connection))
         throw InvalidArgumentError(
                 QStringLiteral("m_configurations does not contain '%1' "
                                "configuration.")
