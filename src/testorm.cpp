@@ -210,7 +210,7 @@ TestOrm &TestOrm::connectToDatabase()
        mysql default database connection. */
     m_db = DB::create(computeConfigurationsToAdd(), "mysql");
 
-    CONNECTIONS_TO_COUNT = computeConnectionsToCount();
+    Configuration::CONNECTIONS_TO_COUNT = computeConnectionsToCount();
 
     // Enable counters on all database connections
     enableAllQueryLogCounters();
@@ -248,7 +248,7 @@ TestOrm &TestOrm::run()
 namespace
 {
     /*! Log file for log messages from threads. */
-    QFile logFile {TestOrm::getLogFilepath()};
+    QFile logFile {Configuration::LogFilepath};
     /*! Text stream for log messages from threads. */
     QTextStream logThreadStream;
 
@@ -286,10 +286,10 @@ void TestOrm::testAllConnections()
         // To join threads at the current block
         std::vector<std::jthread> threads;
 
-        for (const auto &connection : CONNECTIONS_TO_TEST) {
+        for (const auto &connection : Configuration::CONNECTIONS_TO_TEST) {
             // Run connection in the worker thread
             if (m_config.ConnectionsInThreads &&
-                m_connectionsToRunInThread.contains(connection)
+                m_config.ConnectionsToRunInThread.contains(connection)
             ) {
                 threads.emplace_back(&TestOrm::testConnectionInWorkerThread, this,
                                      connection);
@@ -304,7 +304,7 @@ void TestOrm::testAllConnections()
     // Restore default connection
     DB::setDefaultConnection("mysql");
 
-    if (!m_isLoggingToFile)
+    if (!m_config.IsLoggingToFile)
         replayThrdLogToConsole();
 }
 
@@ -340,7 +340,7 @@ void TestOrm::testConnectionInWorkerThread(const QString &connection)
 
         DB::setDefaultConnection(connection);
 
-        CONNECTIONS_TO_COUNT = computeConnectionsToCount(connection);
+        Configuration::CONNECTIONS_TO_COUNT = computeConnectionsToCount(connection);
 
         // Enable counters on all database connections to count
         enableAllQueryLogCounters();
@@ -393,7 +393,9 @@ void TestOrm::logQueryCounters(const QString &func,
         summaryQueriesElapsed = 0;
 
     // Log all connections
-    for (const auto &connectionName : std::as_const(CONNECTIONS_TO_COUNT)) {
+    for (const auto &connectionName :
+         std::as_const(Configuration::CONNECTIONS_TO_COUNT)
+    ) {
         auto &connection = DB::connection(connectionName);
 
         // Queries execution time
@@ -534,23 +536,23 @@ void TestOrm::logQueryCountersBlock(
 
 void TestOrm::resetAllQueryLogCounters() const
 {
-    DB::resetElapsedCounters(CONNECTIONS_TO_COUNT);
-    DB::resetStatementCounters(CONNECTIONS_TO_COUNT);
+    DB::resetElapsedCounters(Configuration::CONNECTIONS_TO_COUNT);
+    DB::resetStatementCounters(Configuration::CONNECTIONS_TO_COUNT);
 
-    for (const auto &connection : std::as_const(CONNECTIONS_TO_COUNT))
+    for (const auto &connection : std::as_const(Configuration::CONNECTIONS_TO_COUNT))
         DB::forgetRecordModificationState(connection);
 }
 
 void TestOrm::enableAllQueryLogCounters() const
 {
     // Create connections eagerly, so I can enable counters
-    for (const auto &connection : std::as_const(CONNECTIONS_TO_COUNT))
+    for (const auto &connection : std::as_const(Configuration::CONNECTIONS_TO_COUNT))
         DB::connection(connection);
 
     // BUG also decide how to behave when connection is not created and user enable counters silverqx
     // Enable counters on all database connections
-    DB::enableElapsedCounters(CONNECTIONS_TO_COUNT);
-    DB::enableStatementCounters(CONNECTIONS_TO_COUNT);
+    DB::enableElapsedCounters(Configuration::CONNECTIONS_TO_COUNT);
+    DB::enableStatementCounters(Configuration::CONNECTIONS_TO_COUNT);
 }
 
 TestOrm::OrmConfigurationsType
@@ -601,7 +603,7 @@ TestOrm::OrmConfigurationsType TestOrm::configsForMainThrdWhenMultiThrd() const
         const auto &key = itConfig.key();
         const auto &value = itConfig.value();
 
-        if (!m_connectionsToRunInThread.contains(key))
+        if (!m_config.ConnectionsToRunInThread.contains(key))
             configurationsForMainThread.insert(key, value);
 
         ++itConfig;
@@ -645,22 +647,23 @@ QStringList TestOrm::computeConnectionsToCountForMainThread() const
     throwIfInThread();
 
     QStringList connectionsToCount;
-    connectionsToCount.reserve(m_countableConnections.size());
+    connectionsToCount.reserve(m_config.CountableConnections.size());
 
-    std::copy_if(m_countableConnections.cbegin(), m_countableConnections.cend(),
+    std::copy_if(m_config.CountableConnections.cbegin(),
+                 m_config.CountableConnections.cend(),
                  std::back_inserter(connectionsToCount),
                  [this](const auto &connection)
     {
-        const auto &mappedConnection = m_connectionsMapReverse.contains(connection)
-                                       ? m_connectionsMapReverse.at(connection)
+        const auto &mappedConnection = m_config.ConnectionsMapReverse.contains(connection)
+                                       ? m_config.ConnectionsMapReverse.at(connection)
                                        : connection;
 
-        return !m_removableConnections.contains(mappedConnection) ||
+        return !m_config.RemovableConnections.contains(mappedConnection) ||
                 (!m_config.ConnectionsInThreads &&
-                 CONNECTIONS_TO_TEST.contains(mappedConnection)) ||
+                 Configuration::CONNECTIONS_TO_TEST.contains(mappedConnection)) ||
                 (m_config.ConnectionsInThreads &&
-                 CONNECTIONS_TO_TEST.contains(mappedConnection) &&
-                 !m_connectionsToRunInThread.contains(mappedConnection));
+                 Configuration::CONNECTIONS_TO_TEST.contains(mappedConnection) &&
+                 !m_config.ConnectionsToRunInThread.contains(mappedConnection));
     });
 
     /* Do it as a separate operation and not in std::copy_if() above, to not pollute
@@ -678,8 +681,8 @@ TestOrm::computeConnectionsToCountForWorkerThread(const QString &connection) con
 
 QStringList TestOrm::getMappedConnections(const QString &connection) const
 {
-    if (m_connectionsMap.contains(connection))
-        return m_connectionsMap.find(connection)->second;
+    if (m_config.ConnectionsMap.contains(connection))
+        return m_config.ConnectionsMap.find(connection)->second;
 
     return {connection};
 }
@@ -689,14 +692,15 @@ void TestOrm::santizeConnectionsToRunInThread()
     if (!m_config.ConnectionsInThreads)
         return;
 
-    const auto removeEnd = std::remove_if(m_connectionsToRunInThread.begin(), // clazy:exclude=detaching-member
-                                          m_connectionsToRunInThread.end(), // clazy:exclude=detaching-member
+    const auto removeEnd = std::remove_if(m_config.ConnectionsToRunInThread.begin(), // clazy:exclude=detaching-member
+                                          m_config.ConnectionsToRunInThread.end(), // clazy:exclude=detaching-member
                                           [](const auto &connection)
     {
-        return !CONNECTIONS_TO_TEST.contains(connection);
+        return !Configuration::CONNECTIONS_TO_TEST.contains(connection);
     });
 
-    m_connectionsToRunInThread.erase(removeEnd, m_connectionsToRunInThread.end()); // clazy:exclude=detaching-member
+    m_config.ConnectionsToRunInThread.erase(removeEnd,
+                                            m_config.ConnectionsToRunInThread.end()); // clazy:exclude=detaching-member
 }
 
 void TestOrm::initThreadLogging() const
@@ -707,7 +711,7 @@ void TestOrm::initThreadLogging() const
 
 void TestOrm::openLogFile() const
 {
-    if (!m_config.ConnectionsInThreads || !m_isLoggingToFile)
+    if (!m_config.ConnectionsInThreads || !m_config.IsLoggingToFile)
         return;
 
     if (!logFile.open(QFile::WriteOnly | QFile::Truncate))
@@ -726,7 +730,7 @@ void TestOrm::saveLogsFromThread(const ThreadName &threadName) const
     /* Log to the file/std::vector, when logging to the file is disabled then
        the output will be logged to the console at the end of testAllConnections()
        to not pollute the console log. */
-    if (m_isLoggingToFile)
+    if (m_config.IsLoggingToFile)
         logThreadStream << Support::g_logFromThread;
     else {
 #ifdef __clang__
@@ -801,7 +805,7 @@ const QStringList &
 TinyPlay::TestOrm::countedConnectionsPrintable(const bool loggingAppSummary) const
 {
     if (!loggingAppSummary)
-        return CONNECTIONS_TO_COUNT;
+        return Configuration::CONNECTIONS_TO_COUNT;
 
     static const QStringList cachedCountedConnections = appCountedConnectionsPrintable();
     return cachedCountedConnections;
@@ -810,18 +814,19 @@ TinyPlay::TestOrm::countedConnectionsPrintable(const bool loggingAppSummary) con
 QStringList TestOrm::appCountedConnectionsPrintable() const
 {
     QStringList countedConnections;
-    countedConnections.reserve(m_countableConnections.size());
+    countedConnections.reserve(m_config.CountableConnections.size());
 
-    std::copy_if(m_countableConnections.cbegin(), m_countableConnections.cend(),
+    std::copy_if(m_config.CountableConnections.cbegin(),
+                 m_config.CountableConnections.cend(),
                  std::back_inserter(countedConnections),
                  [this](const auto &connection)
     {
-        const auto &mappedConnection = m_connectionsMapReverse.contains(connection)
-                                       ? m_connectionsMapReverse.at(connection)
+        const auto &mappedConnection = m_config.ConnectionsMapReverse.contains(connection)
+                                       ? m_config.ConnectionsMapReverse.at(connection)
                                        : connection;
 
-        return !m_removableConnections.contains(mappedConnection) ||
-                CONNECTIONS_TO_TEST.contains(mappedConnection);
+        return !m_config.RemovableConnections.contains(mappedConnection) ||
+                Configuration::CONNECTIONS_TO_TEST.contains(mappedConnection);
     });
 
     return countedConnections;
@@ -852,10 +857,10 @@ void TestOrm::throwIfInThread() const
 
 void TestOrm::throwIfConnsToRunEmpty() const
 {
-    if (m_config.ConnectionsInThreads && m_connectionsToRunInThread.isEmpty())
+    if (m_config.ConnectionsInThreads && m_config.ConnectionsToRunInThread.isEmpty())
         throw LogicError(
-                "m_config.ConnectionsInThreads = true but m_connectionsToRunInThread "
-                "is empty.");
+                "m_config.ConnectionsInThreads = true but "
+                "m_config.ConnectionsToRunInThread is empty.");
 }
 
 void TestOrm::throwIfNoConfig(const QString &connection) const

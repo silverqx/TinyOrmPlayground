@@ -30,8 +30,6 @@ namespace TinyPlay
         /*! Fire up TinyOrmPlayground. */
         TestOrm &run();
 
-        /*! Get the filepath for log file. */
-        inline static const QString &getLogFilepath();
         /*! Get TinyOrmPlayground Configuration. */
         inline const Configuration &config() const;
 
@@ -98,8 +96,8 @@ namespace TinyPlay
         /*! Obtain mapped connections for a given connection. */
         QStringList getMappedConnections(const QString &connection) const;
 
-        /*! Allow to remove a connection from CONNECTIONS_TO_TEST only and
-            m_connectionsToRunInThread will be updated properly. */
+        /*! Allow to remove a connection from Configuration::CONNECTIONS_TO_TEST only and
+            m_config.ConnectionsToRunInThread will be updated properly. */
         void santizeConnectionsToRunInThread();
 
         /*! Initialize thread logging to the file or string. */
@@ -139,47 +137,7 @@ namespace TinyPlay
         void throwIfAlreadyCalled() const;
 
         /*! Configuration for TinyOrmPlayground. */
-        const Configuration m_config;
-
-        /*! Connections to count on statements and execution times, computed
-            at runtime. */
-        thread_local
-        inline static QStringList
-        CONNECTIONS_TO_COUNT {};
-
-        /*! Connections, for which the testQueryBuilder() and testTinyOrm()
-            will be ran on. */
-        inline static const QStringList
-//    CONNECTIONS_TO_TEST {"mysql"};
-        CONNECTIONS_TO_TEST {"mysql", "sqlite", "postgres"};
-
-        /*! Whether log output from connections in threads to a file or to the console. */
-        inline static const bool m_isLoggingToFile = true;
-        /*! Filepath to the log file for connections in threads. */
-        inline static const QString m_logFilepath {"E:/tmp/tinyplay.txt"};
-
-        /*! Which connections will run in separate threads, one connection per thread. */
-        QStringList m_connectionsToRunInThread {"mysql", "sqlite", "postgres"};
-
-        /*! All countable connections. */
-        const QStringList m_countableConnections {
-            "mysql", "mysql_alt", "mysql_mainthread",
-            "sqlite", "sqlite_memory",
-            "postgres"
-        };
-        /*! Connections that can run in a thread, so they are removable in the context
-            of CONNECTIONS_TO_COUNT/m_countableConnections. */
-        const QStringList m_removableConnections {"mysql", "sqlite", "postgres"};
-
-        /*! Map of connection name to more related connections. */
-        const std::unordered_map<QString, QStringList> m_connectionsMap {
-            {"mysql", {"mysql", "mysql_alt"}},
-        };
-        /*! Map real connection name to mapped connection name. */
-        const std::unordered_map<QString, QString> m_connectionsMapReverse {
-            {"mysql",     "mysql"},
-            {"mysql_alt", "mysql"},
-        };
+        Configuration m_config;
 
         /*! All connections configurations. */
         const OrmConfigurationsType m_configurations {};
@@ -293,11 +251,6 @@ namespace TinyPlay
         /*! Executed statements counter in printable format. */
         StatementsCounterPrintable m_appThreadCountersPrintable {};
     };
-
-    const QString &TestOrm::getLogFilepath()
-    {
-        return m_logFilepath;
-    }
 
     const Configuration &TestOrm::config() const
     {
