@@ -15,8 +15,8 @@ Set-StrictMode -Version 3.0
 $Script:ConnectionsInThreads = $null
 
 function Initialize-ConnectionsInThreads {
-    $regex = Get-Content -Path .\InvokeXTimes-err.log -TotalCount 3
-        | Select-String -Pattern 'Threads mode : (?<threadsMode>[\w\-]+)'
+    $regex = Get-Content -Path .\InvokeXTimes-err.log -Tail 20
+        | Select-String -Pattern 'Threads mode +: (?<threadsMode>[\w\-]+)'
 
     if ($null -eq $regex) {
         throw 'Can not detect threads mode, no regex matches.'

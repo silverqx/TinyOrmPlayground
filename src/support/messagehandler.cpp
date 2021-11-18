@@ -17,7 +17,11 @@ void tinyMessageHandler(QtMsgType type, const QMessageLogContext &context,
     /* When called from a worker thread, then do not pollute the console log and
        temporarily log all output to the global variable. */
     if (Support::g_inThread) {
+#ifdef __clang__
+        Support::g_logFromThread.push_back({type, msg});
+#else
         Support::g_logFromThread.emplace_back(type, msg);
+#endif
         return;
     }
 

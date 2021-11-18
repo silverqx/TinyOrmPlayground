@@ -7,6 +7,8 @@
 #include <orm/databasemanager.hpp>
 #include <orm/types/statementscounter.hpp>
 
+#include "configuration.hpp"
+
 namespace TinyPlay
 {
 
@@ -30,6 +32,8 @@ namespace TinyPlay
 
         /*! Get the filepath for log file. */
         inline static const QString &getLogFilepath();
+        /*! Get TinyOrmPlayground Configuration. */
+        inline const Configuration &config() const;
 
     private:
         /*! Type for the Database Configuration. */
@@ -41,46 +45,34 @@ namespace TinyPlay
         /*! Index of an AppCounterItem for counter vectors. */
         using AppCounterItemIdx = std::size_t;
 
-        void anotherTests();
-        void testConnection();
-        void testTinyOrm();
-        void testQueryBuilder();
-        void testQueryBuilderDbSpecific();
         /*! Main testing method. */
         void testAllConnections();
         /*! Testing method used when database connection will run in the main thread. */
         void testConnectionInMainThread(const QString &connection);
         /*! Testing method used when database connection will run in a worker thread. */
         void testConnectionInWorkerThread(const QString &connection);
-        void ctorAggregate();
-        void jsonConfig();
-        void standardPaths();
 
+    public:
         /*! Log queries execution time counter and Query statements counter. */
         void logQueryCounters(
                 const QString &func,
                 std::optional<qint64> functionElapsed = std::nullopt);
+    private:
         /*! Log a one Query statement counters. */
         void logQueryCountersBlock(
                 const QString &title, qint64 queriesElapsed,
                 Orm::StatementsCounter statementsCounter,
                 bool recordsHaveBeenModified) const;
 
-        /*! Get the filepath to the SQLite database file, for testing
-            the 'check_database_exists' configuration option. */
-        QString getCheckDatabaseExistsFile();
-
+    public:
         /*! Reset all counters on counted connections. */
         void resetAllQueryLogCounters() const;
+    private:
         /*! Enable elapsed/statement counters, connects to the database eagerly. */
         void enableAllQueryLogCounters() const;
 
         /*! Get configurations hash with all connections. */
         const OrmConfigurationsType &getConfigurations() const;
-
-        /*! Obtain MySQL connection name, it has a different name when multi-threading
-            is enabled to avoid collision in connection names. */
-        const QString &getMySqlMainThreadConnection() const;
 
         /*! A common method, the single/(multi main/worker) thread version will be
             called based on whether the connection argument was passed. */
@@ -146,9 +138,8 @@ namespace TinyPlay
         /*! Throw if connectToDatabase() was already called. */
         void throwIfAlreadyCalled() const;
 
-        /*! Path to the SQLite database file, for testing the 'check_database_exists'
-            configuration option. */
-        const QString m_checkDatabaseExistsFile;
+        /*! Configuration for TinyOrmPlayground. */
+        const Configuration m_config;
 
         /*! Connections to count on statements and execution times, computed
             at runtime. */
@@ -167,8 +158,6 @@ namespace TinyPlay
         /*! Filepath to the log file for connections in threads. */
         inline static const QString m_logFilepath {"E:/tmp/tinyplay.txt"};
 
-        /*! Run connections defined in m_inThreads in threads. */
-        const bool m_connectionsInThreads = true;
         /*! Which connections will run in separate threads, one connection per thread. */
         QStringList m_connectionsToRunInThread {"mysql", "sqlite", "postgres"};
 
@@ -194,10 +183,6 @@ namespace TinyPlay
 
         /*! All connections configurations. */
         const OrmConfigurationsType m_configurations {};
-
-        /*! MySQL connection name used in the main thread, based on whether
-            multi-threading is enabled. */
-        const QString &m_mysqlMainThreadConnection;
 
         /*! Database manager instance. */
         std::unique_ptr<Orm::DatabaseManager> m_db = nullptr;
@@ -312,6 +297,11 @@ namespace TinyPlay
     const QString &TestOrm::getLogFilepath()
     {
         return m_logFilepath;
+    }
+
+    const Configuration &TestOrm::config() const
+    {
+        return m_config;
     }
 
 } // namespace TinyPlay
