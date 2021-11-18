@@ -1,3 +1,4 @@
+#pragma once
 #ifndef TINYPLAY_UTILS_HPP
 #define TINYPLAY_UTILS_HPP
 

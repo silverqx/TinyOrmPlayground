@@ -1,3 +1,4 @@
+#pragma once
 #ifndef TINYPLAY_BASETEST_HPP
 #define TINYPLAY_BASETEST_HPP
 

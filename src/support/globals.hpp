@@ -1,3 +1,4 @@
+#pragma once
 #ifndef TINYPLAY_SUPPORT_GLOBALS_HPP
 #define TINYPLAY_SUPPORT_GLOBALS_HPP
 
