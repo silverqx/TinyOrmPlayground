@@ -70,8 +70,6 @@ Thumbs.db
 *.exe
 
 # others
-/executed_queries.sql
-/tmp.sql
 conf.pri
 /CMakeUserPresets.json
 /vcpkg_installed/
