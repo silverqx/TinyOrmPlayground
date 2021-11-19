@@ -6,9 +6,9 @@ function(tiny_sources out_headers out_sources)
         concerns/logsquerycounters.hpp
         config.hpp
         configuration.hpp
-        configurationsservice.hpp
-        connectionsservice.hpp
         macros.hpp
+        services/configurationsservice.hpp
+        services/querycountersservice.hpp
         support/globals.hpp
         support/messagehandler.hpp
         support/utils.hpp
@@ -26,9 +26,9 @@ function(tiny_sources out_headers out_sources)
     set(sources
         concerns/logsquerycounters.cpp
         configuration.cpp
-        configurationsservice.cpp
-        connectionsservice.cpp
         main.cpp
+        services/configurationsservice.cpp
+        services/querycountersservice.cpp
         support/messagehandler.cpp
         support/utils.cpp
         testorm.cpp

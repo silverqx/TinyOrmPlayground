@@ -1,4 +1,4 @@
-#include "connectionsservice.hpp"
+#include "services/querycountersservice.hpp"
 
 #include <QDebug>
 #include <QFile>
@@ -27,17 +27,17 @@ using Orm::LibraryInfo;
 
 using TinyPlay::Support::Utils;
 
-namespace TinyPlay
+namespace TinyPlay::Services
 {
 
-ConnectionsService::ConnectionsService(Configuration &config)
+QueryCountersService::QueryCountersService(Configuration &config)
     : m_config(config)
 {
     // Secure that the main thread will be first in all counters everytime
     newCountersForAppSummary("main");
 }
 
-void ConnectionsService::initConnsInThreadsTesting()
+void QueryCountersService::initConnsInThreadsTesting()
 {
     // Throw when connections to run are empty
     throwIfConnsToRunEmpty();
@@ -47,7 +47,7 @@ void ConnectionsService::initConnsInThreadsTesting()
     santizeConnectionsToRunInThread();
 }
 
-QStringList ConnectionsService::computeConnectionsToCount(const QString &connection) const
+QStringList QueryCountersService::computeConnectionsToCount(const QString &connection) const
 {
     // CUR duplicate silverqx
     Utils::throwIfNonEmptyConn(connection);
@@ -61,7 +61,7 @@ QStringList ConnectionsService::computeConnectionsToCount(const QString &connect
     return computeConnectionsToCountForMainThread();
 }
 
-void ConnectionsService::enableAllQueryLogCounters() const
+void QueryCountersService::enableAllQueryLogCounters() const
 {
     // Create connections eagerly, so I can enable counters
     for (const auto &connection : std::as_const(Configuration::CONNECTIONS_TO_COUNT))
@@ -73,7 +73,7 @@ void ConnectionsService::enableAllQueryLogCounters() const
     DB::enableStatementCounters(Configuration::CONNECTIONS_TO_COUNT);
 }
 
-void ConnectionsService::resetAllQueryLogCounters() const
+void QueryCountersService::resetAllQueryLogCounters() const
 {
     DB::resetElapsedCounters(Configuration::CONNECTIONS_TO_COUNT);
     DB::resetStatementCounters(Configuration::CONNECTIONS_TO_COUNT);
@@ -93,7 +93,7 @@ namespace
     struct LogFromThreadItem
     {
         /*! Name of a thread to which log messages belong to. */
-        ConnectionsService::ThreadName threadName;
+        QueryCountersService::ThreadName threadName;
         /*! All log messages. */
         std::vector<TinyPlay::Support::MessageLogItem> logMessages;
     };
@@ -103,7 +103,7 @@ namespace
     /*! Index of LogFromThreadItem for log messages from all threads. */
     using LogFromThreadIdx = std::size_t;
     /*! Fast lookup map for application counters. */
-    std::unordered_map<ConnectionsService::ThreadName,
+    std::unordered_map<QueryCountersService::ThreadName,
                        LogFromThreadIdx> logsFromThreadsMap;
 
     /*! Mutex to secure writes for log messages in threads. */
@@ -120,7 +120,7 @@ QTextStream &operator<<(
     return stream;
 }
 
-void ConnectionsService::saveLogsFromThread(const ThreadName &threadName) const
+void QueryCountersService::saveLogsFromThread(const ThreadName &threadName) const
 {
     std::scoped_lock lock(mx_dataLogStream);
 
@@ -139,7 +139,7 @@ void ConnectionsService::saveLogsFromThread(const ThreadName &threadName) const
     }
 }
 
-void ConnectionsService::replayThrdLogToConsole()
+void QueryCountersService::replayThrdLogToConsole()
 {
     throwIfInThread();
 
@@ -153,7 +153,7 @@ void ConnectionsService::replayThrdLogToConsole()
     }
 }
 
-void ConnectionsService::saveCountersForAppSummary(const ThreadName &threadName)
+void QueryCountersService::saveCountersForAppSummary(const ThreadName &threadName)
 {
     std::scoped_lock lock(m_countersMutex);
 
@@ -163,7 +163,7 @@ void ConnectionsService::saveCountersForAppSummary(const ThreadName &threadName)
         newCountersForAppSummary(threadName);
 }
 
-void ConnectionsService::logQueryCounters(const QString &func,
+void QueryCountersService::logQueryCounters(const QString &func,
                                           const std::optional<qint64> functionElapsed)
 {
     // Header with the function execution time
@@ -240,7 +240,7 @@ void ConnectionsService::logQueryCounters(const QString &func,
     qInfo().noquote() << line;
 }
 
-void ConnectionsService::logQueryCountersBlock(
+void QueryCountersService::logQueryCountersBlock(
             const QString &title, const qint64 queriesElapsed,
             const StatementsCounter statementsCounter,
             const bool recordsHaveBeenModified) const
@@ -336,7 +336,7 @@ void ConnectionsService::logQueryCountersBlock(
     qInfo() << "---";
 }
 
-QStringList ConnectionsService::computeConnectionsToCountForMainThread() const
+QStringList QueryCountersService::computeConnectionsToCountForMainThread() const
 {
     throwIfInThread();
 
@@ -368,12 +368,12 @@ QStringList ConnectionsService::computeConnectionsToCountForMainThread() const
 }
 
 QStringList
-ConnectionsService::computeConnectionsToCountForWorkerThread(const QString &connection) const
+QueryCountersService::computeConnectionsToCountForWorkerThread(const QString &connection) const
 {
     return getMappedConnections(connection);
 }
 
-QStringList ConnectionsService::getMappedConnections(const QString &connection) const
+QStringList QueryCountersService::getMappedConnections(const QString &connection) const
 {
     if (m_config.ConnectionsMap.contains(connection))
         return m_config.ConnectionsMap.find(connection)->second;
@@ -381,7 +381,7 @@ QStringList ConnectionsService::getMappedConnections(const QString &connection) 
     return {connection};
 }
 
-void ConnectionsService::santizeConnectionsToRunInThread()
+void QueryCountersService::santizeConnectionsToRunInThread()
 {
     if (!m_config.ConnectionsInThreads)
         return;
@@ -397,13 +397,13 @@ void ConnectionsService::santizeConnectionsToRunInThread()
                                             m_config.ConnectionsToRunInThread.end()); // clazy:exclude=detaching-member
 }
 
-void ConnectionsService::initThreadLogging() const
+void QueryCountersService::initThreadLogging() const
 {
     logThreadStream.setDevice(&logFile);
     openLogFile();
 }
 
-void ConnectionsService::openLogFile() const
+void QueryCountersService::openLogFile() const
 {
     if (!m_config.ConnectionsInThreads || !m_config.IsLoggingToFile)
         return;
@@ -417,7 +417,7 @@ void ConnectionsService::openLogFile() const
                 .arg(logFile.error()));
 }
 
-void ConnectionsService::newCountersForAppSummary(const ThreadName &threadName)
+void QueryCountersService::newCountersForAppSummary(const ThreadName &threadName)
 {
 #ifdef __clang__
     m_appFunctionsElapsed.push_back({threadName, m_threadFunctionsElapsed});
@@ -436,7 +436,7 @@ void ConnectionsService::newCountersForAppSummary(const ThreadName &threadName)
     m_appCountersMap.emplace(threadName, m_appFunctionsElapsed.size() - 1);
 }
 
-void ConnectionsService::addCountersForAppSummary(const ThreadName &threadName)
+void QueryCountersService::addCountersForAppSummary(const ThreadName &threadName)
 {
     m_appFunctionsElapsed.at(m_appCountersMap[threadName]).value +=
             m_threadFunctionsElapsed;
@@ -453,7 +453,7 @@ void ConnectionsService::addCountersForAppSummary(const ThreadName &threadName)
 }
 
 const QStringList &
-ConnectionsService::countedConnectionsPrintable(const bool loggingAppSummary) const
+QueryCountersService::countedConnectionsPrintable(const bool loggingAppSummary) const
 {
     if (!loggingAppSummary)
         return Configuration::CONNECTIONS_TO_COUNT;
@@ -462,7 +462,7 @@ ConnectionsService::countedConnectionsPrintable(const bool loggingAppSummary) co
     return cachedCountedConnections;
 }
 
-QStringList ConnectionsService::appCountedConnectionsPrintable() const
+QStringList QueryCountersService::appCountedConnectionsPrintable() const
 {
     QStringList countedConnections;
     countedConnections.reserve(m_config.CountableConnections.size());
@@ -483,7 +483,7 @@ QStringList ConnectionsService::appCountedConnectionsPrintable() const
     return countedConnections;
 }
 
-void ConnectionsService::throwIfInThread() const
+void QueryCountersService::throwIfInThread() const
 {
     if (Support::g_inThread)
         throw InvalidArgumentError(
@@ -491,7 +491,7 @@ void ConnectionsService::throwIfInThread() const
                 "g_inThread = false.");
 }
 
-void ConnectionsService::throwIfConnsToRunEmpty() const
+void QueryCountersService::throwIfConnsToRunEmpty() const
 {
     if (m_config.ConnectionsInThreads && m_config.ConnectionsToRunInThread.isEmpty())
         throw LogicError(
@@ -509,7 +509,7 @@ namespace
     const auto statementsCounterTmpl = QStringLiteral("%1 [%2]");
 } // namespace
 
-QString ConnectionsService::appElapsedCounterPrintable(
+QString QueryCountersService::appElapsedCounterPrintable(
         const std::vector<AppCounterItem<qint64>> &counters) const
 {
     QStringList result;
@@ -521,7 +521,7 @@ QString ConnectionsService::appElapsedCounterPrintable(
     return result.join(COMMA);
 }
 
-QString ConnectionsService::appBoolCounterPrintable(
+QString QueryCountersService::appBoolCounterPrintable(
         const std::vector<AppCounterItem<bool>> &counters) const
 {
     QStringList result;
@@ -534,8 +534,8 @@ QString ConnectionsService::appBoolCounterPrintable(
     return result.join(COMMA);
 }
 
-ConnectionsService::StatementsCounterPrintable
-ConnectionsService::appStatementsCounterPrintable(
+QueryCountersService::StatementsCounterPrintable
+QueryCountersService::appStatementsCounterPrintable(
         const std::vector<AppCounterItem<StatementsCounter>> &counters) const
 {
     StatementsCounterPrintable result;
@@ -610,7 +610,7 @@ ConnectionsService::appStatementsCounterPrintable(
     return result;
 }
 
-void ConnectionsService::appZeroCounters(
+void QueryCountersService::appZeroCounters(
         const std::vector<AppCounterItem<StatementsCounter>> &counters,
         StatementsCounterTotal &sumCounters) const
 {
@@ -642,7 +642,7 @@ void ConnectionsService::appZeroCounters(
         sumCounters.transactional = 0;
 }
 
-void ConnectionsService::appSumUpCounters(
+void QueryCountersService::appSumUpCounters(
         const std::vector<AppCounterItem<StatementsCounter>> &counters,
         StatementsCounterTotal &sumCounters) const
 {
@@ -664,8 +664,8 @@ void ConnectionsService::appSumUpCounters(
     }
 }
 
-ConnectionsService::CountersPrintable
-ConnectionsService::getAppCountersPrintable(
+QueryCountersService::CountersPrintable
+QueryCountersService::getAppCountersPrintable(
         const bool isAppSummary, const qint64 functionsElapsed,
         const qint64 queriesElapsed, const StatementsCounter statementsCounter,
         const bool recordsHaveBeenModified) const

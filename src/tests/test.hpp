@@ -20,7 +20,7 @@ namespace Tests
     public:
         /*! Default constructor. */
         explicit Test(const Configuration &config,
-                      ConnectionsService &connectionsService);
+                      QueryCountersService &queryCountersService);
         /*! Pure virtual destructor. */
         inline virtual ~Test() = 0;
 

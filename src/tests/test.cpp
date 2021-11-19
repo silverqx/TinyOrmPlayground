@@ -3,8 +3,8 @@
 namespace TinyPlay::Tests
 {
 
-Test::Test(const Configuration &config, ConnectionsService &connectionsService)
-    : Concerns::LogsQueryCounters(connectionsService)
+Test::Test(const Configuration &config, QueryCountersService &queryCountersService)
+    : Concerns::LogsQueryCounters(queryCountersService)
     , m_config(config)
 {}
 

@@ -5,8 +5,8 @@
 #include <orm/databasemanager.hpp>
 
 #include "configuration.hpp"
-#include "configurationsservice.hpp"
-#include "connectionsservice.hpp"
+#include "services/configurationsservice.hpp"
+#include "services/querycountersservice.hpp"
 
 namespace TinyPlay
 {
@@ -31,6 +31,11 @@ namespace TinyPlay
         inline const Configuration &config() const;
 
     private:
+        /*! ConfigurationsService alias. */
+        using ConfigurationsService = Services::ConfigurationsService;
+        /*! QueryCountersService alias. */
+        using QueryCountersService = Services::QueryCountersService;
+
         /*! Main testing method. */
         void testAllConnections();
         /*! Testing method used when database connection will run in the main thread. */
@@ -47,8 +52,8 @@ namespace TinyPlay
         Configuration m_config;
         /*! Database connection configurations service. */
         ConfigurationsService m_configurationsService {m_config};
-        /*! Database connections service. */
-        ConnectionsService m_connectionsService {m_config};
+        /*! Database connections query counters service. */
+        QueryCountersService m_queryCountersService {m_config};
 
         /*! Database manager instance. */
         std::unique_ptr<Orm::DatabaseManager> m_db = nullptr;

@@ -1,4 +1,4 @@
-#include "configurationsservice.hpp"
+#include "services/configurationsservice.hpp"
 
 #include "configuration.hpp"
 #include "support/globals.hpp"
@@ -6,7 +6,7 @@
 
 using TinyPlay::Support::Utils;
 
-namespace TinyPlay
+namespace TinyPlay::Services
 {
 
 ConfigurationsService::ConfigurationsService(const Configuration &configuration)

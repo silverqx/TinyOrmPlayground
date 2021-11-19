@@ -57,10 +57,10 @@ TestOrm &TestOrm::connectToDatabase()
     m_db = DB::create(m_configurationsService.computeConfigurationsToAdd(), "mysql");
 
     Configuration::CONNECTIONS_TO_COUNT =
-            m_connectionsService.computeConnectionsToCount();
+            m_queryCountersService.computeConnectionsToCount();
 
     // Enable counters on all database connections
-    m_connectionsService.enableAllQueryLogCounters();
+    m_queryCountersService.enableAllQueryLogCounters();
 
     return *this;
 }
@@ -68,24 +68,24 @@ TestOrm &TestOrm::connectToDatabase()
 TestOrm &TestOrm::run()
 {
     // Test intended for play
-    Tests::TestForPlay(m_config, m_connectionsService).run();
+    Tests::TestForPlay(m_config, m_queryCountersService).run();
 
     // All other tests
-    Tests::TestAllOtherTests(m_config, m_connectionsService).run();
+    Tests::TestAllOtherTests(m_config, m_queryCountersService).run();
 
     // Test TinyORM's Database Connections
-    Tests::TestConnection(m_config, m_connectionsService).run();
+    Tests::TestConnection(m_config, m_queryCountersService).run();
     // Database-specific tests related to the QueryBuilder
-    Tests::TestQueryBuilderDbSpecific(m_config, m_connectionsService).run();
+    Tests::TestQueryBuilderDbSpecific(m_config, m_queryCountersService).run();
 
     /* Main Playground's test code */
     testAllConnections();
 
     // Add counters for main thread
-    m_connectionsService.saveCountersForAppSummary("main");
+    m_queryCountersService.saveCountersForAppSummary("main");
 
     // Whole application Summary
-    m_connectionsService.logApplicationSummary();
+    m_queryCountersService.logApplicationSummary();
 
     return *this;
 }
@@ -93,7 +93,7 @@ TestOrm &TestOrm::run()
 void TestOrm::testAllConnections()
 {
     // Initialize the connections service for testing connections in threads
-    m_connectionsService.initConnsInThreadsTesting();
+    m_queryCountersService.initConnsInThreadsTesting();
 
     {
         // BUG QDateTime is not reentrant, this avoids crashes in threads during added calendar to the Registry silverqx
@@ -122,15 +122,15 @@ void TestOrm::testAllConnections()
     DB::setDefaultConnection("mysql");
 
     if (!m_config.IsLoggingToFile)
-        m_connectionsService.replayThrdLogToConsole();
+        m_queryCountersService.replayThrdLogToConsole();
 }
 
 void TestOrm::testConnectionInMainThread(const QString &connection)
 {
     DB::setDefaultConnection(connection);
 
-    Tests::TestQueryBuilder(m_config, m_connectionsService).run();
-    Tests::TestTinyOrm(m_config, m_connectionsService).run();
+    Tests::TestQueryBuilder(m_config, m_queryCountersService).run();
+    Tests::TestTinyOrm(m_config, m_queryCountersService).run();
 }
 
 void TestOrm::testConnectionInWorkerThread(const QString &connection)
@@ -148,19 +148,19 @@ void TestOrm::testConnectionInWorkerThread(const QString &connection)
         DB::setDefaultConnection(connection);
 
         Configuration::CONNECTIONS_TO_COUNT =
-                m_connectionsService.computeConnectionsToCount(connection);
+                m_queryCountersService.computeConnectionsToCount(connection);
 
         // Enable counters on all database connections to count
-        m_connectionsService.enableAllQueryLogCounters();
+        m_queryCountersService.enableAllQueryLogCounters();
 
-        Tests::TestQueryBuilder(m_config, m_connectionsService).run();
-        Tests::TestTinyOrm(m_config, m_connectionsService).run();
+        Tests::TestQueryBuilder(m_config, m_queryCountersService).run();
+        Tests::TestTinyOrm(m_config, m_queryCountersService).run();
 
         // Save counters from a current thread for Application Summary
-        m_connectionsService.saveCountersForAppSummary(connection);
+        m_queryCountersService.saveCountersForAppSummary(connection);
 
         // Save log messages for a current thread, to the file or vector
-        m_connectionsService.saveLogsFromThread(connection);
+        m_queryCountersService.saveLogsFromThread(connection);
 
     } catch (const std::exception &e) {
         // Secure that an exception will be logged to the console

@@ -8,8 +8,10 @@
 
 namespace TinyPlay
 {
-
-    class ConnectionsService;
+namespace Services
+{
+    class QueryCountersService;
+}
 
 namespace Concerns
 {
@@ -20,8 +22,11 @@ namespace Concerns
         Q_DISABLE_COPY(LogsQueryCounters)
 
     public:
+        /*! QueryCountersService alias. */
+        using QueryCountersService = Services::QueryCountersService;
+
         /*! Default constructor. */
-        explicit LogsQueryCounters(ConnectionsService &connectionsService);
+        explicit LogsQueryCounters(QueryCountersService &queryCountersService);
 
         /*! Log queries execution time counter and Query statements counter. */
         void logQueryCounters(
@@ -32,7 +37,7 @@ namespace Concerns
 
     private:
         /*! Database connections query counters service. */
-        ConnectionsService &m_connectionsService;
+        QueryCountersService &m_queryCountersService;
     };
 
 } // namespace Concerns

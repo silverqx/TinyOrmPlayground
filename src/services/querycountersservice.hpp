@@ -1,6 +1,6 @@
 #pragma once
-#ifndef TINYPLAY_CONNECTIONSMANAGER_HPP
-#define TINYPLAY_CONNECTIONSMANAGER_HPP
+#ifndef TINYPLAY_SERVICES_QUERYCOUNTERSSERVICE_HPP
+#define TINYPLAY_SERVICES_QUERYCOUNTERSSERVICE_HPP
 
 #include <QHashFunctions>
 #include <QString>
@@ -15,17 +15,19 @@ namespace TinyPlay
 
     class Configuration;
 
+namespace Services
+{
     /*! Service class for logging database connections query counters. */
-    class ConnectionsService
+    class QueryCountersService
     {
-        Q_DISABLE_COPY(ConnectionsService)
+        Q_DISABLE_COPY(QueryCountersService)
 
     public:
         /*! Thread name type. */
         using ThreadName = QString;
 
         /*! Default constructor. */
-        explicit ConnectionsService(Configuration &config);
+        explicit QueryCountersService(Configuration &config);
 
         /*! Initialize the connections service for testing connections in threads. */
         void initConnsInThreadsTesting();
@@ -211,7 +213,7 @@ namespace TinyPlay
         StatementsCounterPrintable m_appThreadCountersPrintable {};
     };
 
-    void ConnectionsService::logApplicationSummary() const
+    void QueryCountersService::logApplicationSummary() const
     {
         // Whole application Summary
         logQueryCountersBlock(QStringLiteral("Application Summary"),
@@ -219,6 +221,7 @@ namespace TinyPlay
                               m_threadRecordsHaveBeenModified);
     }
 
+} // namespace Services
 } // namespace TinyPlay
 
-#endif // TINYPLAY_CONNECTIONSMANAGER_HPP
+#endif // TINYPLAY_SERVICES_QUERYCOUNTERSSERVICE_HPP

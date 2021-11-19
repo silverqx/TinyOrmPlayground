@@ -7,9 +7,9 @@ HEADERS += \
     $$PWD/concerns/logsquerycounters.hpp \
     $$PWD/config.hpp \
     $$PWD/configuration.hpp \
-    $$PWD/configurationsservice.hpp \
-    $$PWD/connectionsservice.hpp \
     $$PWD/macros.hpp \
+    $$PWD/services/configurationsservice.hpp \
+    $$PWD/services/querycountersservice.hpp \
     $$PWD/support/globals.hpp \
     $$PWD/support/messagehandler.hpp \
     $$PWD/support/utils.hpp \
@@ -26,9 +26,9 @@ HEADERS += \
 SOURCES += \
     $$PWD/concerns/logsquerycounters.cpp \
     $$PWD/configuration.cpp \
-    $$PWD/configurationsservice.cpp \
-    $$PWD/connectionsservice.cpp \
     $$PWD/main.cpp \
+    $$PWD/services/configurationsservice.cpp \
+    $$PWD/services/querycountersservice.cpp \
     $$PWD/support/messagehandler.cpp \
     $$PWD/support/utils.cpp \
     $$PWD/testorm.cpp \

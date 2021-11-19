@@ -1,24 +1,24 @@
 #include "concerns/logsquerycounters.hpp"
 
-#include "connectionsservice.hpp"
+#include "services/querycountersservice.hpp"
 
 namespace TinyPlay::Concerns
 {
 
-LogsQueryCounters::LogsQueryCounters(ConnectionsService &connectionsService)
-    : m_connectionsService(connectionsService)
+LogsQueryCounters::LogsQueryCounters(QueryCountersService &queryCountersService)
+    : m_queryCountersService(queryCountersService)
 {}
 
 void LogsQueryCounters::logQueryCounters(
         const QString &func,
         const std::optional<qint64> functionElapsed) const
 {
-    m_connectionsService.logQueryCounters(func, functionElapsed);
+    m_queryCountersService.logQueryCounters(func, functionElapsed);
 }
 
 void LogsQueryCounters::resetAllQueryLogCounters() const
 {
-    m_connectionsService.resetAllQueryLogCounters();
+    m_queryCountersService.resetAllQueryLogCounters();
 }
 
 } // namespace TinyPlay::Concerns

@@ -1,6 +1,6 @@
 #pragma once
-#ifndef TINYPLAY_CONFIGURATIONSSERVICE_HPP
-#define TINYPLAY_CONFIGURATIONSSERVICE_HPP
+#ifndef TINYPLAY_SERVICES_CONFIGURATIONSSERVICE_HPP
+#define TINYPLAY_SERVICES_CONFIGURATIONSSERVICE_HPP
 
 #include <orm/support/databaseconfiguration.hpp>
 
@@ -9,6 +9,8 @@ namespace TinyPlay
 
     class Configuration;
 
+namespace Services
+{
     /*! Service class for database connection configurations. */
     class ConfigurationsService
     {
@@ -46,6 +48,7 @@ namespace TinyPlay
         const Configuration &m_config;
     };
 
+} // namespace Services
 } // namespace TinyPlay
 
-#endif // TINYPLAY_CONFIGURATIONSSERVICE_HPP
+#endif // TINYPLAY_SERVICES_CONFIGURATIONSSERVICE_HPP
