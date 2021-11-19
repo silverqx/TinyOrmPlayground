@@ -37,11 +37,6 @@ using Orm::Constants::username_;
 namespace TinyPlay
 {
 
-Configuration::Configuration()
-//    : CheckDatabaseExistsFile(initCheckDatabaseExistsFile())
-//    , MysqlMainThreadConnection(initMySqlMainThreadConnection())
-{}
-
 const Configuration::OrmConfigurationsType &Configuration::initConfigurations() const
 {
     static const QVariantHash mysqlConnection {

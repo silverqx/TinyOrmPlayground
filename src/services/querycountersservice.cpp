@@ -701,4 +701,4 @@ QueryCountersService::getAppCountersPrintable(
     };
 }
 
-} // namespace TinyPlay
+} // namespace TinyPlay::Services

@@ -19,7 +19,7 @@ namespace TinyPlay
 
     public:
         /*! Default constructor. */
-        Configuration();
+        inline Configuration() = default;
 
         /*! Get configurations hash with all connections. */
         const OrmConfigurationsType &initConfigurations() const;

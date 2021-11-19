@@ -96,4 +96,4 @@ QStringList ConfigurationsService::getMappedConnections(const QString &connectio
     return {connection};
 }
 
-} // namespace TinyPlay
+} // namespace TinyPlay::Services
