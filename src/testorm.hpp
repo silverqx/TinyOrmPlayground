@@ -49,7 +49,7 @@ namespace TinyPlay
         void throwIfAlreadyCalled() const;
 
         /*! Configuration for TinyOrmPlayground. */
-        Configuration m_config;
+        Configuration m_config {};
         /*! Database connection configurations service. */
         ConfigurationsService m_configurationsService {m_config};
         /*! Database connections query counters service. */

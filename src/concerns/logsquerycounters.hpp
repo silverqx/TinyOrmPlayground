@@ -27,6 +27,8 @@ namespace Concerns
 
         /*! Default constructor. */
         explicit LogsQueryCounters(QueryCountersService &queryCountersService);
+        /*! Virtual destructor. */
+        inline virtual ~LogsQueryCounters() = default;
 
         /*! Log queries execution time counter and Query statements counter. */
         void logQueryCounters(

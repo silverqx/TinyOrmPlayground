@@ -81,9 +81,9 @@ ConfigurationsService::configsForWorkerThrdWhenMultiThrd(const QString &connecti
     OrmConfigurationsType configurationsForWorkerThread;
     configurationsForWorkerThread.reserve(mappedConnections.size());
 
-    for (const auto &connection : mappedConnections)
-        configurationsForWorkerThread.insert(connection,
-                                             m_config.Configurations[connection]);
+    for (const auto &connection_ : mappedConnections)
+        configurationsForWorkerThread.insert(connection_,
+                                             m_config.Configurations[connection_]);
 
     return configurationsForWorkerThread;
 }
