@@ -36,12 +36,12 @@ namespace TinyPlay::Tests
 {
 
     // NOLINTNEXTLINE(readability-function-cognitive-complexity, readability-function-size)
-void TestTinyOrm::run()
+void TestTinyOrm::run() const
 {
     QElapsedTimer timer;
     timer.start();
 
-    m_testOrm.resetAllQueryLogCounters();
+    resetAllQueryLogCounters();
 
     qInfo().nospace()
             << "\n\n========="
@@ -2025,7 +2025,7 @@ void TestTinyOrm::run()
         qt_noop();
     }
 
-    m_testOrm.logQueryCounters(__FUNCTION__, timer.elapsed());
+    logQueryCounters(__FUNCTION__, timer.elapsed());
 }
 
 } // namespace TinyPlay::Tests

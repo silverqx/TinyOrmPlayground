@@ -31,7 +31,7 @@ namespace TinyPlay
         /*! All connections configurations. */
         const OrmConfigurationsType Configurations {initConfigurations()};
 
-        /*! Run connections defined in m_inThreads in threads. */
+        /*! Run connections defined in the ConnectionsToRunInThread in threads. */
         const bool ConnectionsInThreads = true;
 
         /*! Whether log output from connections in threads to a file or to the console. */

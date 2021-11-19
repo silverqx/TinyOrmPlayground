@@ -20,7 +20,7 @@ namespace TinyPlay::Tests
         inline ~TestTinyOrm() final = default;
 
         /*! Execute the TestTinyOrm PlayTest. */
-        void run() final;
+        void run() const final;
     };
 
 } // namespace TinyPlay::Tests

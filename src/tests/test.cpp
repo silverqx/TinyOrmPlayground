@@ -1,13 +1,11 @@
 #include "tests/test.hpp"
 
-#include "testorm.hpp"
-
 namespace TinyPlay::Tests
 {
 
-Test::Test(TestOrm &testOrm)
-    : m_testOrm(testOrm)
-    , m_config(testOrm.config())
+Test::Test(const Configuration &config, ConnectionsService &connectionsService)
+    : Concerns::LogsQueryCounters(connectionsService)
+    , m_config(config)
 {}
 
 } // namespace TinyPlay::Tests

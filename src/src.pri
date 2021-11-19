@@ -4,6 +4,7 @@ include(models/models.pri)
 INCLUDEPATH += $$PWD
 
 HEADERS += \
+    $$PWD/concerns/logsquerycounters.hpp \
     $$PWD/config.hpp \
     $$PWD/configuration.hpp \
     $$PWD/configurationsservice.hpp \
@@ -23,6 +24,7 @@ HEADERS += \
     $$PWD/version.hpp \
 
 SOURCES += \
+    $$PWD/concerns/logsquerycounters.cpp \
     $$PWD/configuration.cpp \
     $$PWD/configurationsservice.cpp \
     $$PWD/connectionsservice.cpp \

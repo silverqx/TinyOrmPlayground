@@ -20,7 +20,7 @@ namespace TinyPlay::Tests
         inline ~TestForPlay() final = default;
 
         /*! Execute the TestForPlay PlayTest. */
-        void run() final;
+        void run() const final;
     };
 
 } // namespace TinyPlay::Tests

@@ -20,7 +20,7 @@ namespace TinyPlay::Tests
         inline ~TestConnection() final = default;
 
         /*! Execute the TestConnection PlayTest. */
-        void run() final;
+        void run() const final;
     };
 
 } // namespace TinyPlay::Tests

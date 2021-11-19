@@ -11,12 +11,12 @@
 namespace TinyPlay::Tests
 {
 
-void TestQueryBuilderDbSpecific::run()
+void TestQueryBuilderDbSpecific::run() const
 {
     QElapsedTimer timer;
     timer.start();
 
-    m_testOrm.resetAllQueryLogCounters();
+    resetAllQueryLogCounters();
 
     qInfo().nospace()
             << "\n\n===================================="
@@ -42,7 +42,7 @@ void TestQueryBuilderDbSpecific::run()
         qt_noop();
     }
 
-    m_testOrm.logQueryCounters(__FUNCTION__, timer.elapsed());
+    logQueryCounters(__FUNCTION__, timer.elapsed());
 }
 
 } // namespace TinyPlay::Tests

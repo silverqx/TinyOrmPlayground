@@ -20,7 +20,7 @@ namespace TinyPlay::Tests
         inline ~TestQueryBuilderDbSpecific() final = default;
 
         /*! Execute the TestQueryBuilderDbSpecific PlayTest. */
-        void run() final;
+        void run() const final;
     };
 
 } // namespace TinyPlay::Tests

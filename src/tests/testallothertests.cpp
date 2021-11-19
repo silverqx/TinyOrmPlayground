@@ -27,7 +27,7 @@ using json = nlohmann::json;
 namespace TinyPlay::Tests
 {
 
-void TestAllOtherTests::run()
+void TestAllOtherTests::run() const
 {
     jsonConfig();
     standardPaths();

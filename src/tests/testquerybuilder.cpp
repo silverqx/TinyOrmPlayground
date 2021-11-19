@@ -14,12 +14,12 @@
 namespace TinyPlay::Tests
 {
 
-void TestQueryBuilder::run()
+void TestQueryBuilder::run() const
 {
     QElapsedTimer timer;
     timer.start();
 
-    m_testOrm.resetAllQueryLogCounters();
+    resetAllQueryLogCounters();
 
     qInfo().nospace()
             << "\n\n================"
@@ -780,7 +780,7 @@ void TestQueryBuilder::run()
         qt_noop();
     }
 
-    m_testOrm.logQueryCounters(__FUNCTION__, timer.elapsed());
+    logQueryCounters(__FUNCTION__, timer.elapsed());
 }
 
 } // namespace TinyPlay::Tests

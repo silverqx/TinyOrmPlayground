@@ -1,35 +1,33 @@
 #pragma once
-#ifndef TINYPLAY_BASETEST_HPP
-#define TINYPLAY_BASETEST_HPP
+#ifndef TINYPLAY_TESTS_TEST_HPP
+#define TINYPLAY_TESTS_TEST_HPP
 
-#include <QtGlobal>
+#include "concerns/logsquerycounters.hpp"
 
 namespace TinyPlay
 {
 
     class Configuration;
-    class TestOrm;
 
 namespace Tests
 {
 
     /*! PlayTests base class. */
-    class Test
+    class Test : public Concerns::LogsQueryCounters
     {
         Q_DISABLE_COPY(Test)
 
     public:
         /*! Default constructor. */
-        explicit Test(TestOrm &testOrm);
+        explicit Test(const Configuration &config,
+                      ConnectionsService &connectionsService);
         /*! Pure virtual destructor. */
         inline virtual ~Test() = 0;
 
         /*! Execute PlayTest. */
-        virtual void run() = 0;
+        virtual void run() const = 0;
 
     protected:
-        /*! Reference to the TestOrm. */
-        TestOrm &m_testOrm;
         /*! Reference to the TinyOrmPlayground Configuration. */
         const Configuration &m_config;
     };
@@ -39,4 +37,4 @@ namespace Tests
 } // namespace Tests
 } // namespace TinyPlay
 
-#endif // TINYPLAY_BASETEST_HPP
+#endif // TINYPLAY_TESTS_TEST_HPP

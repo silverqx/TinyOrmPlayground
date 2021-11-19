@@ -3,6 +3,7 @@
 function(tiny_sources out_headers out_sources)
 
     set(headers
+        concerns/logsquerycounters.hpp
         config.hpp
         configuration.hpp
         configurationsservice.hpp
@@ -23,6 +24,7 @@ function(tiny_sources out_headers out_sources)
     )
 
     set(sources
+        concerns/logsquerycounters.cpp
         configuration.cpp
         configurationsservice.cpp
         connectionsservice.cpp

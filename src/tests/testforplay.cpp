@@ -28,12 +28,12 @@ using Orm::Constants::UNDERSCORE;
 namespace TinyPlay::Tests
 {
 
-void TestForPlay::run()
+void TestForPlay::run() const
 {
     QElapsedTimer timer;
     timer.start();
 
-    m_testOrm.resetAllQueryLogCounters();
+    resetAllQueryLogCounters();
 
     qInfo().nospace()
             << "================="
@@ -190,7 +190,7 @@ void TestForPlay::run()
         qInfo() << "INNER (QString)    :" << INNER;
     }
 
-    m_testOrm.logQueryCounters(__FUNCTION__, timer.elapsed());
+    logQueryCounters(__FUNCTION__, timer.elapsed());
 }
 
 } // namespace TinyPlay::Tests

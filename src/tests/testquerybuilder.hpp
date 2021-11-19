@@ -20,7 +20,7 @@ namespace TinyPlay::Tests
         inline ~TestQueryBuilder() final = default;
 
         /*! Execute the TestQueryBuilder PlayTest. */
-        void run() final;
+        void run() const final;
     };
 
 } // namespace TinyPlay::Tests

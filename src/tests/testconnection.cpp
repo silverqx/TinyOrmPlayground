@@ -17,12 +17,12 @@ using Orm::MySqlConnection;
 namespace TinyPlay::Tests
 {
 
-void TestConnection::run()
+void TestConnection::run() const
 {
     QElapsedTimer timer;
     timer.start();
 
-    m_testOrm.resetAllQueryLogCounters();
+    resetAllQueryLogCounters();
 
     qInfo().nospace()
             << "\n\n======================"
@@ -102,7 +102,7 @@ void TestConnection::run()
         Q_ASSERT(!QFile::exists(m_config.CheckDatabaseExistsFile));
     }
 
-    m_testOrm.logQueryCounters(__FUNCTION__, timer.elapsed());
+    logQueryCounters(__FUNCTION__, timer.elapsed());
 }
 
 } // namespace TinyPlay::Tests

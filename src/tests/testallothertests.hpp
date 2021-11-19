@@ -20,7 +20,7 @@ namespace TinyPlay::Tests
         inline ~TestAllOtherTests() final = default;
 
         /*! Execute the TestAllOtherTests PlayTest. */
-        void run() final;
+        void run() const final;
 
     private:
         /*! Test nlohmann-json library. */

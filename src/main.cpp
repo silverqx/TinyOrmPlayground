@@ -1,5 +1,6 @@
 #include <QCoreApplication>
 #include <QDebug>
+#include <QElapsedTimer>
 
 #ifdef _MSC_VER
 #include <qt_windows.h>
