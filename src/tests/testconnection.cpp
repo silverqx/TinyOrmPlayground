@@ -73,7 +73,7 @@ void TestConnection::run() const
                        "check_database_exists - true\n---";
 
             TINY_VERIFY_EXCEPTION_THROWN(
-                        DB::connection("sqlite_check_exists_true")
+                        DB::connection(Configuration::SQLITE_CHECK_EXISTS_TRUE)
                         .statement("create table tbl1 (one varchar(10), two smallint)"),
                         InvalidArgumentError);
 
@@ -86,7 +86,7 @@ void TestConnection::run() const
                        "check_database_exists - false\n---";
 
             // QSqlDatabase automatically creates a SQLite database file
-            DB::connection("sqlite_check_exists_false")
+            DB::connection(Configuration::SQLITE_CHECK_EXISTS_FALSE)
                     .statement("create table tbl1 (one varchar(10), two smallint)");
 
             Q_ASSERT(QFile::exists(m_config.CheckDatabaseExistsFile));
@@ -94,8 +94,8 @@ void TestConnection::run() const
             qt_noop();
         }
 
-        QSqlDatabase::database("sqlite_check_exists_true").close();
-        QSqlDatabase::database("sqlite_check_exists_false").close();
+        QSqlDatabase::database(Configuration::SQLITE_CHECK_EXISTS_TRUE).close();
+        QSqlDatabase::database(Configuration::SQLITE_CHECK_EXISTS_FALSE).close();
 
         // Remove the SQLite database file
         QFile::remove(m_config.CheckDatabaseExistsFile);

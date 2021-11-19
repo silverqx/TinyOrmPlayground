@@ -18,6 +18,19 @@ namespace TinyPlay
         using OrmConfigurationsType = OrmConfiguration::ConfigurationsType;
 
     public:
+        /* Database connection names */
+        inline static const QString MYSQL            = QStringLiteral("mysql");
+        inline static const QString MYSQL_ALT        = QStringLiteral("mysql_alt");
+        inline static const QString MYSQL_MAINTHREAD = QStringLiteral("mysql_mainthread");
+        inline static const QString MYSQL_LARAVEL8   = QStringLiteral("mysql_laravel8");
+        inline static const QString POSTGRES         = QStringLiteral("postgres");
+        inline static const QString SQLITE           = QStringLiteral("sqlite");
+        inline static const QString SQLITE_MEMORY    = QStringLiteral("sqlite_memory");
+        inline static const QString
+        SQLITE_CHECK_EXISTS_TRUE  = QStringLiteral("sqlite_check_exists_true");
+        inline static const QString
+        SQLITE_CHECK_EXISTS_FALSE = QStringLiteral("sqlite_check_exists_false");
+
         /*! Default constructor. */
         inline Configuration() = default;
 
@@ -42,11 +55,11 @@ namespace TinyPlay
         /*! Connections, for which the testQueryBuilder() and testTinyOrm()
             will be ran on. */
         inline static const QStringList
-//    CONNECTIONS_TO_TEST {"mysql"};
-        CONNECTIONS_TO_TEST {"mysql", "sqlite", "postgres"};
+//    CONNECTIONS_TO_TEST {MYSQL};
+        CONNECTIONS_TO_TEST {MYSQL, SQLITE, POSTGRES};
 
         /*! Which connections will run in separate threads, one connection per thread. */
-        QStringList ConnectionsToRunInThread {"mysql", "sqlite", "postgres"};
+        QStringList ConnectionsToRunInThread {MYSQL, SQLITE, POSTGRES};
 
         /*! Connections to count on statements and execution times, computed
             at runtime. */
@@ -56,22 +69,22 @@ namespace TinyPlay
 
         /*! All countable connections. */
         const QStringList CountableConnections {
-            "mysql", "mysql_alt", "mysql_mainthread",
-            "sqlite", "sqlite_memory",
-            "postgres"
+            MYSQL, MYSQL_ALT, MYSQL_MAINTHREAD,
+            SQLITE, SQLITE_MEMORY,
+            POSTGRES
         };
         /*! Connections that can run in a thread, so they are removable in the context
             of Configuration::CONNECTIONS_TO_COUNT/m_config.CountableConnections. */
-        const QStringList RemovableConnections {"mysql", "sqlite", "postgres"};
+        const QStringList RemovableConnections {MYSQL, SQLITE, POSTGRES};
 
         /*! Map of connection name to more related connections. */
         const std::unordered_map<QString, QStringList> ConnectionsMap {
-            {"mysql", {"mysql", "mysql_alt"}},
+            {MYSQL, {MYSQL, MYSQL_ALT}},
         };
         /*! Map real connection name to mapped connection name. */
         const std::unordered_map<QString, QString> ConnectionsMapReverse {
-            {"mysql",     "mysql"},
-            {"mysql_alt", "mysql"},
+            {MYSQL,     MYSQL},
+            {MYSQL_ALT, MYSQL},
         };
 
         /*! MySQL connection name used in the main thread, based on whether

@@ -59,18 +59,18 @@ const Configuration::OrmConfigurationsType &Configuration::initConfigurations() 
 
     static const OrmConfigurationsType cached {
         // Main MySQL connection in test loop
-        {"mysql", mysqlConnection},
+        {MYSQL, mysqlConnection},
 
         // Used in the Torrent model as u_connection
-        {"mysql_alt", mysqlConnection},
+        {MYSQL_ALT, mysqlConnection},
 
         /* Used as MySQL connection name in the main thread when connections in threads
            is enabled to avoid MySQL connection name collision. */
-        {"mysql_mainthread", mysqlConnection},
+        {MYSQL_MAINTHREAD, mysqlConnection},
 
         /* Used in the testQueryBuilderDbSpecific() only to test a cross-database query,
            a connection to the "laravel_8" database. */
-        {"mysql_laravel8", {
+        {MYSQL_LARAVEL8, {
             {driver_,    QMYSQL},
             {host_,      qEnvironmentVariable("DB_MYSQL_LARAVEL_HOST", H127001)},
             {port_,      qEnvironmentVariable("DB_MYSQL_LARAVEL_PORT", P3306)},
@@ -88,7 +88,7 @@ const Configuration::OrmConfigurationsType &Configuration::initConfigurations() 
         }},
 
         // Main SQLite connection in test loop
-        {"sqlite", {
+        {SQLITE, {
             {driver_,    QSQLITE},
             {database_,  qEnvironmentVariable("DB_SQLITE_DATABASE", "")},
             {prefix_,    ""},
@@ -99,7 +99,7 @@ const Configuration::OrmConfigurationsType &Configuration::initConfigurations() 
         }},
 
         // Used in the testConnection() only to test SQLite :memory: driver
-        {"sqlite_memory", {
+        {SQLITE_MEMORY, {
             {driver_,    QSQLITE},
             {database_,  QStringLiteral(":memory:")},
             {prefix_,    ""},
@@ -110,7 +110,7 @@ const Configuration::OrmConfigurationsType &Configuration::initConfigurations() 
 
         /* Used in the testConnection() only to test behavior when the configuration
            option check_database_exists = true. */
-        {"sqlite_check_exists_true", {
+        {SQLITE_CHECK_EXISTS_TRUE, {
             {driver_,    QSQLITE},
             {database_,  CheckDatabaseExistsFile},
             {check_database_exists, true},
@@ -118,14 +118,14 @@ const Configuration::OrmConfigurationsType &Configuration::initConfigurations() 
 
         /* Used in the testConnection() only to test behavior when the configuration
            option check_database_exists = true. */
-        {"sqlite_check_exists_false", {
+        {SQLITE_CHECK_EXISTS_FALSE, {
             {driver_,    QSQLITE},
             {database_,  CheckDatabaseExistsFile},
             {check_database_exists, false},
         }},
 
         // Main PostgreSQL connection in test loop
-        {"postgres", {
+        {POSTGRES, {
             {driver_,   QPSQL},
             {host_,     qEnvironmentVariable("DB_PGSQL_HOST",     H127001)},
             {port_,     qEnvironmentVariable("DB_PGSQL_PORT",     P5432)},
@@ -159,9 +159,8 @@ QString Configuration::initCheckDatabaseExistsFile()
 
 const QString &Configuration::initMySqlMainThreadConnection() const
 {
-    static const QString cached = ConnectionsInThreads
-                                  ? QStringLiteral("mysql_mainthread")
-                                  : QStringLiteral("mysql");
+    static const QString cached = ConnectionsInThreads ? MYSQL_MAINTHREAD : MYSQL;
+
     return cached;
 }
 
