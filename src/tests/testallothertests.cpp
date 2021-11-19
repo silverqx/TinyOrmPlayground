@@ -65,6 +65,7 @@ void TestAllOtherTests::jsonConfig() const
 //        std::cout << j.dump(4) << std::endl;
 //    }
 
+    /* Parse JSON from const char * */
     {
         const auto *s = R"(
 {
@@ -112,16 +113,22 @@ void TestAllOtherTests::jsonConfig() const
         qt_noop();
     }
 
-    // read a JSON file
-//    std::ifstream i("config_test.json");
-//    json j;
-//    i >> j;
+    /* Read a JSON file */
+//    {
+//        // copy resources/config_test.json to the build directory root
+//        std::ifstream i("config_test.json");
+//        if (!i.is_open())
+//            throw std::runtime_error("failed to open config_test.json");
 
-    // write prettified JSON to another file
-//    std::ofstream o("pretty.json");
-//    o << std::setw(4) << j << std::endl;
+//        json j;
+//        i >> j;
 
-    qt_noop();
+//        // write prettified JSON to another file
+//        std::ofstream o("pretty.json");
+//        o << std::setw(4) << j << std::endl;
+
+//        qt_noop();
+//    }
 }
 
 void TestAllOtherTests::standardPaths() const
