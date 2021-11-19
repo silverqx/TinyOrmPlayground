@@ -2,6 +2,7 @@
 #ifndef TINYPLAY_CONFIGURATION_HPP
 #define TINYPLAY_CONFIGURATION_HPP
 
+#include <orm/macros/threadlocal.hpp>
 #include <orm/support/databaseconfiguration.hpp>
 
 namespace TinyPlay
@@ -63,7 +64,7 @@ namespace TinyPlay
 
         /*! Connections to count on statements and execution times, computed
             at runtime. */
-        thread_local
+        T_THREAD_LOCAL
         inline static QStringList
         CONNECTIONS_TO_COUNT {};
 

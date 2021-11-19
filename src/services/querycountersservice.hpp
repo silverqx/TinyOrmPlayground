@@ -8,6 +8,7 @@
 #include <mutex>
 #include <unordered_map>
 
+#include <orm/macros/threadlocal.hpp>
 #include <orm/types/statementscounter.hpp>
 
 namespace TinyPlay
@@ -108,17 +109,17 @@ namespace Services
 
         /* Counters for the Application Summary for the current thread */
         /*! Functions execution time for the whole for the current thread. */
-        thread_local
+        T_THREAD_LOCAL
         inline static qint64 m_threadFunctionsElapsed = 0;
         /*! Queries execution time for the current thread. */
-        thread_local
+        T_THREAD_LOCAL
         inline static qint64 m_threadQueriesElapsed = 0;
         /*! Counts executed statements in the current thread. */
-        thread_local
+        T_THREAD_LOCAL
         inline static StatementsCounter m_threadStatementsCounter {0, 0, 0};
         /*! Indicates whether changes have been made on any counted database connection
             in the current thread. */
-        thread_local
+        T_THREAD_LOCAL
         inline static bool m_threadRecordsHaveBeenModified = false;
 
         /* Whole application Counters for the Application Summary */

@@ -6,11 +6,13 @@
 
 #include <vector>
 
+#include <orm/macros/threadlocal.hpp>
+
 namespace TinyPlay::Support
 {
 
     /*! Determine whether currently running in a thread. */
-    thread_local
+    T_THREAD_LOCAL
     inline bool g_inThread = false;
 
     /*! One log message from custom message handler. */
@@ -23,7 +25,7 @@ namespace TinyPlay::Support
     };
 
     /*! All log messages from a current thread. */
-    thread_local
+    T_THREAD_LOCAL
     inline std::vector<MessageLogItem> g_logFromThread {};
 
 } // namespace TinyPlay::Support
