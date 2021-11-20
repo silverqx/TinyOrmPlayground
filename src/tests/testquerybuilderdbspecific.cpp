@@ -6,7 +6,7 @@
 #include <orm/db.hpp>
 #include <orm/query/querybuilder.hpp>
 
-#include "testorm.hpp"
+#include "configuration.hpp"
 
 namespace TinyPlay::Tests
 {
@@ -42,7 +42,7 @@ void TestQueryBuilderDbSpecific::run() const
         qt_noop();
     }
 
-    logQueryCounters(__FUNCTION__, timer.elapsed());
+    logQueryCounters(timer.elapsed());
 }
 
 } // namespace TinyPlay::Tests

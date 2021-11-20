@@ -11,7 +11,6 @@
 #include <orm/db.hpp>
 #include <orm/version.hpp>
 
-#include "testorm.hpp"
 #include "version.hpp"
 
 // BUG this causes crash of code model after upgrade to QtCreator 5 with clang 12 silverqx
@@ -87,7 +86,7 @@ void TestForPlay::run() const
 ////                     << "name :" << user.getAttribute("name").value<QString>();
 
         // Log summary counters if needed
-//        logQueryCounters(__FUNCTION__, timer.elapsed());
+//        logQueryCounters(timer.elapsed());
 //        return;
 
         qt_noop();
@@ -190,7 +189,7 @@ void TestForPlay::run() const
         qInfo() << "INNER (QString)    :" << INNER;
     }
 
-    logQueryCounters(__FUNCTION__, timer.elapsed());
+    logQueryCounters(timer.elapsed());
 }
 
 } // namespace TinyPlay::Tests

@@ -6,11 +6,10 @@
 #include <orm/db.hpp>
 #include <orm/query/joinclause.hpp>
 
-#include "macros.hpp"
 #include "models/torrent.hpp"
 #include "models/torrenteager.hpp"
 
-#include "testorm.hpp"
+#include "macros.hpp"
 
 // clazy:excludeall=unused-non-trivial-variable
 
@@ -2025,7 +2024,7 @@ void TestTinyOrm::run() const
         qt_noop();
     }
 
-    logQueryCounters(__FUNCTION__, timer.elapsed());
+    logQueryCounters(timer.elapsed());
 }
 
 } // namespace TinyPlay::Tests

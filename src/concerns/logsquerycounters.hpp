@@ -31,9 +31,12 @@ namespace Concerns
         inline virtual ~LogsQueryCounters() = default;
 
         /*! Log queries execution time counter and Query statements counter. */
-        void logQueryCounters(
-                const QString &func,
-                std::optional<qint64> functionElapsed = std::nullopt) const;
+        void
+        logQueryCounters(const QString &func,
+                         std::optional<qint64> functionElapsed = std::nullopt) const;
+        /*! Log queries execution time counter and Query statements counter. */
+        void
+        logQueryCounters(std::optional<qint64> functionElapsed = std::nullopt) const;
         /*! Reset all counters on counted connections. */
         void resetAllQueryLogCounters() const;
 

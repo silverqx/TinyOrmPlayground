@@ -7,8 +7,6 @@
 #include <orm/query/joinclause.hpp>
 #include <orm/query/querybuilder.hpp>
 
-#include "testorm.hpp"
-
 // clazy:excludeall=unused-non-trivial-variable
 
 namespace TinyPlay::Tests
@@ -780,7 +778,7 @@ void TestQueryBuilder::run() const
         qt_noop();
     }
 
-    logQueryCounters(__FUNCTION__, timer.elapsed());
+    logQueryCounters(timer.elapsed());
 }
 
 } // namespace TinyPlay::Tests

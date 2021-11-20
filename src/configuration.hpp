@@ -2,6 +2,10 @@
 #ifndef TINYPLAY_CONFIGURATION_HPP
 #define TINYPLAY_CONFIGURATION_HPP
 
+#ifdef __linux__
+#include <QDir>
+#endif
+
 #include <orm/macros/threadlocal.hpp>
 #include <orm/support/databaseconfiguration.hpp>
 
@@ -35,15 +39,19 @@ namespace TinyPlay
         /*! Default constructor. */
         inline Configuration() = default;
 
-        /*! Get configurations hash with all connections. */
-        const OrmConfigurationsType &initConfigurations() const;
+        /*! Get DB connection configurations hash with all connections. */
+        const OrmConfigurationsType &initDBConfigurations() const;
+
+        /*! Return true if TinyOrmPlayground was built with debugging enabled, or
+            false for release mode. */
+        static bool isDebugBuild();
 
         /*! Path to the SQLite database file, for testing the 'check_database_exists'
             configuration option. */
         const QString CheckDatabaseExistsFile {initCheckDatabaseExistsFile()};
 
         /*! All connections configurations. */
-        const OrmConfigurationsType Configurations {initConfigurations()};
+        const OrmConfigurationsType Configurations {initDBConfigurations()};
 
         /*! Run connections defined in the ConnectionsToRunInThread in threads. */
         const bool ConnectionsInThreads = true;
@@ -51,7 +59,12 @@ namespace TinyPlay
         /*! Whether log output from connections in threads to a file or to the console. */
         const bool IsLoggingToFile = true;
         /*! Filepath to the log file for connections in threads. */
-        inline static const QString LogFilepath {"E:/tmp/tinyplay.txt"};
+        inline static const QString LogFilepath
+#ifdef __linux__
+        {QDir::home().absoluteFilePath("Code/tmp/tinyplay.txt")};
+#else
+        {"E:/tmp/tinyplay.txt"};
+#endif
 
         /*! Connections, for which the testQueryBuilder() and testTinyOrm()
             will be ran on. */

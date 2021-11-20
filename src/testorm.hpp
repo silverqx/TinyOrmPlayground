@@ -48,6 +48,9 @@ namespace TinyPlay
         /*! Throw if connectToDatabase() was already called. */
         void throwIfAlreadyCalled() const;
 
+        /*! Throw when unsupported environment detected. */
+        void throwIfUnsupportedEnv() const;
+
         /*! Configuration for TinyOrmPlayground. */
         Configuration m_config {};
         /*! Database connection configurations service. */

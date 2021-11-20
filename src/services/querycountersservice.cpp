@@ -164,14 +164,14 @@ void QueryCountersService::saveCountersForAppSummary(const ThreadName &threadNam
 }
 
 void QueryCountersService::logQueryCounters(const QString &func,
-                                          const std::optional<qint64> functionElapsed)
+                                            const std::optional<qint64> functionElapsed)
 {
     // Header with the function execution time
     const auto line = QString("-").repeated(13 + func.size());
 
     // Function elapsed execution time
     qInfo().noquote().nospace() << "\n" << line;
-    qInfo().noquote().nospace() << "Function - " << func << "()";
+    qInfo().noquote().nospace() << "PlayTest - " << func << "()";
     qInfo().noquote().nospace() << line;
 
     // BUG emoji icons take two chars silverqx

@@ -1,7 +1,6 @@
 #include "tests/testallothertests.hpp"
 
 #include <QDebug>
-#include <QLibraryInfo>
 #include <QStandardPaths>
 
 #if defined(__cpp_lib_format) && __cpp_lib_format >= 201907
@@ -20,7 +19,7 @@
 
 #include <orm/db.hpp>
 
-#include "testorm.hpp"
+#include "configuration.hpp"
 
 using json = nlohmann::json;
 
@@ -36,6 +35,11 @@ void TestAllOtherTests::run() const
 
 void TestAllOtherTests::jsonConfig() const
 {
+    qInfo().nospace()
+            << "\n\n=================="
+            << "\n  nlohmann::json  "
+            << "\n==================\n\n";
+
 //    {
 //        auto j = R"(
 //{
@@ -129,13 +133,20 @@ void TestAllOtherTests::jsonConfig() const
 
 //        qt_noop();
 //    }
+
+    std::cout << std::endl;
 }
 
 void TestAllOtherTests::standardPaths() const
 {
     // Exclude from prod. builds for better performance measurement accuracy
-    if (!QLibraryInfo::isDebugBuild())
+    if (!Configuration::isDebugBuild())
         return;
+
+    qInfo().nospace()
+            << "\n\n=================="
+            << "\n  QStandardPaths  "
+            << "\n==================\n\n";
 
     qDebug() << QStandardPaths::displayName(QStandardPaths::AppDataLocation);
     qDebug() << QStandardPaths::displayName(QStandardPaths::AppLocalDataLocation);

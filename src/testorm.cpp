@@ -2,6 +2,8 @@
 
 #include <QDateTime>
 
+#include <thread>
+
 #include <orm/db.hpp>
 #include <orm/exceptions/invalidargumenterror.hpp>
 #include <orm/utils/thread.hpp>
@@ -17,6 +19,7 @@
 
 using Orm::Exceptions::InvalidArgumentError;
 using Orm::Exceptions::LogicError;
+using Orm::Exceptions::RuntimeError;
 using Orm::Utils::Thread;
 
 using TinyPlay::Support::Utils;
@@ -69,6 +72,9 @@ TestOrm &TestOrm::run()
 {
     // Test intended for play
     Tests::TestForPlay(m_config, m_queryCountersService).run();
+
+    // Throw when unsupported environment detected
+    throwIfUnsupportedEnv();
 
     // All other tests
     Tests::TestAllOtherTests(m_config, m_queryCountersService).run();
@@ -183,6 +189,18 @@ void TestOrm::throwIfAlreadyCalled() const
 {
     if (m_db != nullptr)
         throw LogicError("TestOrm::connectToDatabase() can be called only once.");
+}
+
+void TestOrm::throwIfUnsupportedEnv() const
+{
+#if defined(__clang__) && !defined(__MINGW32__)
+    throw RuntimeError("Clang 13 on Linux is not supported because of TLS wrapper bugs "
+                       "and crashes.");
+#elif defined(__GNUG__) && !defined(__clang__) && defined(__MINGW32__)
+    throw RuntimeError(
+                "GCC on MinGW is not supported because of TLS wrapper bugs, problems "
+                "with duplicit TLS wrappers during linkage with ld 2.3.7 or lld 13.");
+#endif
 }
 
 } // namespace TinyPlay

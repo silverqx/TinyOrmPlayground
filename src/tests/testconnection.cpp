@@ -8,8 +8,8 @@
 #include <orm/exceptions/invalidargumenterror.hpp>
 #include <orm/mysqlconnection.hpp>
 
+#include "configuration.hpp"
 #include "macros.hpp"
-#include "testorm.hpp"
 
 using Orm::Exceptions::InvalidArgumentError;
 using Orm::MySqlConnection;
@@ -102,7 +102,7 @@ void TestConnection::run() const
         Q_ASSERT(!QFile::exists(m_config.CheckDatabaseExistsFile));
     }
 
-    logQueryCounters(__FUNCTION__, timer.elapsed());
+    logQueryCounters(timer.elapsed());
 }
 
 } // namespace TinyPlay::Tests

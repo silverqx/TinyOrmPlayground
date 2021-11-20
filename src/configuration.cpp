@@ -6,6 +6,8 @@
 
 #include <orm/constants.hpp>
 
+#include "config.hpp"
+
 using Orm::Constants::H127001;
 using Orm::Constants::P3306;
 using Orm::Constants::P5432;
@@ -37,7 +39,7 @@ using Orm::Constants::username_;
 namespace TinyPlay
 {
 
-const Configuration::OrmConfigurationsType &Configuration::initConfigurations() const
+const Configuration::OrmConfigurationsType &Configuration::initDBConfigurations() const
 {
     static const QVariantHash mysqlConnection {
         {driver_,    QMYSQL},
@@ -142,6 +144,15 @@ const Configuration::OrmConfigurationsType &Configuration::initConfigurations() 
     };
 
     return cached;
+}
+
+bool Configuration::isDebugBuild()
+{
+#ifdef TINYPLAY_DEBUG
+    return true;
+#else
+    return false;
+#endif
 }
 
 QString Configuration::initCheckDatabaseExistsFile()
