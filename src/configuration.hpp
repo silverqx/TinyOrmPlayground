@@ -24,17 +24,15 @@ namespace TinyPlay
 
     public:
         /* Database connection names */
-        inline static const QString MYSQL            = QStringLiteral("mysql");
-        inline static const QString MYSQL_ALT        = QStringLiteral("mysql_alt");
-        inline static const QString MYSQL_MAINTHREAD = QStringLiteral("mysql_mainthread");
-        inline static const QString MYSQL_LARAVEL8   = QStringLiteral("mysql_laravel8");
-        inline static const QString POSTGRES         = QStringLiteral("postgres");
-        inline static const QString SQLITE           = QStringLiteral("sqlite");
-        inline static const QString SQLITE_MEMORY    = QStringLiteral("sqlite_memory");
-        inline static const QString
-        SQLITE_CHECK_EXISTS_TRUE  = QStringLiteral("sqlite_check_exists_true");
-        inline static const QString
-        SQLITE_CHECK_EXISTS_FALSE = QStringLiteral("sqlite_check_exists_false");
+        static const QString Mysql;
+        static const QString Mysql_Alt;
+        static const QString Mysql_MainThread;
+        static const QString Mysql_Laravel8;
+        static const QString Postgres;
+        static const QString Sqlite;
+        static const QString Sqlite_Memory;
+        static const QString Sqlite_CheckExistsTrue;
+        static const QString Sqlite_CheckExistsFalse;
 
         /*! Default constructor. */
         inline Configuration() = default;
@@ -44,7 +42,7 @@ namespace TinyPlay
 
         /*! Return true if TinyOrmPlayground was built with debugging enabled, or
             false for release mode. */
-        static bool isDebugBuild();
+        constexpr static bool isDebugBuild();
 
         /*! Path to the SQLite database file, for testing the 'check_database_exists'
             configuration option. */
@@ -54,10 +52,10 @@ namespace TinyPlay
         const OrmConfigurationsType Configurations {initDBConfigurations()};
 
         /*! Run connections defined in the ConnectionsToRunInThread in threads. */
-        const bool ConnectionsInThreads = true;
+        constexpr static const bool ConnectionsInThreads = true;
 
         /*! Whether log output from connections in threads to a file or to the console. */
-        const bool IsLoggingToFile = true;
+        constexpr static const bool IsLoggingToFile = true;
         /*! Filepath to the log file for connections in threads. */
         inline static const QString LogFilepath
 #ifdef __linux__
@@ -68,37 +66,37 @@ namespace TinyPlay
 
         /*! Connections, for which the testQueryBuilder() and testTinyOrm()
             will be ran on. */
-        inline static const QStringList
-//    CONNECTIONS_TO_TEST {MYSQL};
-        CONNECTIONS_TO_TEST {MYSQL, SQLITE, POSTGRES};
+        const QStringList
+        ConnectionsToTest {Mysql, Sqlite, Postgres};
+//        ConnectionsToTest {Mysql};
 
         /*! Which connections will run in separate threads, one connection per thread. */
-        QStringList ConnectionsToRunInThread {MYSQL, SQLITE, POSTGRES};
+        QStringList ConnectionsToRunInThread {Mysql, Sqlite, Postgres};
 
         /*! Connections to count on statements and execution times, computed
             at runtime. */
         T_THREAD_LOCAL
         inline static QStringList
-        CONNECTIONS_TO_COUNT {};
+        ConnectionsToCount {};
 
         /*! All countable connections. */
         const QStringList CountableConnections {
-            MYSQL, MYSQL_ALT, MYSQL_MAINTHREAD,
-            SQLITE, SQLITE_MEMORY,
-            POSTGRES
+            Mysql, Mysql_Alt, Mysql_MainThread,
+            Sqlite, Sqlite_Memory,
+            Postgres
         };
         /*! Connections that can run in a thread, so they are removable in the context
-            of Configuration::CONNECTIONS_TO_COUNT/m_config.CountableConnections. */
-        const QStringList RemovableConnections {MYSQL, SQLITE, POSTGRES};
+            of Configuration::ConnectionsToCount/m_config.CountableConnections. */
+        const QStringList RemovableConnections {Mysql, Sqlite, Postgres};
 
         /*! Map of connection name to more related connections. */
         const std::unordered_map<QString, QStringList> ConnectionsMap {
-            {MYSQL, {MYSQL, MYSQL_ALT}},
+            {Mysql, {Mysql, Mysql_Alt}},
         };
         /*! Map real connection name to mapped connection name. */
         const std::unordered_map<QString, QString> ConnectionsMapReverse {
-            {MYSQL,     MYSQL},
-            {MYSQL_ALT, MYSQL},
+            {Mysql,     Mysql},
+            {Mysql_Alt, Mysql},
         };
 
         /*! MySQL connection name used in the main thread, based on whether
@@ -113,6 +111,15 @@ namespace TinyPlay
             is enabled to avoid collision in connection names. */
         const QString &initMySqlMainThreadConnection() const;
     };
+
+    constexpr bool Configuration::isDebugBuild()
+    {
+#ifdef TINYPLAY_DEBUG
+        return true;
+#else
+        return false;
+#endif
+    }
 
 } // namespace TinyPlay
 

@@ -79,7 +79,7 @@ namespace Services
         /*! Obtain mapped connections for a given connection. */
         QStringList getMappedConnections(const QString &connection) const;
 
-        /*! Allow to remove a connection from Configuration::CONNECTIONS_TO_TEST only and
+        /*! Allow to remove a connection from Configuration::ConnectionsToTest only and
             m_config.ConnectionsToRunInThread will be updated properly. */
         void santizeConnectionsToRunInThread();
 

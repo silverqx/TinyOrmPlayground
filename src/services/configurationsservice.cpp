@@ -17,7 +17,7 @@ ConfigurationsService::OrmConfigurationsType
 ConfigurationsService::computeConfigurationsToAdd(const QString &connection)
 {
     // Connections in threads are disabled
-    if (!m_config.ConnectionsInThreads)
+    if constexpr (!Configuration::ConnectionsInThreads)
         return configurationsWhenSingleThread();
 
     // All below - Connections in threads are enabled

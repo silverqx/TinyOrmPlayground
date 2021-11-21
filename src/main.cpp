@@ -2,7 +2,7 @@
 #include <QDebug>
 #include <QElapsedTimer>
 
-#ifdef _MSC_VER
+#ifdef _WIN32
 #include <qt_windows.h>
 #endif
 
@@ -19,7 +19,7 @@ using TinyPlay::Support::Utils;
 
 int main(int /*unused*/, char */*unused*/[])
 {
-#ifdef _MSC_VER
+#ifdef _WIN32
     SetConsoleOutputCP(CP_UTF8);
 //    SetConsoleOutputCP(1250);
 #endif

@@ -140,7 +140,7 @@ void TestAllOtherTests::jsonConfig() const
 void TestAllOtherTests::standardPaths() const
 {
     // Exclude from prod. builds for better performance measurement accuracy
-    if (!Configuration::isDebugBuild())
+    if constexpr (!Configuration::isDebugBuild())
         return;
 
     qInfo().nospace()

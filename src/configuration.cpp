@@ -39,6 +39,18 @@ using Orm::Constants::username_;
 namespace TinyPlay
 {
 
+const QString Configuration::Mysql            = QStringLiteral("mysql");
+const QString Configuration::Mysql_Alt        = QStringLiteral("mysql_alt");
+const QString Configuration::Mysql_MainThread = QStringLiteral("mysql_mainthread");
+const QString Configuration::Mysql_Laravel8   = QStringLiteral("mysql_laravel8");
+const QString Configuration::Postgres         = QStringLiteral("postgres");
+const QString Configuration::Sqlite           = QStringLiteral("sqlite");
+const QString Configuration::Sqlite_Memory    = QStringLiteral("sqlite_memory");
+const QString
+Configuration::Sqlite_CheckExistsTrue  = QStringLiteral("sqlite_check_exists_true");
+const QString
+Configuration::Sqlite_CheckExistsFalse = QStringLiteral("sqlite_check_exists_false");
+
 const Configuration::OrmConfigurationsType &Configuration::initDBConfigurations() const
 {
     static const QVariantHash mysqlConnection {
@@ -61,18 +73,18 @@ const Configuration::OrmConfigurationsType &Configuration::initDBConfigurations(
 
     static const OrmConfigurationsType cached {
         // Main MySQL connection in test loop
-        {MYSQL, mysqlConnection},
+        {Mysql, mysqlConnection},
 
         // Used in the Torrent model as u_connection
-        {MYSQL_ALT, mysqlConnection},
+        {Mysql_Alt, mysqlConnection},
 
         /* Used as MySQL connection name in the main thread when connections in threads
            is enabled to avoid MySQL connection name collision. */
-        {MYSQL_MAINTHREAD, mysqlConnection},
+        {Mysql_MainThread, mysqlConnection},
 
         /* Used in the testQueryBuilderDbSpecific() only to test a cross-database query,
            a connection to the "laravel_8" database. */
-        {MYSQL_LARAVEL8, {
+        {Mysql_Laravel8, {
             {driver_,    QMYSQL},
             {host_,      qEnvironmentVariable("DB_MYSQL_LARAVEL_HOST", H127001)},
             {port_,      qEnvironmentVariable("DB_MYSQL_LARAVEL_PORT", P3306)},
@@ -90,7 +102,7 @@ const Configuration::OrmConfigurationsType &Configuration::initDBConfigurations(
         }},
 
         // Main SQLite connection in test loop
-        {SQLITE, {
+        {Sqlite, {
             {driver_,    QSQLITE},
             {database_,  qEnvironmentVariable("DB_SQLITE_DATABASE", "")},
             {prefix_,    ""},
@@ -101,7 +113,7 @@ const Configuration::OrmConfigurationsType &Configuration::initDBConfigurations(
         }},
 
         // Used in the testConnection() only to test SQLite :memory: driver
-        {SQLITE_MEMORY, {
+        {Sqlite_Memory, {
             {driver_,    QSQLITE},
             {database_,  QStringLiteral(":memory:")},
             {prefix_,    ""},
@@ -112,7 +124,7 @@ const Configuration::OrmConfigurationsType &Configuration::initDBConfigurations(
 
         /* Used in the testConnection() only to test behavior when the configuration
            option check_database_exists = true. */
-        {SQLITE_CHECK_EXISTS_TRUE, {
+        {Sqlite_CheckExistsTrue, {
             {driver_,    QSQLITE},
             {database_,  CheckDatabaseExistsFile},
             {check_database_exists, true},
@@ -120,14 +132,14 @@ const Configuration::OrmConfigurationsType &Configuration::initDBConfigurations(
 
         /* Used in the testConnection() only to test behavior when the configuration
            option check_database_exists = true. */
-        {SQLITE_CHECK_EXISTS_FALSE, {
+        {Sqlite_CheckExistsFalse, {
             {driver_,    QSQLITE},
             {database_,  CheckDatabaseExistsFile},
             {check_database_exists, false},
         }},
 
         // Main PostgreSQL connection in test loop
-        {POSTGRES, {
+        {Postgres, {
             {driver_,   QPSQL},
             {host_,     qEnvironmentVariable("DB_PGSQL_HOST",     H127001)},
             {port_,     qEnvironmentVariable("DB_PGSQL_PORT",     P5432)},
@@ -146,15 +158,6 @@ const Configuration::OrmConfigurationsType &Configuration::initDBConfigurations(
     return cached;
 }
 
-bool Configuration::isDebugBuild()
-{
-#ifdef TINYPLAY_DEBUG
-    return true;
-#else
-    return false;
-#endif
-}
-
 QString Configuration::initCheckDatabaseExistsFile()
 {
     auto path = qEnvironmentVariable("DB_SQLITE_DATABASE", "");
@@ -170,7 +173,7 @@ QString Configuration::initCheckDatabaseExistsFile()
 
 const QString &Configuration::initMySqlMainThreadConnection() const
 {
-    static const QString cached = ConnectionsInThreads ? MYSQL_MAINTHREAD : MYSQL;
+    static const QString cached = ConnectionsInThreads ? Mysql_MainThread : Mysql;
 
     return cached;
 }

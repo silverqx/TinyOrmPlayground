@@ -64,21 +64,21 @@ QStringList QueryCountersService::computeConnectionsToCount(const QString &conne
 void QueryCountersService::enableAllQueryLogCounters() const
 {
     // Create connections eagerly, so I can enable counters
-    for (const auto &connection : std::as_const(Configuration::CONNECTIONS_TO_COUNT))
+    for (const auto &connection : std::as_const(Configuration::ConnectionsToCount))
         DB::connection(connection);
 
     // BUG also decide how to behave when connection is not created and user enable counters silverqx
     // Enable counters on all database connections
-    DB::enableElapsedCounters(Configuration::CONNECTIONS_TO_COUNT);
-    DB::enableStatementCounters(Configuration::CONNECTIONS_TO_COUNT);
+    DB::enableElapsedCounters(Configuration::ConnectionsToCount);
+    DB::enableStatementCounters(Configuration::ConnectionsToCount);
 }
 
 void QueryCountersService::resetAllQueryLogCounters() const
 {
-    DB::resetElapsedCounters(Configuration::CONNECTIONS_TO_COUNT);
-    DB::resetStatementCounters(Configuration::CONNECTIONS_TO_COUNT);
+    DB::resetElapsedCounters(Configuration::ConnectionsToCount);
+    DB::resetStatementCounters(Configuration::ConnectionsToCount);
 
-    for (const auto &connection : std::as_const(Configuration::CONNECTIONS_TO_COUNT))
+    for (const auto &connection : std::as_const(Configuration::ConnectionsToCount))
         DB::forgetRecordModificationState(connection);
 }
 
@@ -124,19 +124,22 @@ void QueryCountersService::saveLogsFromThread(const ThreadName &threadName) cons
 {
     std::scoped_lock lock(mx_dataLogStream);
 
-    /* Log to the file/std::vector, when logging to the file is disabled then
+    // Log to the file
+    if constexpr (Configuration::IsLoggingToFile) {
+        logThreadStream << Support::g_logFromThread;
+
+        return;
+    }
+
+    /* Log to the std::vector, when logging to the file is disabled then
        the output will be logged to the console at the end of testAllConnections()
        to not pollute the console log. */
-    if (m_config.IsLoggingToFile)
-        logThreadStream << Support::g_logFromThread;
-    else {
 #ifdef __clang__
-        logsFromThreads.push_back({threadName, Support::g_logFromThread});
+    logsFromThreads.push_back({threadName, Support::g_logFromThread});
 #else
-        logsFromThreads.emplace_back(threadName, Support::g_logFromThread);
+    logsFromThreads.emplace_back(threadName, Support::g_logFromThread);
 #endif
-        logsFromThreadsMap.emplace(threadName, logsFromThreads.size());
-    }
+    logsFromThreadsMap.emplace(threadName, logsFromThreads.size());
 }
 
 void QueryCountersService::replayThrdLogToConsole()
@@ -196,7 +199,7 @@ void QueryCountersService::logQueryCounters(const QString &func,
 
     // Log all connections
     for (const auto &connectionName :
-         std::as_const(Configuration::CONNECTIONS_TO_COUNT)
+         std::as_const(Configuration::ConnectionsToCount)
     ) {
         auto &connection = DB::connection(connectionName);
 
@@ -298,9 +301,13 @@ void QueryCountersService::logQueryCountersBlock(
     }
 
     // Threads mode (needed in the InvokeXTimes.ps1 script)
-    if (loggingAppSummary)
-        qInfo() << "♆ Threads mode             :"
-                << (m_config.ConnectionsInThreads ? "multi-thread" : "single-thread");
+    if (loggingAppSummary) {
+        constexpr const char *threadMode =
+                Configuration::ConnectionsInThreads ? "multi-thread"
+                                                    : "single-thread";
+
+        qInfo() << "♆ Threads mode             :" << threadMode;
+    }
 
     // Counted connections
     if (title.contains("Summary")) {
@@ -353,10 +360,10 @@ QStringList QueryCountersService::computeConnectionsToCountForMainThread() const
                                        : connection;
 
         return !m_config.RemovableConnections.contains(mappedConnection) ||
-                (!m_config.ConnectionsInThreads &&
-                 Configuration::CONNECTIONS_TO_TEST.contains(mappedConnection)) ||
-                (m_config.ConnectionsInThreads &&
-                 Configuration::CONNECTIONS_TO_TEST.contains(mappedConnection) &&
+                (!Configuration::ConnectionsInThreads &&
+                 m_config.ConnectionsToTest.contains(mappedConnection)) ||
+                (Configuration::ConnectionsInThreads &&
+                 m_config.ConnectionsToTest.contains(mappedConnection) &&
                  !m_config.ConnectionsToRunInThread.contains(mappedConnection));
     });
 
@@ -383,14 +390,14 @@ QStringList QueryCountersService::getMappedConnections(const QString &connection
 
 void QueryCountersService::santizeConnectionsToRunInThread()
 {
-    if (!m_config.ConnectionsInThreads)
+    if constexpr (!Configuration::ConnectionsInThreads)
         return;
 
     const auto removeEnd = std::remove_if(m_config.ConnectionsToRunInThread.begin(), // clazy:exclude=detaching-member
                                           m_config.ConnectionsToRunInThread.end(), // clazy:exclude=detaching-member
-                                          [](const auto &connection)
+                                          [this](const auto &connection)
     {
-        return !Configuration::CONNECTIONS_TO_TEST.contains(connection);
+        return !m_config.ConnectionsToTest.contains(connection);
     });
 
     m_config.ConnectionsToRunInThread.erase(removeEnd,
@@ -405,7 +412,7 @@ void QueryCountersService::initThreadLogging() const
 
 void QueryCountersService::openLogFile() const
 {
-    if (!m_config.ConnectionsInThreads || !m_config.IsLoggingToFile)
+    if constexpr (!Configuration::ConnectionsInThreads || !Configuration::IsLoggingToFile)
         return;
 
     if (!logFile.open(QFile::WriteOnly | QFile::Truncate))
@@ -456,7 +463,7 @@ const QStringList &
 QueryCountersService::countedConnectionsPrintable(const bool loggingAppSummary) const
 {
     if (!loggingAppSummary)
-        return Configuration::CONNECTIONS_TO_COUNT;
+        return Configuration::ConnectionsToCount;
 
     static const QStringList cachedCountedConnections = appCountedConnectionsPrintable();
     return cachedCountedConnections;
@@ -477,7 +484,7 @@ QStringList QueryCountersService::appCountedConnectionsPrintable() const
                                        : connection;
 
         return !m_config.RemovableConnections.contains(mappedConnection) ||
-                Configuration::CONNECTIONS_TO_TEST.contains(mappedConnection);
+                m_config.ConnectionsToTest.contains(mappedConnection);
     });
 
     return countedConnections;
@@ -493,9 +500,11 @@ void QueryCountersService::throwIfInThread() const
 
 void QueryCountersService::throwIfConnsToRunEmpty() const
 {
-    if (m_config.ConnectionsInThreads && m_config.ConnectionsToRunInThread.isEmpty())
+    if (Configuration::ConnectionsInThreads &&
+        m_config.ConnectionsToRunInThread.isEmpty()
+    )
         throw LogicError(
-                "m_config.ConnectionsInThreads = true but "
+                "Configuration::ConnectionsInThreads = true but "
                 "m_config.ConnectionsToRunInThread is empty.");
 }
 
@@ -671,7 +680,7 @@ QueryCountersService::getAppCountersPrintable(
         const bool recordsHaveBeenModified) const
 {
     // CUR improve this, it looks terrible, because function arguments are not used silverqx
-    if (isAppSummary && m_config.ConnectionsInThreads)
+    if (isAppSummary && Configuration::ConnectionsInThreads)
         return {
             appElapsedCounterPrintable(m_appFunctionsElapsed),
             appElapsedCounterPrintable(m_appQueriesElapsed),

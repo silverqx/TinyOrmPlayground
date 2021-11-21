@@ -19,7 +19,6 @@
 
 using Orm::Exceptions::InvalidArgumentError;
 using Orm::Exceptions::LogicError;
-using Orm::Exceptions::RuntimeError;
 using Orm::Utils::Thread;
 
 using TinyPlay::Support::Utils;
@@ -30,7 +29,8 @@ using TinyPlay::Support::Utils;
 
    Performance:
    ---
-   - only on MySQL connection CONNECTIONS_TO_TEST {mysql} and ms are best values I saw
+   - only on MySQL connection Configuration::ConnectionsToTest {Mysql} and ms are best
+     values I saw:
      - 13. jul 2021 ( 325 queries executed, TinyORM 749c4014 )
        - Qt 5.15.2 ; msvc 16.10 x64
          - debug build
@@ -39,13 +39,17 @@ using TinyPlay::Support::Utils;
          - prod. build with disabled debug output ( QT_NO_DEBUG_OUTPUT )
            - under 413ms all functions
            - 247ms all queries
-         - tst_model prod. build on MySQL connection only ( createConnections({MYSQL}) )
+         - tst_model prod. build on MySQL connection only ( createConnections({Mysql}) )
            - 181ms
      - 10. oct 2021 ( 621 queries executed, TinyORM 878bb1f0 )
        - Qt 5.15.2 ; msvc 16.11.4 x64
          - prod. build LTO with disabled debug output ( QT_NO_DEBUG_OUTPUT )
            - around 670ms / min. 630ms all functions
            - around 350ms / min. 305ms all queries
+   - InvokeXTimes.ps1 100
+     - 21. nov 2021 ( multi-thread, all connections )
+       - Qt 5.15.2 ; msvc 16.11.7 x64
+         - 1331ms debug build
 */
 
 namespace TinyPlay
@@ -59,7 +63,7 @@ TestOrm &TestOrm::connectToDatabase()
        mysql default database connection. */
     m_db = DB::create(m_configurationsService.computeConfigurationsToAdd(), "mysql");
 
-    Configuration::CONNECTIONS_TO_COUNT =
+    Configuration::ConnectionsToCount =
             m_queryCountersService.computeConnectionsToCount();
 
     // Enable counters on all database connections
@@ -109,9 +113,9 @@ void TestOrm::testAllConnections()
         // To join threads at the current block
         std::vector<std::jthread> threads;
 
-        for (const auto &connection : Configuration::CONNECTIONS_TO_TEST) {
+        for (const auto &connection : m_config.ConnectionsToTest) {
             // Run connection in the worker thread
-            if (m_config.ConnectionsInThreads &&
+            if (Configuration::ConnectionsInThreads &&
                 m_config.ConnectionsToRunInThread.contains(connection)
             ) {
                 threads.emplace_back(&TestOrm::testConnectionInWorkerThread, this,
@@ -127,7 +131,7 @@ void TestOrm::testAllConnections()
     // Restore default connection
     DB::setDefaultConnection("mysql");
 
-    if (!m_config.IsLoggingToFile)
+    if constexpr (!Configuration::IsLoggingToFile)
         m_queryCountersService.replayThrdLogToConsole();
 }
 
@@ -153,7 +157,7 @@ void TestOrm::testConnectionInWorkerThread(const QString &connection)
 
         DB::setDefaultConnection(connection);
 
-        Configuration::CONNECTIONS_TO_COUNT =
+        Configuration::ConnectionsToCount =
                 m_queryCountersService.computeConnectionsToCount(connection);
 
         // Enable counters on all database connections to count
@@ -193,11 +197,17 @@ void TestOrm::throwIfAlreadyCalled() const
 
 void TestOrm::throwIfUnsupportedEnv() const
 {
+    /* thread_local is not used on unsupported compilers, T_THREAD_LOCAL macro is empty
+       in this case, so running TinyPlay in single thread works good on all compilers. */
+    if constexpr (!Configuration::ConnectionsInThreads)
+        return;
+
 #if defined(__clang__) && !defined(__MINGW32__)
-    throw RuntimeError("Clang 13 on Linux is not supported because of TLS wrapper bugs "
-                       "and crashes.");
+    throw Orm::Exceptions::RuntimeError(
+                "Clang 13 on Linux is not supported because of TLS wrapper bugs "
+                "and crashes.");
 #elif defined(__GNUG__) && !defined(__clang__) && defined(__MINGW32__)
-    throw RuntimeError(
+    throw Orm::Exceptions::RuntimeError(
                 "GCC on MinGW is not supported because of TLS wrapper bugs, problems "
                 "with duplicit TLS wrappers during linkage with ld 2.3.7 or lld 13.");
 #endif
