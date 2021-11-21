@@ -1,6 +1,7 @@
 #include "services/querycountersservice.hpp"
 
 #include <QDebug>
+#include <QDir>
 #include <QFile>
 #include <QLibraryInfo>
 
@@ -8,6 +9,7 @@
 #include <orm/exceptions/invalidargumenterror.hpp>
 #include <orm/libraryinfo.hpp>
 #include <orm/macros/compilerdetect.hpp>
+#include <orm/utils/fs.hpp>
 #include <orm/version.hpp>
 
 #include "config.hpp"
@@ -24,6 +26,7 @@ using Orm::Exceptions::LogicError;
 using Orm::Exceptions::RuntimeError;
 
 using Orm::LibraryInfo;
+using Orm::Utils::Fs;
 
 using TinyPlay::Support::Utils;
 
@@ -85,7 +88,7 @@ void QueryCountersService::resetAllQueryLogCounters() const
 namespace
 {
     /*! Log file for log messages from threads. */
-    QFile logFile {Configuration::LogFilepath};
+    QFile logFile {Fs::resolveHome(Configuration::LogFilepath)};
     /*! Text stream for log messages from threads. */
     QTextStream logThreadStream;
 

@@ -26,6 +26,8 @@ using TinyPlay::Support::Utils;
 /*
    Notes:
    - text in [] names connection name, eg. [sqlite]
+   - InvokeXTimes.ps1 - Average execution times in single-threaded mode:
+     - F - Function, Q - Queries, A - TestOrm instance
 
    Performance:
    ---
@@ -46,10 +48,17 @@ using TinyPlay::Support::Utils;
          - prod. build LTO with disabled debug output ( QT_NO_DEBUG_OUTPUT )
            - around 670ms / min. 630ms all functions
            - around 350ms / min. 305ms all queries
-   - InvokeXTimes.ps1 100
-     - 21. nov 2021 ( multi-thread, all connections )
-       - Qt 5.15.2 ; msvc 16.11.7 x64
-         - 1331ms debug build
+   - InvokeXTimes.ps1 100 ( TinyPlay invoked 100 times, ms are average execution times,
+                            TinyORM 92dd1e33, TinyOrmPlayground eb11db93)
+     - 21. nov 2021 ( all connections )
+       - multi-thread
+         - Qt 5.15.2 ; msvc 16.11.7 x64
+           - debug build - 1331ms
+         - Qt 5.15.2 ; gcc 11.2 x64 on Gentoo
+           - debug build - 1064ms
+       - single-thread
+         - Qt 5.15.2 ; clang 12 x64 on Gentoo
+           - debug build - F - 2422ms ; Q - 993ms; A - 2429ms
 */
 
 namespace TinyPlay
@@ -202,9 +211,9 @@ void TestOrm::throwIfUnsupportedEnv() const
     if constexpr (!Configuration::ConnectionsInThreads)
         return;
 
-#if defined(__clang__) && !defined(__MINGW32__)
+#ifdef __clang__
     throw Orm::Exceptions::RuntimeError(
-                "Clang 13 on Linux is not supported because of TLS wrapper bugs "
+                "Clang 13 on Linux or MinGW is not supported because of TLS wrapper bugs "
                 "and crashes.");
 #elif defined(__GNUG__) && !defined(__clang__) && defined(__MINGW32__)
     throw Orm::Exceptions::RuntimeError(

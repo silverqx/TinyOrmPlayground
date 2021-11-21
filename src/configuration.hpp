@@ -52,14 +52,14 @@ namespace TinyPlay
         const OrmConfigurationsType Configurations {initDBConfigurations()};
 
         /*! Run connections defined in the ConnectionsToRunInThread in threads. */
-        constexpr static const bool ConnectionsInThreads = true;
+        constexpr static const bool ConnectionsInThreads = false;
 
         /*! Whether log output from connections in threads to a file or to the console. */
         constexpr static const bool IsLoggingToFile = true;
         /*! Filepath to the log file for connections in threads. */
-        inline static const QString LogFilepath
+        constexpr static const char *LogFilepath
 #ifdef __linux__
-        {QDir::home().absoluteFilePath("Code/tmp/tinyplay.txt")};
+        {"~/Code/tmp/tinyplay.txt"};
 #else
         {"E:/tmp/tinyplay.txt"};
 #endif
