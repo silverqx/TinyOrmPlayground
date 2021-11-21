@@ -50,15 +50,17 @@ using TinyPlay::Support::Utils;
            - around 350ms / min. 305ms all queries
    - InvokeXTimes.ps1 100 ( TinyPlay invoked 100 times, ms are average execution times,
                             TinyORM 92dd1e33, TinyOrmPlayground eb11db93)
-     - 21. nov 2021 ( all connections )
+     - 21. nov 2021 ( all connections, IsLoggingToFile = true )
        - multi-thread
          - Qt 5.15.2 ; msvc 16.11.7 x64
-           - debug build - 1331ms
+           - debug build - 1331ms x
          - Qt 5.15.2 ; gcc 11.2 x64 on Gentoo
-           - debug build - 1064ms
+           - debug build - 1064ms x
        - single-thread
          - Qt 5.15.2 ; clang 12 x64 on Gentoo
-           - debug build - F - 2422ms ; Q - 993ms; A - 2429ms
+           - debug build - F - 2422ms, Q - 993ms, A - 2429ms x
+         - Qt 5.15.2 ; clang 13 x64 on MSYS2 UCRT64
+           - debug build - F - 2935ms, Q - 1635ms, A - 2983ms x
 */
 
 namespace TinyPlay
