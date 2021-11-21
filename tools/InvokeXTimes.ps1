@@ -83,8 +83,13 @@ function Get-AverageElapsed {
     return $averageElapsed
 }
 
-Clear-Content InvokeXTimes-out.log
-Clear-Content InvokeXTimes-err.log
+# Empty logs content
+if (Test-Path -Path InvokeXTimes-out.log -PathType Leaf) {
+    Clear-Content InvokeXTimes-out.log
+}
+if (Test-Path -Path InvokeXTimes-err.log -PathType Leaf) {
+    Clear-Content InvokeXTimes-err.log
+}
 
 for ($i = 0; $i -lt $Count; $i++) {
     Write-Host "Running $($i + 1). time..." -NoNewline
