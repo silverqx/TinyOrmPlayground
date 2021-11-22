@@ -34,7 +34,7 @@ namespace TinyPlay::Services
 {
 
 QueryCountersService::QueryCountersService(Configuration &config)
-    : m_config(config)
+    : Service(config)
 {
     // Secure that the main thread will be first in all counters everytime
     newCountersForAppSummary("main");
@@ -52,7 +52,6 @@ void QueryCountersService::initConnsInThreadsTesting()
 
 QStringList QueryCountersService::computeConnectionsToCount(const QString &connection) const
 {
-    // CUR duplicate silverqx
     Utils::throwIfNonEmptyConn(connection);
     Utils::throwIfEmptyConn(connection);
 
@@ -381,14 +380,6 @@ QStringList
 QueryCountersService::computeConnectionsToCountForWorkerThread(const QString &connection) const
 {
     return getMappedConnections(connection);
-}
-
-QStringList QueryCountersService::getMappedConnections(const QString &connection) const
-{
-    if (m_config.ConnectionsMap.contains(connection))
-        return m_config.ConnectionsMap.find(connection)->second;
-
-    return {connection};
 }
 
 void QueryCountersService::santizeConnectionsToRunInThread()

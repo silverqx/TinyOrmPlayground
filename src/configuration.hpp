@@ -52,7 +52,7 @@ namespace TinyPlay
         const OrmConfigurationsType Configurations {initDBConfigurations()};
 
         /*! Run connections defined in the ConnectionsToRunInThread in threads. */
-        constexpr static const bool ConnectionsInThreads = false;
+        constexpr static const bool ConnectionsInThreads = true;
 
         /*! Whether log output from connections in threads to a file or to the console. */
         constexpr static const bool IsLoggingToFile = true;

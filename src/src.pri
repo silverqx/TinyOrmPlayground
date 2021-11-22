@@ -10,6 +10,7 @@ HEADERS += \
     $$PWD/macros.hpp \
     $$PWD/services/configurationsservice.hpp \
     $$PWD/services/querycountersservice.hpp \
+    $$PWD/services/service.hpp \
     $$PWD/support/globals.hpp \
     $$PWD/support/messagehandler.hpp \
     $$PWD/support/utils.hpp \
@@ -29,6 +30,7 @@ SOURCES += \
     $$PWD/main.cpp \
     $$PWD/services/configurationsservice.cpp \
     $$PWD/services/querycountersservice.cpp \
+    $$PWD/services/service.cpp \
     $$PWD/support/messagehandler.cpp \
     $$PWD/support/utils.cpp \
     $$PWD/testorm.cpp \

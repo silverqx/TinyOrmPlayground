@@ -3,7 +3,6 @@
 #define TINYPLAY_SERVICES_QUERYCOUNTERSSERVICE_HPP
 
 #include <QHashFunctions>
-#include <QString>
 
 #include <mutex>
 #include <optional>
@@ -12,15 +11,12 @@
 #include <orm/macros/threadlocal.hpp>
 #include <orm/types/statementscounter.hpp>
 
-namespace TinyPlay
-{
+#include "services/service.hpp"
 
-    class Configuration;
-
-namespace Services
+namespace TinyPlay::Services
 {
     /*! Service class for logging database connections query counters. */
-    class QueryCountersService
+    class QueryCountersService : public Service
     {
         Q_DISABLE_COPY(QueryCountersService)
 
@@ -76,9 +72,6 @@ namespace Services
         QStringList
         computeConnectionsToCountForWorkerThread(const QString &connection) const;
 
-        /*! Obtain mapped connections for a given connection. */
-        QStringList getMappedConnections(const QString &connection) const;
-
         /*! Allow to remove a connection from Configuration::ConnectionsToTest only and
             m_config.ConnectionsToRunInThread will be updated properly. */
         void santizeConnectionsToRunInThread();
@@ -104,9 +97,6 @@ namespace Services
         /*! Throw when connections in thread is enabled and connections to run are
             empty. */
         void throwIfConnsToRunEmpty() const;
-
-        /*! Configuration for TinyOrmPlayground. */
-        Configuration &m_config;
 
         /* Counters for the Application Summary for the current thread */
         /*! Functions execution time for the whole for the current thread. */
@@ -223,7 +213,6 @@ namespace Services
                               m_threadRecordsHaveBeenModified);
     }
 
-} // namespace Services
-} // namespace TinyPlay
+} // namespace TinyPlay::Services
 
 #endif // TINYPLAY_SERVICES_QUERYCOUNTERSSERVICE_HPP

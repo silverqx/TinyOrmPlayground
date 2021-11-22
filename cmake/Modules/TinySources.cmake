@@ -9,6 +9,7 @@ function(tiny_sources out_headers out_sources)
         macros.hpp
         services/configurationsservice.hpp
         services/querycountersservice.hpp
+        services/service.hpp
         support/globals.hpp
         support/messagehandler.hpp
         support/utils.hpp
@@ -29,6 +30,7 @@ function(tiny_sources out_headers out_sources)
         main.cpp
         services/configurationsservice.cpp
         services/querycountersservice.cpp
+        services/service.cpp
         support/messagehandler.cpp
         support/utils.cpp
         testorm.cpp

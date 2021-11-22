@@ -9,8 +9,8 @@ using TinyPlay::Support::Utils;
 namespace TinyPlay::Services
 {
 
-ConfigurationsService::ConfigurationsService(const Configuration &configuration)
-    : m_config(configuration)
+ConfigurationsService::ConfigurationsService(Configuration &config)
+    : Service(config)
 {}
 
 ConfigurationsService::OrmConfigurationsType
@@ -86,14 +86,6 @@ ConfigurationsService::configsForWorkerThrdWhenMultiThrd(const QString &connecti
                                              m_config.Configurations[connection_]);
 
     return configurationsForWorkerThread;
-}
-
-QStringList ConfigurationsService::getMappedConnections(const QString &connection) const
-{
-    if (m_config.ConnectionsMap.contains(connection))
-        return m_config.ConnectionsMap.find(connection)->second;
-
-    return {connection};
 }
 
 } // namespace TinyPlay::Services

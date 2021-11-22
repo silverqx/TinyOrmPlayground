@@ -4,15 +4,12 @@
 
 #include <orm/support/databaseconfiguration.hpp>
 
-namespace TinyPlay
-{
+#include "services/service.hpp"
 
-    class Configuration;
-
-namespace Services
+namespace TinyPlay::Services
 {
     /*! Service class for database connection configurations. */
-    class ConfigurationsService
+    class ConfigurationsService : public Service
     {
         Q_DISABLE_COPY(ConfigurationsService)
 
@@ -23,7 +20,7 @@ namespace Services
 
     public:
         /*! Default constructor. */
-        explicit ConfigurationsService(const Configuration &configuration);
+        explicit ConfigurationsService(Configuration &config);
 
         /*! Compute connections configurations.
             A common method, the single/(multi main/worker) thread version will be
@@ -39,16 +36,8 @@ namespace Services
         /*! Compute connections configurations to use in a worker thread. */
         OrmConfigurationsType
         configsForWorkerThrdWhenMultiThrd(const QString &connection) const;
-
-        // CUR temporary because of getMappedConnections(), remove silverqx
-        /*! Obtain mapped connections for a given connection. */
-        QStringList getMappedConnections(const QString &connection) const;
-
-        /*! Configuration for TinyOrmPlayground. */
-        const Configuration &m_config;
     };
 
-} // namespace Services
-} // namespace TinyPlay
+} // namespace TinyPlay::Services
 
 #endif // TINYPLAY_SERVICES_CONFIGURATIONSSERVICE_HPP
