@@ -50,17 +50,36 @@ using TinyPlay::Support::Utils;
            - around 350ms / min. 305ms all queries
    - InvokeXTimes.ps1 100 ( TinyPlay invoked 100 times, ms are average execution times,
                             TinyORM 92dd1e33, TinyOrmPlayground eb11db93)
-     - 21. nov 2021 ( all connections, IsLoggingToFile = true )
+     - 21. nov 2021 ( all connections, may be not accurate!! )
        - multi-thread
          - Qt 5.15.2 ; msvc 16.11.7 x64
-           - debug build - 1331ms x
+           - debug build - 1331ms (I don't know how the heck I did this value)
          - Qt 5.15.2 ; gcc 11.2 x64 on Gentoo
-           - debug build - 1064ms x
+           - debug build - 1064ms
        - single-thread
+         - Qt 5.15.2 ; msvc 16.11.7 x64
+           - debug build - F - 3834ms, Q - 1680ms, A - 3884ms
          - Qt 5.15.2 ; clang 12 x64 on Gentoo
-           - debug build - F - 2422ms, Q - 993ms, A - 2429ms x
+           - debug build - F - 2422ms, Q - 993ms, A - 2429ms
          - Qt 5.15.2 ; clang 13 x64 on MSYS2 UCRT64
-           - debug build - F - 2935ms, Q - 1635ms, A - 2983ms x
+           - debug build - F - 2935ms, Q - 1635ms, A - 2983ms
+     - 22. nov 2021 ( all connections, IsLoggingToFile = true )
+       - multi-thread
+         - Qt 5.15.2 ; msvc 16.11.7 x64
+           - debug build   - 1999ms
+           - release build - 1392ms
+         - Qt 5.15.2 ; gcc 11.2 x64 on Gentoo
+           - release build -
+       - single-thread
+         - Qt 5.15.2 ; msvc 16.11.7 x64
+           - debug build   - F - 3834ms, Q - 1680ms, A - 3884ms
+           - release build - F - 2255ms, Q - 1592ms, A - 2261ms
+         - Qt 5.15.2 ; clang 12 x64 on Gentoo
+           - release build -
+         - Qt 5.15.2 ; clang 13 x64 on MSYS2 UCRT64
+           - release build - F - 2197ms, Q - 1582ms, A - 2220ms
+         - Qt 5.15.2 ; gcc 11.2 x64 on MSYS2 UCRT64
+           - release build - F - 2212ms, Q - 1584ms, A - 2235ms
 */
 
 namespace TinyPlay

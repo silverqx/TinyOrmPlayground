@@ -4,27 +4,32 @@
 
 #ifndef QT_NO_EXCEPTIONS
 
-#  define TINY_VERIFY_EXCEPTION_THROWN(expression, exceptiontype)\
-    do {\
-        QT_TRY {\
-            QT_TRY {\
-                expression;\
-                qFatal("Expected exception of type '" #exceptiontype "' to be "\
-                       "thrown, but no exception caught. [%s(%u)]", __FILE__, __LINE__);\
-                return;\
-            } QT_CATCH (const exceptiontype &e) {\
-                qDebug() << "Caught expected exception with message :" << e.what();\
-            }\
-        } QT_CATCH (const std::exception &e) {\
-            qFatal("Expected exception of type '" #exceptiontype\
-                   "' to be thrown, but 'std::exception' caught with "\
-                   "message : %s. [%s(%u)]", e.what(), __FILE__, __LINE__);\
-            return;\
-        } QT_CATCH (...) {\
-            qFatal("Expected exception of type '" #exceptiontype "' to be thrown, "\
-                   "but unknown exception caught. [%s(%u)]", __FILE__, __LINE__);\
-            return;\
-        }\
+#  include "orm/utils/type.hpp"
+
+#  define TINY_VERIFY_EXCEPTION_THROWN(expression, exceptiontype)                        \
+    do {                                                                                 \
+        try {                                                                            \
+            try {                                                                        \
+                expression;                                                              \
+                qFatal("Expected exception of type '" #exceptiontype "' to be "          \
+                       "thrown, but no exception caught. [%s(%u)]", __FILE__, __LINE__); \
+                return;                                                                  \
+            } catch (const exceptiontype &e) {                                           \
+                qDebug().noquote().nospace()                                             \
+                        << "Caught expected '"                                           \
+                        << Orm::Utils::Type::classPureBasename<exceptiontype>(true)      \
+                        << "' Exception : " << e.what();                                 \
+            }                                                                            \
+        } catch (const std::exception &e) {                                              \
+            qFatal("Expected exception of type '" #exceptiontype                         \
+                   "' to be thrown, but 'std::exception' caught with "                   \
+                   "message : %s. [%s(%u)]", e.what(), __FILE__, __LINE__);              \
+            return;                                                                      \
+        } catch (...) {                                                                  \
+            qFatal("Expected exception of type '" #exceptiontype "' to be thrown, "      \
+                   "but unknown exception caught. [%s(%u)]", __FILE__, __LINE__);        \
+            return;                                                                      \
+        }                                                                                \
     } while (false)
 
 #else // QT_NO_EXCEPTIONS
