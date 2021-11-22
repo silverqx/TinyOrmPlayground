@@ -69,13 +69,19 @@ using TinyPlay::Support::Utils;
            - debug build   - 1999ms
            - release build - 1392ms
          - Qt 5.15.2 ; gcc 11.2 x64 on Gentoo
-           - release build -
+           - release build - 1019ms
+         - Qt 5.15.2 ; clang 13 x64 on Gentoo
+           - release build -  980ms, 1020ms, 961ms
        - single-thread
          - Qt 5.15.2 ; msvc 16.11.7 x64
            - debug build   - F - 3834ms, Q - 1680ms, A - 3884ms
            - release build - F - 2255ms, Q - 1592ms, A - 2261ms
+         - Qt 5.15.2 ; gcc 11.2 x64 on Gentoo
+           - release build - F - 2037ms, Q -  923ms, A - 2043ms
          - Qt 5.15.2 ; clang 12 x64 on Gentoo
-           - release build -
+           - release build - F - 2058ms, Q -  933ms, A - 2063ms
+         - Qt 5.15.2 ; clang 13 x64 on Gentoo
+           - release build - F - 2093ms, Q -  961ms, A - 2099ms
          - Qt 5.15.2 ; clang 13 x64 on MSYS2 UCRT64
            - release build - F - 2197ms, Q - 1582ms, A - 2220ms
          - Qt 5.15.2 ; gcc 11.2 x64 on MSYS2 UCRT64
