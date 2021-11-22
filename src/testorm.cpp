@@ -232,14 +232,19 @@ void TestOrm::throwIfUnsupportedEnv() const
     if constexpr (!Configuration::ConnectionsInThreads)
         return;
 
-#ifdef __clang__
+#if defined(__clang__) && defined(__MINGW32__)
     throw Orm::Exceptions::RuntimeError(
-                "Clang 13 on Linux or MinGW is not supported because of TLS wrapper bugs "
-                "and crashes.");
+                "Multi-threading is not supported for Clang on MinGW because of TLS "
+                "wrapper bugs and crashes.");
+#elif defined(__clang__) && !defined(__MINGW32__) && __clang_major__ < 13
+    throw Orm::Exceptions::RuntimeError(
+                "Multi-threading is not supported for Clang <13 on Linux because of "
+                "TLS wrapper bugs and crashes.");
 #elif defined(__GNUG__) && !defined(__clang__) && defined(__MINGW32__)
     throw Orm::Exceptions::RuntimeError(
-                "GCC on MinGW is not supported because of TLS wrapper bugs, problems "
-                "with duplicit TLS wrappers during linkage with ld 2.3.7 or lld 13.");
+                "Multi-threading is not supported for GCC on MinGW because of TLS "
+                "wrapper bugs, problems with duplicit TLS wrappers during linkage "
+                "with ld 2.3.7 or lld 13.");
 #endif
 }
 
