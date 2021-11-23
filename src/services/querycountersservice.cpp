@@ -254,9 +254,10 @@ void QueryCountersService::logQueryCountersBlock(
     const auto &[
         functionsElapsedPrintable, queriesElapsedPrintable, statementsCounterPrintable,
         recordsHaveBeenModifiedPrintable
-    ] = getAppCountersPrintable(
-            loggingAppSummary, m_threadFunctionsElapsed, queriesElapsed,
-            statementsCounter, recordsHaveBeenModified);
+    ] = loggingAppSummary && Configuration::ConnectionsInThreads
+            ? getAppCountersPrintable()
+            : getAppCountersPrintable(m_threadFunctionsElapsed, queriesElapsed,
+                                      statementsCounter, recordsHaveBeenModified);
 
     // Header
     if (loggingAppSummary) {
@@ -298,7 +299,7 @@ void QueryCountersService::logQueryCountersBlock(
                           << "\n";
 
         // All Functions execution time
-        qInfo().noquote().nospace() << "⚡ Functions execution time : "
+        qInfo().noquote().nospace() << "⚡ Functions Execution time : "
                                     << functionsElapsedPrintable << "\n";
     }
 
@@ -669,19 +670,10 @@ void QueryCountersService::appSumUpCounters(
 
 QueryCountersService::CountersPrintable
 QueryCountersService::getAppCountersPrintable(
-        const bool isAppSummary, const qint64 functionsElapsed,
-        const qint64 queriesElapsed, const StatementsCounter statementsCounter,
+        const qint64 functionsElapsed, const qint64 queriesElapsed,
+        const StatementsCounter statementsCounter,
         const bool recordsHaveBeenModified) const
 {
-    // CUR improve this, it looks terrible, because function arguments are not used silverqx
-    if (isAppSummary && Configuration::ConnectionsInThreads)
-        return {
-            appElapsedCounterPrintable(m_appFunctionsElapsed),
-            appElapsedCounterPrintable(m_appQueriesElapsed),
-            appStatementsCounterPrintable(m_appStatementsCounter),
-            appBoolCounterPrintable(m_appRecordsHaveBeenModified),
-        };
-
     const auto &[normal, affecting, transactional] = statementsCounter;
 
     // Show -1 when any statements were not executed
@@ -701,6 +693,17 @@ QueryCountersService::getAppCountersPrintable(
         {QString::number(normal), QString::number(affecting),
          QString::number(transactional), QString::number(total)},
         {recordsHaveBeenModified ? QStringLiteral("yes") : QStringLiteral("no")},
+    };
+}
+
+QueryCountersService::CountersPrintable
+QueryCountersService::getAppCountersPrintable() const
+{
+    return {
+        appElapsedCounterPrintable(m_appFunctionsElapsed),
+        appElapsedCounterPrintable(m_appQueriesElapsed),
+        appStatementsCounterPrintable(m_appStatementsCounter),
+        appBoolCounterPrintable(m_appRecordsHaveBeenModified),
     };
 }
 

@@ -180,11 +180,13 @@ namespace TinyPlay::Services
                 const std::vector<AppCounterItem<StatementsCounter>> &counters,
                 StatementsCounterTotal &sumCounters) const;
 
-        /*! Obtain all counters in printable format. */
+        /*! Obtain all counters in printable format for TinyPlay test summary. */
         CountersPrintable
         getAppCountersPrintable(
-                bool isAppSummary, qint64 functionsElapsed, qint64 queriesElapsed,
+                qint64 functionsElapsed, qint64 queriesElapsed,
                 StatementsCounter statementsCounter, bool recordsHaveBeenModified) const;
+        /*! Obtain all counters in printable format for Application Summary. */
+        CountersPrintable getAppCountersPrintable() const;
 
         /*! Functions execution time for the whole application. */
         std::vector<AppCounterItem<qint64>> m_appFunctionsElapsed {};
