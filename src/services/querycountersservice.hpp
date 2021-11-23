@@ -97,6 +97,8 @@ namespace TinyPlay::Services
         /*! Throw when connections in thread is enabled and connections to run are
             empty. */
         void throwIfConnsToRunEmpty() const;
+        /*! Check if all given connections were opened correctly. */
+        void throwIfClosedConnection(const QStringList &connections) const;
 
         /* Counters for the Application Summary for the current thread */
         /*! Functions execution time for the whole for the current thread. */

@@ -69,7 +69,9 @@ void QueryCountersService::enableAllQueryLogCounters() const
     for (const auto &connection : std::as_const(Configuration::ConnectionsToCount))
         DB::connection(connection);
 
-    // BUG also decide how to behave when connection is not created and user enable counters silverqx
+    // Check if all connections to count were opened correctly
+    throwIfClosedConnection(Configuration::ConnectionsToCount);
+
     // Enable counters on all database connections
     DB::enableElapsedCounters(Configuration::ConnectionsToCount);
     DB::enableStatementCounters(Configuration::ConnectionsToCount);
@@ -501,6 +503,20 @@ void QueryCountersService::throwIfConnsToRunEmpty() const
         throw LogicError(
                 "Configuration::ConnectionsInThreads = true but "
                 "m_config.ConnectionsToRunInThread is empty.");
+}
+
+void QueryCountersService::throwIfClosedConnection(const QStringList &connections) const
+{
+    const auto &openedConnections = DB::openedConnectionNames();
+
+    for (const auto &connection : connections) {
+        if (openedConnections.contains(connection))
+            continue;
+
+        throw RuntimeError(
+                QStringLiteral("Database connection '%1' was not opened correctly.")
+                .arg(connection));
+    }
 }
 
 namespace
