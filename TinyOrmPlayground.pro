@@ -112,7 +112,7 @@ CONFIG(release, debug|release):!build_pass: \
 
 include(qmake/common.pri)
 
-# Link against TinyORM library (also adds defines and include headers)
+# Configure TinyORM library
 # ---
 
 include($$PWD/../../TinyOrm/TinyORM/qmake/TinyOrm.pri)
