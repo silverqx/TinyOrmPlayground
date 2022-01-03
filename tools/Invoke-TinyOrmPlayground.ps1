@@ -15,7 +15,7 @@ Set-StrictMode -Version 3.0
 $Script:ConnectionsInThreads = $null
 
 function Initialize-ConnectionsInThreads {
-    $regex = Get-Content -Path .\Invoke-Playground-err.log -Tail 20
+    $regex = Get-Content -Path .\Invoke-TinyOrmPlayground-err.log -Tail 20
         | Select-String -Pattern 'Threads mode +: (?<threadsMode>[\w\-]+)'
 
     if ($null -eq $regex) {
@@ -44,7 +44,7 @@ function Get-LastElapsed {
         $Pattern
     )
 
-    $regex = Select-String -Pattern $Pattern -Path .\Invoke-Playground-err.log
+    $regex = Select-String -Pattern $Pattern -Path .\Invoke-TinyOrmPlayground-err.log
 
     if ($null -eq $regex) {
         Write-Host
@@ -67,7 +67,7 @@ function Get-AverageElapsed {
         $Pattern
     )
 
-    $regex = Select-String -Pattern $Pattern -Path .\Invoke-Playground-err.log
+    $regex = Select-String -Pattern $Pattern -Path .\Invoke-TinyOrmPlayground-err.log
 
     if ($null -eq $regex) {
         Write-Host
@@ -84,17 +84,17 @@ function Get-AverageElapsed {
 }
 
 # Empty logs content
-if (Test-Path -Path Invoke-Playground-out.log -PathType Leaf) {
-    Clear-Content Invoke-Playground-out.log
+if (Test-Path -Path Invoke-TinyOrmPlayground-out.log -PathType Leaf) {
+    Clear-Content Invoke-TinyOrmPlayground-out.log
 }
-if (Test-Path -Path Invoke-Playground-err.log -PathType Leaf) {
-    Clear-Content Invoke-Playground-err.log
+if (Test-Path -Path Invoke-TinyOrmPlayground-err.log -PathType Leaf) {
+    Clear-Content Invoke-TinyOrmPlayground-err.log
 }
 
 for ($i = 0; $i -lt $Count; $i++) {
     Write-Host "Running $($i + 1). time..." -NoNewline
 
-    & $Executable >> Invoke-Playground-out.log 2>> Invoke-Playground-err.log
+    & $Executable >> Invoke-TinyOrmPlayground-out.log 2>> Invoke-TinyOrmPlayground-err.log
 
     if ($LASTEXITCODE -ne 0) {
         Write-Host 'failed' -ForegroundColor Red

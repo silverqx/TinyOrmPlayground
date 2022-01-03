@@ -74,5 +74,4 @@ conf.pri
 /CMakeUserPresets.json
 /vcpkg_installed/
 /CMakeLists.txt.user
-/tools/InvokeXTimes-*.log
-
+/tools/Invoke-TinyOrmPlayground-*.log
