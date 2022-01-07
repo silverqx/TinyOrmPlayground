@@ -28,6 +28,9 @@ namespace TinyPlay::Services
         OrmConfigurationsType
         computeConfigurationsToAdd(const QString &connection = "");
 
+        /*! Obtain default connection name. */
+        QString getDefaultConnectionName() const;
+
     private:
         /*! Compute connections configurations to use when threading is disabled. */
         OrmConfigurationsType configurationsWhenSingleThread() const;

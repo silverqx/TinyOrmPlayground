@@ -97,7 +97,8 @@ TestOrm &TestOrm::connectToDatabase()
 
     /* Create database connections: mysql, sqlite and mysql_alt, and make
        mysql default database connection. */
-    m_db = DB::create(m_configurationsService.computeConfigurationsToAdd(), "mysql");
+    m_db = DB::create(m_configurationsService.computeConfigurationsToAdd(),
+                      m_configurationsService.getDefaultConnectionName());
 
     Configuration::ConnectionsToCount =
             m_queryCountersService.computeConnectionsToCount();
@@ -164,6 +165,7 @@ void TestOrm::testAllConnections()
         }
     } // join threads
 
+    // BUG not true when multi-thread silverqx
     // Restore default connection
     DB::setDefaultConnection("mysql");
 
