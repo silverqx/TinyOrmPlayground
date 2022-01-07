@@ -405,7 +405,7 @@ void TestQueryBuilder::run() const
                     .where("torrents.id", "=", 5)
                     .where("torrent_previewable_files.id", "=", qrsFileIdMysql);
 
-            // BUG in multi-thread silverqx
+            // BUG in multi-thread? silverqx
             if (DB::getDefaultConnection() == "mysql") {
                 auto [affected, _] = query.update({
                     {"name", "test5 update join"}, {"torrents.progress", 503},
