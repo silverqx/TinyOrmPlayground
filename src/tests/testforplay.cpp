@@ -9,6 +9,7 @@
 #include <range/v3/all.hpp>
 
 #include <orm/db.hpp>
+#include <orm/tiny/tinytypes.hpp>
 #include <orm/version.hpp>
 
 #include "version.hpp"
@@ -16,13 +17,15 @@
 // BUG this causes crash of code model after upgrade to QtCreator 5 with clang 12 silverqx
 //using namespace ranges;
 
-using Orm::AttributeItem;
 using Orm::Constants::ASTERISK;
 using Orm::Constants::COLON;
 using Orm::Constants::COMMA;
 using Orm::Constants::DOT;
 using Orm::Constants::INNER;
 using Orm::Constants::UNDERSCORE;
+using Orm::Tiny::AttributeItem;
+
+using namespace Models;
 
 namespace TinyPlay::Tests
 {
@@ -70,7 +73,6 @@ void TestForPlay::run() const
         }
 
         {
-            qDebug() << "text";
 
             qt_noop();
         }
