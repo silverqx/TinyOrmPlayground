@@ -12,6 +12,7 @@
 #include <orm/tiny/tinytypes.hpp>
 #include <orm/version.hpp>
 
+#include "models/torrent.hpp"
 #include "version.hpp"
 
 // BUG this causes crash of code model after upgrade to QtCreator 5 with clang 12 silverqx
@@ -25,6 +26,7 @@ using Orm::Constants::INNER;
 using Orm::Constants::UNDERSCORE;
 using Orm::Tiny::AttributeItem;
 
+// NOLINTNEXTLINE(google-build-using-namespace)
 using namespace Models;
 
 namespace TinyPlay::Tests
