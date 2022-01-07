@@ -165,9 +165,8 @@ void TestOrm::testAllConnections()
         }
     } // join threads
 
-    // BUG not true when multi-thread silverqx
     // Restore default connection
-    DB::setDefaultConnection("mysql");
+    DB::setDefaultConnection(m_configurationsService.getDefaultConnectionName());
 
     if constexpr (!Configuration::IsLoggingToFile)
         m_queryCountersService.replayThrdLogToConsole();
