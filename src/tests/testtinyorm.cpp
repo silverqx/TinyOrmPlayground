@@ -27,6 +27,7 @@ using Models::TorrentPreviewableFile;
 using Models::TorrentPreviewableFileProperty;
 using Models::User;
 
+using Orm::DB;
 using Orm::One;
 using Orm::Tiny::Exceptions::ModelNotFoundError;
 using Orm::Tiny::Relations::Pivot;

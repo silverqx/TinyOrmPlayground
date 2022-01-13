@@ -20,6 +20,7 @@
 #include "version.hpp"
 
 using Orm::Constants::COMMA;
+using Orm::DB;
 
 using Orm::Exceptions::InvalidArgumentError;
 using Orm::Exceptions::LogicError;

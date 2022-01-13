@@ -17,6 +17,7 @@
 #include "tests/testquerybuilderdbspecific.hpp"
 #include "tests/testtinyorm.hpp"
 
+using Orm::DB;
 using Orm::Exceptions::InvalidArgumentError;
 using Orm::Exceptions::LogicError;
 using Orm::Utils::Thread;

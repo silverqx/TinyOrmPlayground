@@ -8,6 +8,8 @@
 
 #include "configuration.hpp"
 
+using Orm::DB;
+
 namespace TinyPlay::Tests
 {
 

@@ -9,6 +9,8 @@
 
 // clazy:excludeall=unused-non-trivial-variable
 
+using Orm::DB;
+
 namespace TinyPlay::Tests
 {
 

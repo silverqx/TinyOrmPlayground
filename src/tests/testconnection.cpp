@@ -11,6 +11,7 @@
 #include "configuration.hpp"
 #include "macros.hpp"
 
+using Orm::DB;
 using Orm::Exceptions::InvalidArgumentError;
 using Orm::MySqlConnection;
 
