@@ -24,6 +24,8 @@ using Orm::Constants::COMMA;
 using Orm::Constants::DOT;
 using Orm::Constants::INNER;
 using Orm::Constants::UNDERSCORE;
+
+using Orm::DB;
 using Orm::Tiny::AttributeItem;
 
 // NOLINTNEXTLINE(google-build-using-namespace)

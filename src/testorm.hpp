@@ -17,8 +17,6 @@ namespace TinyPlay
         Q_DISABLE_COPY(TestOrm)
 
     public:
-//        using KeyType = quint64;
-
         /*! Default constructor. */
         inline TestOrm() = default;
 

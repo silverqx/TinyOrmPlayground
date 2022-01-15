@@ -21,7 +21,7 @@ namespace TinyPlay::Services
         Q_DISABLE_COPY(QueryCountersService)
 
     public:
-        /*! Thread name type. */
+        /*! Type used for the thread name. */
         using ThreadName = QString;
 
         /*! Default constructor. */
@@ -55,9 +55,9 @@ namespace TinyPlay::Services
         inline void logApplicationSummary() const;
 
     private:
-        /*! Executed statements counter type. */
+        /*! Type used for executed statements counter. */
         using StatementsCounter = Orm::StatementsCounter;
-        /*! Index of an AppCounterItem for counter vectors. */
+        /*! Type used for index of an AppCounterItem for counter vectors. */
         using AppCounterItemIdx = std::size_t;
 
         /*! Log a one Query statement counters. */

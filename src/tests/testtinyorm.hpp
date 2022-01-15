@@ -15,6 +15,9 @@ namespace TinyPlay::Tests
         /*! Inherit constructors. */
         using Test::Test;
 
+        /*! Type used for the primary key ID. */
+//        using KeyType = quint64;
+
     public:
         /*! Virtual destructor. */
         inline ~TestTinyOrm() final = default;

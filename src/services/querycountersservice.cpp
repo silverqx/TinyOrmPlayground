@@ -105,7 +105,7 @@ namespace
 
     /*! Log messages from all threads. */
     std::vector<LogFromThreadItem> logsFromThreads;
-    /*! Index of LogFromThreadItem for log messages from all threads. */
+    /*! Type used for index of LogFromThreadItem for log messages from all threads. */
     using LogFromThreadIdx = std::size_t;
     /*! Fast lookup map for application counters. */
     std::unordered_map<QueryCountersService::ThreadName,

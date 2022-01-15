@@ -13,7 +13,7 @@ namespace TinyPlay::Services
     {
         Q_DISABLE_COPY(ConfigurationsService)
 
-        /*! Type for the Database Configuration. */
+        /*! Type used for the Database Configuration. */
         using OrmConfiguration = Orm::Support::DatabaseConfiguration;
         /*! Type used for Database Connections map. */
         using OrmConfigurationsType = OrmConfiguration::ConfigurationsType;
