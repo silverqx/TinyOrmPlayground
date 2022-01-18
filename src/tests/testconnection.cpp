@@ -5,14 +5,13 @@
 #include <QFile>
 
 #include <orm/db.hpp>
-#include <orm/exceptions/invalidargumenterror.hpp>
 #include <orm/mysqlconnection.hpp>
 
 #include "configuration.hpp"
 #include "macros.hpp"
 
 using Orm::DB;
-using Orm::Exceptions::InvalidArgumentError;
+using Orm::Exceptions::RuntimeError;
 using Orm::MySqlConnection;
 
 namespace TinyPlay::Tests
@@ -76,7 +75,7 @@ void TestConnection::run() const
             TINY_VERIFY_EXCEPTION_THROWN(
                         DB::connection(Configuration::Sqlite_CheckExistsTrue)
                         .statement("create table tbl1 (one varchar(10), two smallint)"),
-                        InvalidArgumentError);
+                        RuntimeError);
 
             qt_noop();
         }

@@ -13,6 +13,7 @@
 #include <orm/version.hpp>
 
 #include "models/torrent.hpp"
+#include "models/torrenteager.hpp"
 #include "version.hpp"
 
 // BUG this causes crash of code model after upgrade to QtCreator 5 with clang 12 silverqx
@@ -133,6 +134,7 @@ void TestForPlay::run() const
                 << "\n   __FUNCTION__   "
                 << "\n==================\n\n";
 
+        printf("Function name __tiny_func__ : %s\n", __tiny_func__.toUtf8().constData());
         printf("Function name __FUNCTION__ : %s\n", __FUNCTION__);
         printf("Function name __func__ : %s\n", static_cast<const char *>(__func__));
 #ifdef _MSC_VER
