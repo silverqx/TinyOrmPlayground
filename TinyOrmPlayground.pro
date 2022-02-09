@@ -88,8 +88,7 @@ tiny_resource_and_manifest($$tinyRcIncludepath)
 # Use Precompiled headers (PCH)
 # ---
 
-precompile_header: \
-    include($$PWD/src/pch.pri)
+include($$PWD/src/pch.pri)
 
 # Default rules for deployment
 # ---
