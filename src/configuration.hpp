@@ -102,7 +102,7 @@ namespace TinyPlay
 
         /*! MySQL connection name used in the main thread, based on whether
             multi-threading is enabled. */
-        const QString &MysqlMainThreadConnection {initMySqlMainThreadConnection()};
+        const QString MysqlMainThreadConnection {initMySqlMainThreadConnection()};
 
     private:
         /*! Get the filepath to the SQLite database file, for testing
@@ -110,7 +110,7 @@ namespace TinyPlay
         QString initCheckDatabaseExistsFile();
         /*! Obtain MySQL connection name, it has a different name when multi-threading
             is enabled to avoid collision in connection names. */
-        const QString &initMySqlMainThreadConnection() const;
+        QString initMySqlMainThreadConnection() const;
     };
 
     constexpr bool Configuration::isDebugBuild()

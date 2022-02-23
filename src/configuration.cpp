@@ -171,11 +171,12 @@ QString Configuration::initCheckDatabaseExistsFile()
     return path + "/q_tinyorm_test-check_exists.sqlite3";
 }
 
-const QString &Configuration::initMySqlMainThreadConnection() const
+QString Configuration::initMySqlMainThreadConnection() const
 {
-    static const QString cached = ConnectionsInThreads ? Mysql_MainThread : Mysql;
+    if constexpr (Configuration::ConnectionsInThreads)
+        return Mysql_MainThread;
 
-    return cached;
+    return Mysql;
 }
 
 } // namespace TinyPlay
