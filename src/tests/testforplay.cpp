@@ -12,6 +12,7 @@
 #include <orm/tiny/tinytypes.hpp>
 #include <orm/version.hpp>
 
+#include "configuration.hpp"
 #include "models/torrent.hpp"
 #include "models/torrenteager.hpp"
 #include "version.hpp"
