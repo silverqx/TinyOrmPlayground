@@ -375,7 +375,7 @@ QStringList QueryCountersService::computeConnectionsToCountForMainThread() const
 
     /* Do it as a separate operation and not in std::copy_if() above, to not pollute
        logic, this is much cleaner. */
-    connectionsToCount.removeOne("mysql_mainthread");
+    connectionsToCount.removeOne(Configuration::Mysql_MainThread);
 
     return connectionsToCount;
 }
@@ -484,6 +484,10 @@ QStringList QueryCountersService::appCountedConnectionsPrintable() const
         return !m_config.RemovableConnections.contains(mappedConnection) ||
                 m_config.ConnectionsToTest.contains(mappedConnection);
     });
+
+    // The Mysql_MainThread connection is not used in single-threaded mode
+    if constexpr (!Configuration::ConnectionsInThreads)
+        countedConnections.removeOne(Configuration::Mysql_MainThread);
 
     return countedConnections;
 }
