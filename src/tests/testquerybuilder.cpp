@@ -7,6 +7,8 @@
 #include <orm/query/joinclause.hpp>
 #include <orm/query/querybuilder.hpp>
 
+#include "configuration.hpp"
+
 // clazy:excludeall=unused-non-trivial-variable
 
 using Orm::DB;
@@ -407,8 +409,7 @@ void TestQueryBuilder::run() const
                     .where("torrents.id", "=", 5)
                     .where("torrent_previewable_files.id", "=", qrsFileIdMysql);
 
-            // BUG in multi-thread? silverqx
-            if (DB::getDefaultConnection() == "mysql") {
+            if (DB::getDefaultConnection() == Configuration::Mysql) {
                 auto [affected, _] = query.update({
                     {"name", "test5 update join"}, {"torrents.progress", 503},
                     {"torrent_previewable_files.progress", 891}
@@ -460,9 +461,10 @@ void TestQueryBuilder::run() const
            this DELETE with join statements. */
         /* QueryBuilder::remove() [sqlite] - with join */
 //        {
-//            qInfo() << "\n\nQueryBuilder::remove() [sqlite] - with join\n---";
+//            qInfo("\n\nQueryBuilder::remove() [%s] - with join\n---",
+//                  qUtf8Printable(Configuration::Sqlite));
 
-//            auto [affected, _] = DB::table("torrents", "", "sqlite")
+//            auto [affected, _] = DB::table("torrents", "", Configuration::Sqlite)
 //                    ->join("torrent_previewable_files", "torrents.id", "=",
 //                    "torrent_previewable_files.torrent_id")
 //                    .where("torrents.id", "=", 5)
@@ -769,7 +771,7 @@ void TestQueryBuilder::run() const
         [[maybe_unused]]
         auto r7 = DB::table("torrents")->count({"size"});
         // MySQL only, I leave it here, I will not move it to testQueryBuilderDbSpecific()
-        if (DB::getDefaultConnection() == "mysql")
+        if (DB::getDefaultConnection() == Configuration::Mysql)
             [[maybe_unused]]
                 auto r8 = DB::table("torrent_previewable_files")
                           ->distinct().count({"torrent_id", "note"});

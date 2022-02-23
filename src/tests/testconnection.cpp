@@ -44,9 +44,10 @@ void TestConnection::run() const
 
     /* SQLite :memory: driver [sqlite_memory] */
     {
-        qInfo() << "\n\nSQLite :memory: driver [sqlite_memory]\n---";
+        qInfo("\n\nSQLite :memory: driver [%s]\n---",
+              qUtf8Printable(Configuration::Sqlite_Memory));
 
-        auto &conn = DB::connection("sqlite_memory");
+        auto &conn = DB::connection(Configuration::Sqlite_Memory);
 
         conn.statement("create table tbl1 (one varchar(10), two smallint)");
         conn.insert("insert into tbl1 values(?, ?)", {"hello!", 10});

@@ -23,7 +23,6 @@ namespace TinyPlay
         using OrmConfigurationsType = OrmConfiguration::ConfigurationsType;
 
     public:
-        // CUR replace all occurences of strings silverqx
         /* Database connection names */
         static const QString Mysql;
         static const QString Mysql_Alt;
