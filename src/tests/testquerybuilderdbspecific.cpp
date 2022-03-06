@@ -29,8 +29,8 @@ void TestQueryBuilderDbSpecific::run() const
     {
         qInfo() << "\n\nQueryBuilder::fromSub() - cross-database query\n---";
 
-        auto query1 = DB::query(Configuration::Mysql_Laravel8)->from("users")
-                     .select({"id", "name"});
+        auto query1 = DB::query(Mysql_Laravel8)->from("users")
+                      .select({"id", "name"});
 
         auto query = DB::query(m_config.MysqlMainThreadConnection)
                      ->fromSub(query1, "u")

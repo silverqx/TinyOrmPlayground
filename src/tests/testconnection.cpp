@@ -44,10 +44,9 @@ void TestConnection::run() const
 
     /* SQLite :memory: driver [sqlite_memory] */
     {
-        qInfo("\n\nSQLite :memory: driver [%s]\n---",
-              qUtf8Printable(Configuration::Sqlite_Memory));
+        qInfo("\n\nSQLite :memory: driver [%s]\n---", qUtf8Printable(Sqlite_Memory));
 
-        auto &conn = DB::connection(Configuration::Sqlite_Memory);
+        auto &conn = DB::connection(Sqlite_Memory);
 
         conn.statement("create table tbl1 (one varchar(10), two smallint)");
         conn.insert("insert into tbl1 values(?, ?)", {"hello!", 10});
@@ -74,7 +73,7 @@ void TestConnection::run() const
                        "check_database_exists - true\n---";
 
             TINY_VERIFY_EXCEPTION_THROWN(
-                        DB::connection(Configuration::Sqlite_CheckExistsTrue)
+                        DB::connection(Sqlite_CheckExistsTrue)
                         .statement("create table tbl1 (one varchar(10), two smallint)"),
                         RuntimeError);
 
@@ -87,7 +86,7 @@ void TestConnection::run() const
                        "check_database_exists - false\n---";
 
             // QSqlDatabase automatically creates a SQLite database file
-            DB::connection(Configuration::Sqlite_CheckExistsFalse)
+            DB::connection(Sqlite_CheckExistsFalse)
                     .statement("create table tbl1 (one varchar(10), two smallint)");
 
             Q_ASSERT(QFile::exists(m_config.CheckDatabaseExistsFile));
@@ -95,8 +94,8 @@ void TestConnection::run() const
             qt_noop();
         }
 
-        QSqlDatabase::database(Configuration::Sqlite_CheckExistsTrue).close();
-        QSqlDatabase::database(Configuration::Sqlite_CheckExistsFalse).close();
+        QSqlDatabase::database(Sqlite_CheckExistsTrue).close();
+        QSqlDatabase::database(Sqlite_CheckExistsFalse).close();
 
         // Remove the SQLite database file
         QFile::remove(m_config.CheckDatabaseExistsFile);

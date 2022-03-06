@@ -37,9 +37,9 @@ ConfigurationsService::computeConfigurationsToAdd(const QString &connection)
 QString ConfigurationsService::getDefaultConnectionName() const
 {
     if constexpr (Configuration::ConnectionsInThreads)
-            return Configuration::Mysql_MainThread;
+            return Mysql_MainThread;
 
-    return Configuration::Mysql;
+    return Mysql;
 }
 
 ConfigurationsService::OrmConfigurationsType
@@ -51,7 +51,7 @@ ConfigurationsService::configurationsWhenSingleThread() const
     while (itConfig != m_config.Configurations.constEnd()) {
         const auto &key = itConfig.key();
 
-        if (key != Configuration::Mysql_MainThread)
+        if (key != Mysql_MainThread)
             configurations.insert(key, itConfig.value());
 
         ++itConfig;

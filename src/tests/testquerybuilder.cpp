@@ -409,7 +409,7 @@ void TestQueryBuilder::run() const
                     .where("torrents.id", "=", 5)
                     .where("torrent_previewable_files.id", "=", qrsFileIdMysql);
 
-            if (DB::getDefaultConnection() == Configuration::Mysql) {
+            if (DB::getDefaultConnection() == Mysql) {
                 auto [affected, _] = query.update({
                     {"name", "test5 update join"}, {"torrents.progress", 503},
                     {"torrent_previewable_files.progress", 891}
@@ -462,9 +462,9 @@ void TestQueryBuilder::run() const
         /* QueryBuilder::remove() [sqlite] - with join */
 //        {
 //            qInfo("\n\nQueryBuilder::remove() [%s] - with join\n---",
-//                  qUtf8Printable(Configuration::Sqlite));
+//                  qUtf8Printable(Sqlite));
 
-//            auto [affected, _] = DB::table("torrents", "", Configuration::Sqlite)
+//            auto [affected, _] = DB::table("torrents", Sqlite)
 //                    ->join("torrent_previewable_files", "torrents.id", "=",
 //                    "torrent_previewable_files.torrent_id")
 //                    .where("torrents.id", "=", 5)
@@ -771,10 +771,10 @@ void TestQueryBuilder::run() const
         [[maybe_unused]]
         auto r7 = DB::table("torrents")->count({"size"});
         // MySQL only, I leave it here, I will not move it to testQueryBuilderDbSpecific()
-        if (DB::getDefaultConnection() == Configuration::Mysql)
+        if (DB::getDefaultConnection() == Mysql)
             [[maybe_unused]]
-                auto r8 = DB::table("torrent_previewable_files")
-                          ->distinct().count({"torrent_id", "note"});
+            auto r8 = DB::table("torrent_previewable_files")
+                      ->distinct().count({"torrent_id", "note"});
         [[maybe_unused]]
         auto r9 = DB::table("torrents")->distinct().count("size");
         [[maybe_unused]]

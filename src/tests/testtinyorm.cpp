@@ -1987,7 +1987,7 @@ void TestTinyOrm::run() const
 
         auto torrents = Torrent::whereEq("size", 12)
                         ->orWhere("size", ">",
-                                  DB::table("torrents", "t")->selectRaw("avg(t.size)"))
+                                  DB::tableAs("torrents", "t")->selectRaw("avg(t.size)"))
                         .get();
 
         qDebug() << "#" << "|" << "name" << "|" << "size";

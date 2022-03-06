@@ -66,7 +66,7 @@ QStringList QueryCountersService::computeConnectionsToCount(const QString &conne
 
 void QueryCountersService::enableAllQueryLogCounters() const
 {
-    // Create connections eagerly, so I can enable counters
+    // Create TinyORM connections eagerly, so I can enable counters
     for (const auto &connection : std::as_const(Configuration::ConnectionsToCount))
         DB::connection(connection);
 
@@ -375,7 +375,7 @@ QStringList QueryCountersService::computeConnectionsToCountForMainThread() const
 
     /* Do it as a separate operation and not in std::copy_if() above, to not pollute
        logic, this is much cleaner. */
-    connectionsToCount.removeOne(Configuration::Mysql_MainThread);
+    connectionsToCount.removeOne(Mysql_MainThread);
 
     return connectionsToCount;
 }
@@ -487,7 +487,7 @@ QStringList QueryCountersService::appCountedConnectionsPrintable() const
 
     // The Mysql_MainThread connection is not used in single-threaded mode
     if constexpr (!Configuration::ConnectionsInThreads)
-        countedConnections.removeOne(Configuration::Mysql_MainThread);
+        countedConnections.removeOne(Mysql_MainThread);
 
     return countedConnections;
 }

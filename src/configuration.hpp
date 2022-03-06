@@ -123,4 +123,36 @@ namespace TinyPlay
 
 } // namespace TinyPlay
 
+namespace TinyPlay::DatabaseNames
+{
+    inline constexpr const auto &
+    Mysql                   = Configuration::Mysql;
+    inline constexpr const auto &
+    Mysql_Alt               = Configuration::Mysql_Alt;
+    inline constexpr const auto &
+    Mysql_MainThread        = Configuration::Mysql_MainThread;
+    inline constexpr const auto &
+    Mysql_Laravel8          = Configuration::Mysql_Laravel8;
+    inline constexpr const auto &
+    Postgres                = Configuration::Postgres;
+    inline constexpr const auto &
+    Sqlite                  = Configuration::Sqlite;
+    inline constexpr const auto &
+    Sqlite_Memory           = Configuration::Sqlite_Memory;
+    inline constexpr const auto &
+    Sqlite_CheckExistsTrue  = Configuration::Sqlite_CheckExistsTrue;
+    inline constexpr const auto &
+    Sqlite_CheckExistsFalse = Configuration::Sqlite_CheckExistsFalse;
+} // namespace TinyPlay::DatabaseNames
+
+// Make these DB names accessible in all our namespaces by default
+namespace TinyPlay
+{
+    using namespace TinyPlay::DatabaseNames; // NOLINT(google-build-using-namespace)
+}
+namespace Models
+{
+    using namespace TinyPlay::DatabaseNames; // NOLINT(google-build-using-namespace)
+}
+
 #endif // TINYPLAY_CONFIGURATION_HPP
