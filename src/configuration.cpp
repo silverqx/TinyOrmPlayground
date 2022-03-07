@@ -9,6 +9,7 @@
 #include "config.hpp"
 
 using Orm::Constants::H127001;
+using Orm::Constants::LOCALHOST;
 using Orm::Constants::P3306;
 using Orm::Constants::P5432;
 using Orm::Constants::QMYSQL;
@@ -71,6 +72,27 @@ const Configuration::OrmConfigurationsType &Configuration::initDBConfigurations(
         {options_,        QVariantHash()},
     };
 
+    static const QVariantHash mysqlLaravel8Connection {
+        {driver_,    QMYSQL},
+        {host_,      qEnvironmentVariable("DB_MYSQL_LARAVEL_HOST", H127001)},
+        {port_,      qEnvironmentVariable("DB_MYSQL_LARAVEL_PORT", P3306)},
+        {database_,  qEnvironmentVariable("DB_MYSQL_LARAVEL_DATABASE", "")},
+        {username_,  qEnvironmentVariable("DB_MYSQL_LARAVEL_USERNAME", "")},
+        {password_,  qEnvironmentVariable("DB_MYSQL_LARAVEL_PASSWORD", "")},
+        {charset_,   qEnvironmentVariable("DB_MYSQL_LARAVEL_CHARSET", UTF8MB4)},
+        {collation_, qEnvironmentVariable("DB_MYSQL_LARAVEL_COLLATION",
+                                          QStringLiteral("utf8mb4_0900_ai_ci"))},
+        {timezone_,       SYSTEM},
+        {prefix_,         ""},
+        {strict_,         true},
+        {isolation_level, QStringLiteral("REPEATABLE READ")},
+        {options_,        QVariantHash()},
+    };
+
+    // Minimize all timeouts, on localhost it's ok
+    minimizeMysqlTimeouts(mysqlConnection);
+    minimizeMysqlTimeouts(mysqlLaravel8Connection);
+
     static const OrmConfigurationsType cached {
         // Main MySQL connection in test loop
         {Mysql, mysqlConnection},
@@ -84,22 +106,7 @@ const Configuration::OrmConfigurationsType &Configuration::initDBConfigurations(
 
         /* Used in the testQueryBuilderDbSpecific() only to test a cross-database query,
            a connection to the "laravel_8" database. */
-        {Mysql_Laravel8, {
-            {driver_,    QMYSQL},
-            {host_,      qEnvironmentVariable("DB_MYSQL_LARAVEL_HOST", H127001)},
-            {port_,      qEnvironmentVariable("DB_MYSQL_LARAVEL_PORT", P3306)},
-            {database_,  qEnvironmentVariable("DB_MYSQL_LARAVEL_DATABASE", "")},
-            {username_,  qEnvironmentVariable("DB_MYSQL_LARAVEL_USERNAME", "")},
-            {password_,  qEnvironmentVariable("DB_MYSQL_LARAVEL_PASSWORD", "")},
-            {charset_,   qEnvironmentVariable("DB_MYSQL_LARAVEL_CHARSET", UTF8MB4)},
-            {collation_, qEnvironmentVariable("DB_MYSQL_LARAVEL_COLLATION",
-                                              QStringLiteral("utf8mb4_0900_ai_ci"))},
-            {timezone_,       SYSTEM},
-            {prefix_,         ""},
-            {strict_,         true},
-            {isolation_level, QStringLiteral("REPEATABLE READ")},
-            {options_,        QVariantHash()},
-        }},
+        {Mysql_Laravel8, mysqlLaravel8Connection},
 
         // Main SQLite connection in test loop
         {Sqlite, {
@@ -177,6 +184,23 @@ QString Configuration::initMySqlMainThreadConnection() const
         return Mysql_MainThread;
 
     return Mysql;
+}
+
+void Configuration::minimizeMysqlTimeouts(const QVariantHash &connectionOptions) const
+{
+    if (const auto &host = connectionOptions.find(host_).value();
+        host != H127001 && host != LOCALHOST
+    )
+        return;
+
+    auto &options = const_cast<QVariant &>(connectionOptions.find(options_).value());
+
+    auto newOptions = options.value<QVariantHash>();
+    newOptions.insert({{"MYSQL_OPT_CONNECT_TIMEOUT", 1},
+                       {"MYSQL_OPT_READ_TIMEOUT",    1},
+                       {"MYSQL_OPT_WRITE_TIMEOUT",   1}});
+
+    options = std::move(newOptions);
 }
 
 } // namespace TinyPlay

@@ -37,9 +37,6 @@ namespace TinyPlay
         /*! Default constructor. */
         inline Configuration() = default;
 
-        /*! Get DB connection configurations hash with all connections. */
-        const OrmConfigurationsType &initDBConfigurations() const;
-
         /*! Return true if TinyOrmPlayground was built with debugging enabled, or
             false for release mode. */
         constexpr static bool isDebugBuild();
@@ -104,12 +101,18 @@ namespace TinyPlay
         const QString MysqlMainThreadConnection {initMySqlMainThreadConnection()};
 
     private:
+        /*! Get DB connection configurations hash with all connections. */
+        const OrmConfigurationsType &initDBConfigurations() const;
+
         /*! Get the filepath to the SQLite database file, for testing
             the 'check_database_exists' configuration option. */
         QString initCheckDatabaseExistsFile();
         /*! Obtain MySQL connection name, it has a different name when multi-threading
             is enabled to avoid collision in connection names. */
         QString initMySqlMainThreadConnection() const;
+
+        /*! Set connect/read/write timeouts to 1. */
+        void minimizeMysqlTimeouts(const QVariantHash &connectionOptions) const;
     };
 
     constexpr bool Configuration::isDebugBuild()
