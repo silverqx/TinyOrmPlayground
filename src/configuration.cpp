@@ -54,44 +54,8 @@ Configuration::Sqlite_CheckExistsFalse = QStringLiteral("sqlite_check_exists_fal
 
 const Configuration::OrmConfigurationsType &Configuration::initDBConfigurations() const
 {
-    static const QVariantHash mysqlConnection {
-        {driver_,    QMYSQL},
-        {host_,      qEnvironmentVariable("DB_MYSQL_HOST", H127001)},
-        {port_,      qEnvironmentVariable("DB_MYSQL_PORT", P3306)},
-        {database_,  qEnvironmentVariable("DB_MYSQL_DATABASE", "")},
-        {username_,  qEnvironmentVariable("DB_MYSQL_USERNAME", "")},
-        {password_,  qEnvironmentVariable("DB_MYSQL_PASSWORD", "")},
-        {charset_,   qEnvironmentVariable("DB_MYSQL_CHARSET", UTF8MB4)},
-        {collation_, qEnvironmentVariable("DB_MYSQL_COLLATION",
-                                          QStringLiteral("utf8mb4_0900_ai_ci"))},
-        // CUR add timezone names to the MySQL server and test them silverqx
-        {timezone_,       SYSTEM},
-        {prefix_,         ""},
-        {strict_,         true},
-        {isolation_level, QStringLiteral("REPEATABLE READ")},
-        {options_,        QVariantHash()},
-    };
-
-    static const QVariantHash mysqlLaravel8Connection {
-        {driver_,    QMYSQL},
-        {host_,      qEnvironmentVariable("DB_MYSQL_LARAVEL_HOST", H127001)},
-        {port_,      qEnvironmentVariable("DB_MYSQL_LARAVEL_PORT", P3306)},
-        {database_,  qEnvironmentVariable("DB_MYSQL_LARAVEL_DATABASE", "")},
-        {username_,  qEnvironmentVariable("DB_MYSQL_LARAVEL_USERNAME", "")},
-        {password_,  qEnvironmentVariable("DB_MYSQL_LARAVEL_PASSWORD", "")},
-        {charset_,   qEnvironmentVariable("DB_MYSQL_LARAVEL_CHARSET", UTF8MB4)},
-        {collation_, qEnvironmentVariable("DB_MYSQL_LARAVEL_COLLATION",
-                                          QStringLiteral("utf8mb4_0900_ai_ci"))},
-        {timezone_,       SYSTEM},
-        {prefix_,         ""},
-        {strict_,         true},
-        {isolation_level, QStringLiteral("REPEATABLE READ")},
-        {options_,        QVariantHash()},
-    };
-
-    // Minimize all timeouts, on localhost it's ok
-    minimizeMysqlTimeouts(mysqlConnection);
-    minimizeMysqlTimeouts(mysqlLaravel8Connection);
+    static const QVariantHash mysqlConnection =         initMysqlConfiguration();
+    static const QVariantHash mysqlLaravel8Connection = initMysqlLaravel8Configuration();
 
     static const OrmConfigurationsType cached {
         // Main MySQL connection in test loop
@@ -165,6 +129,74 @@ const Configuration::OrmConfigurationsType &Configuration::initDBConfigurations(
     return cached;
 }
 
+QVariantHash Configuration::initMysqlConfiguration()
+{
+    QVariantHash mysqlConnection {
+        {driver_,    QMYSQL},
+        {host_,      qEnvironmentVariable("DB_MYSQL_HOST", H127001)},
+        {port_,      qEnvironmentVariable("DB_MYSQL_PORT", P3306)},
+        {database_,  qEnvironmentVariable("DB_MYSQL_DATABASE", "")},
+        {username_,  qEnvironmentVariable("DB_MYSQL_USERNAME", "")},
+        {password_,  qEnvironmentVariable("DB_MYSQL_PASSWORD", "")},
+        {charset_,   qEnvironmentVariable("DB_MYSQL_CHARSET", UTF8MB4)},
+        {collation_, qEnvironmentVariable("DB_MYSQL_COLLATION",
+                                          QStringLiteral("utf8mb4_0900_ai_ci"))},
+        // CUR add timezone names to the MySQL server and test them silverqx
+        {timezone_,       SYSTEM},
+        {prefix_,         ""},
+        {strict_,         true},
+        {isolation_level, QStringLiteral("REPEATABLE READ")},
+        {options_,        QVariantHash()},
+    };
+
+    // Minimize all timeouts, on localhost it's ok
+    minimizeMysqlTimeouts(mysqlConnection);
+
+    return mysqlConnection;
+}
+
+QVariantHash Configuration::initMysqlLaravel8Configuration()
+{
+    QVariantHash mysqlLaravel8Connection {
+        {driver_,    QMYSQL},
+        {host_,      qEnvironmentVariable("DB_MYSQL_LARAVEL_HOST", H127001)},
+        {port_,      qEnvironmentVariable("DB_MYSQL_LARAVEL_PORT", P3306)},
+        {database_,  qEnvironmentVariable("DB_MYSQL_LARAVEL_DATABASE", "")},
+        {username_,  qEnvironmentVariable("DB_MYSQL_LARAVEL_USERNAME", "")},
+        {password_,  qEnvironmentVariable("DB_MYSQL_LARAVEL_PASSWORD", "")},
+        {charset_,   qEnvironmentVariable("DB_MYSQL_LARAVEL_CHARSET", UTF8MB4)},
+        {collation_, qEnvironmentVariable("DB_MYSQL_LARAVEL_COLLATION",
+                                          QStringLiteral("utf8mb4_0900_ai_ci"))},
+        {timezone_,       SYSTEM},
+        {prefix_,         ""},
+        {strict_,         true},
+        {isolation_level, QStringLiteral("REPEATABLE READ")},
+        {options_,        QVariantHash()},
+    };
+
+    // Minimize all timeouts, on localhost it's ok
+    minimizeMysqlTimeouts(mysqlLaravel8Connection);
+
+    return mysqlLaravel8Connection;
+}
+
+void Configuration::minimizeMysqlTimeouts(QVariantHash &connectionOptions)
+{
+    if (const auto &host = connectionOptions.find(host_).value();
+        host != H127001 && host != LOCALHOST
+    )
+        return;
+
+    auto &options = connectionOptions.find(options_).value();
+
+    auto newOptions = options.value<QVariantHash>();
+    newOptions.insert({{"MYSQL_OPT_CONNECT_TIMEOUT", 1},
+                       {"MYSQL_OPT_READ_TIMEOUT",    1},
+                       {"MYSQL_OPT_WRITE_TIMEOUT",   1}});
+
+    options = std::move(newOptions);
+}
+
 QString Configuration::initCheckDatabaseExistsFile()
 {
     auto path = qEnvironmentVariable("DB_SQLITE_DATABASE", "");
@@ -184,23 +216,6 @@ QString Configuration::initMySqlMainThreadConnection() const
         return Mysql_MainThread;
 
     return Mysql;
-}
-
-void Configuration::minimizeMysqlTimeouts(const QVariantHash &connectionOptions) const
-{
-    if (const auto &host = connectionOptions.find(host_).value();
-        host != H127001 && host != LOCALHOST
-    )
-        return;
-
-    auto &options = const_cast<QVariant &>(connectionOptions.find(options_).value());
-
-    auto newOptions = options.value<QVariantHash>();
-    newOptions.insert({{"MYSQL_OPT_CONNECT_TIMEOUT", 1},
-                       {"MYSQL_OPT_READ_TIMEOUT",    1},
-                       {"MYSQL_OPT_WRITE_TIMEOUT",   1}});
-
-    options = std::move(newOptions);
 }
 
 } // namespace TinyPlay

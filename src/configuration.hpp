@@ -104,15 +104,19 @@ namespace TinyPlay
         /*! Get DB connection configurations hash with all connections. */
         const OrmConfigurationsType &initDBConfigurations() const;
 
+        /*! Get DB connection configuration for Mysql connection. */
+        static QVariantHash initMysqlConfiguration();
+        /*! Get DB connection configuration for Mysql_Laravel8 connection. */
+        static QVariantHash initMysqlLaravel8Configuration();
+        /*! Set connect/read/write timeouts to 1. */
+        static void minimizeMysqlTimeouts(QVariantHash &connectionOptions);
+
         /*! Get the filepath to the SQLite database file, for testing
             the 'check_database_exists' configuration option. */
         QString initCheckDatabaseExistsFile();
         /*! Obtain MySQL connection name, it has a different name when multi-threading
             is enabled to avoid collision in connection names. */
         QString initMySqlMainThreadConnection() const;
-
-        /*! Set connect/read/write timeouts to 1. */
-        void minimizeMysqlTimeouts(const QVariantHash &connectionOptions) const;
     };
 
     constexpr bool Configuration::isDebugBuild()
