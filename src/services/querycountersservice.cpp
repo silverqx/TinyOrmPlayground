@@ -89,6 +89,7 @@ void QueryCountersService::resetAllQueryLogCounters() const
 
 namespace
 {
+    // CUR fix non-POD static clazy warnings silverqx
     /*! Log file for log messages from threads. */
     QFile logFile {Fs::resolveHome(Configuration::LogFilepath)};
     /*! Text stream for log messages from threads. */
@@ -398,8 +399,10 @@ void QueryCountersService::santizeConnectionsToRunInThread()
         return !m_config.ConnectionsToTest.contains(connection);
     });
 
-    m_config.ConnectionsToRunInThread.erase(removeEnd,
-                                            m_config.ConnectionsToRunInThread.end()); // clazy:exclude=detaching-member
+    m_config.ConnectionsToRunInThread.erase(
+                // To suppress clazy warning about mixing iterator constnest
+                static_cast<QStringList::const_iterator>(removeEnd),
+                m_config.ConnectionsToRunInThread.constEnd()); // clazy:exclude=detaching-member
 }
 
 void QueryCountersService::initThreadLogging() const

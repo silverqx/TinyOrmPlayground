@@ -27,7 +27,7 @@ using Orm::Constants::DOT;
 using Orm::Constants::INNER;
 using Orm::Constants::UNDERSCORE;
 
-using Orm::DB;
+using Orm::DB; // NOLINT(misc-unused-using-decls)
 using Orm::Tiny::AttributeItem;
 
 // NOLINTNEXTLINE(google-build-using-namespace)
