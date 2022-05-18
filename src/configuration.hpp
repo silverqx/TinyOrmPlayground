@@ -51,6 +51,9 @@ namespace TinyPlay
         /*! Run connections defined in the ConnectionsToRunInThread in threads. */
         constexpr static const bool ConnectionsInThreads = true;
 
+        /*! Whether to skip schema builder related PlayTest. */
+        constexpr static const bool ExcludeSchemaBuilder = true;
+
         /*! Whether log output from connections in threads to a file or to the console. */
         constexpr static const bool IsLoggingToFile = true;
         /*! Filepath to the log file for connections in threads. */

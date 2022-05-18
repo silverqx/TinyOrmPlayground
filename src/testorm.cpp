@@ -15,6 +15,7 @@
 #include "tests/testforplay.hpp"
 #include "tests/testquerybuilder.hpp"
 #include "tests/testquerybuilderdbspecific.hpp"
+#include "tests/testschemabuilder.hpp"
 #include "tests/testtinyorm.hpp"
 
 using Orm::DB;
@@ -118,7 +119,7 @@ TestOrm &TestOrm::run()
     // Throw when unsupported environment detected
     throwIfUnsupportedEnv();
 
-    // All other tests
+    // All other tests - jsonConfig(), standardPaths()
     Tests::TestAllOtherTests(m_config, m_queryCountersService).run();
 
     // Test TinyORM's Database Connections
@@ -179,6 +180,10 @@ void TestOrm::testConnectionInMainThread(const QString &connection)
 
     Tests::TestQueryBuilder(m_config, m_queryCountersService).run();
     Tests::TestTinyOrm(m_config, m_queryCountersService).run();
+
+    // Schema builder currently supports MySQL database only
+    if (connection == Mysql && !Configuration::ExcludeSchemaBuilder)
+        Tests::TestSchemaBuilder(m_config, m_queryCountersService).run();
 }
 
 void TestOrm::testConnectionInWorkerThread(const QString &connection)
@@ -203,6 +208,10 @@ void TestOrm::testConnectionInWorkerThread(const QString &connection)
 
         Tests::TestQueryBuilder(m_config, m_queryCountersService).run();
         Tests::TestTinyOrm(m_config, m_queryCountersService).run();
+
+        // Schema builder currently supports MySQL database only
+        if (connection == Mysql && !Configuration::ExcludeSchemaBuilder)
+            Tests::TestSchemaBuilder(m_config, m_queryCountersService).run();
 
         // Save counters from a current thread for Application Summary
         m_queryCountersService.saveCountersForAppSummary(connection);

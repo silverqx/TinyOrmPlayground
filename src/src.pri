@@ -21,6 +21,7 @@ HEADERS += \
     $$PWD/tests/testforplay.hpp \
     $$PWD/tests/testquerybuilder.hpp \
     $$PWD/tests/testquerybuilderdbspecific.hpp \
+    $$PWD/tests/testschemabuilder.hpp \
     $$PWD/tests/testtinyorm.hpp \
     $$PWD/version.hpp \
 
@@ -40,4 +41,5 @@ SOURCES += \
     $$PWD/tests/testforplay.cpp \
     $$PWD/tests/testquerybuilder.cpp \
     $$PWD/tests/testquerybuilderdbspecific.cpp \
+    $$PWD/tests/testschemabuilder.cpp \
     $$PWD/tests/testtinyorm.cpp \

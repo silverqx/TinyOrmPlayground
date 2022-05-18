@@ -3,12 +3,15 @@
 #include <QDebug>
 #include <QElapsedTimer>
 
+#include <filesystem>
+#include <iostream>
 #include <typeindex>
 #include <typeinfo>
 
 #include <range/v3/all.hpp>
 
 #include <orm/db.hpp>
+#include <orm/schema.hpp>
 #include <orm/tiny/tinytypes.hpp>
 #include <orm/version.hpp>
 
@@ -28,6 +31,8 @@ using Orm::Constants::INNER;
 using Orm::Constants::UNDERSCORE;
 
 using Orm::DB; // NOLINT(misc-unused-using-decls)
+using Orm::Schema; // NOLINT(misc-unused-using-decls)
+using Orm::SchemaNs::Blueprint; // NOLINT(misc-unused-using-decls)
 using Orm::Tiny::AttributeItem;
 
 // NOLINTNEXTLINE(google-build-using-namespace)
@@ -53,6 +58,7 @@ void TestForPlay::run() const
 
             qt_noop();
         }
+
         {
 
             qt_noop();

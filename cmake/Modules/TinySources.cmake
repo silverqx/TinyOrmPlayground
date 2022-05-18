@@ -20,6 +20,7 @@ function(tiny_sources out_headers out_sources)
         tests/testforplay.hpp
         tests/testquerybuilder.hpp
         tests/testquerybuilderdbspecific.hpp
+        tests/testschemabuilder.hpp
         tests/testtinyorm.hpp
         version.hpp
     )
@@ -40,6 +41,7 @@ function(tiny_sources out_headers out_sources)
         tests/testforplay.cpp
         tests/testquerybuilder.cpp
         tests/testquerybuilderdbspecific.cpp
+        tests/testschemabuilder.cpp
         tests/testtinyorm.cpp
     )
 

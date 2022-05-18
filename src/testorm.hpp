@@ -57,7 +57,7 @@ namespace TinyPlay
         QueryCountersService m_queryCountersService {m_config};
 
         /*! Database manager instance. */
-        std::shared_ptr<Orm::DatabaseManager> m_db;
+        std::shared_ptr<Orm::DatabaseManager> m_db = nullptr;
     };
 
     const Configuration &TestOrm::config() const
