@@ -1,6 +1,6 @@
 #pragma once
-#ifndef TINYPLAY_UTILS_HPP
-#define TINYPLAY_UTILS_HPP
+#ifndef TINYPLAY_SUPPORT_UTILS_HPP
+#define TINYPLAY_SUPPORT_UTILS_HPP
 
 #include <QtGlobal>
 
@@ -29,4 +29,4 @@ namespace TinyPlay::Support
 
 } // namespace TinyPlay::Support
 
-#endif // TINYPLAY_UTILS_HPP
+#endif // TINYPLAY_SUPPORT_UTILS_HPP
