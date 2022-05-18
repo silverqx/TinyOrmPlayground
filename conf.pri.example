@@ -19,6 +19,11 @@ INCLUDEPATH += $$quote($$TINY_MAIN_DIR/TinyORM/include/)
 
 # MinGW
 win32-g++|win32-clang-g++ {
+    # Includes
+    # nlohmann-json, range-v3 and tabulate
+    INCLUDEPATH += $$quote(C:/msys64/home/xyz/vcpkg/installed/x64-mingw-dynamic/include/)
+    QMAKE_CXXFLAGS += -isystem $$shell_quote(C:/msys64/home/xyz/vcpkg/installed/x64-mingw-dynamic/include/)
+
     # Libraries
     # TinyORM library path
     # Support gcc and clang
@@ -31,7 +36,7 @@ win32-g++|win32-clang-g++ {
 }
 else:win32-msvc {
     # Includes
-    # range-v3
+    # nlohmann-json, range-v3 and tabulate
     INCLUDEPATH += $$quote(E:/xyz/vcpkg/installed/x64-windows/include/)
 
     # Libraries
@@ -40,7 +45,7 @@ else:win32-msvc {
 }
 else:unix {
     # Includes
-    # range-v3
+    # nlohmann-json, range-v3 and tabulate
     QMAKE_CXXFLAGS += -isystem $$quote(/home/xyz/vcpkg/installed/x64-linux/include/)
 
     # Libraries
