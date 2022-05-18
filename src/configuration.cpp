@@ -23,14 +23,17 @@ using Orm::Constants::check_database_exists;
 using Orm::Constants::collation_;
 using Orm::Constants::database_;
 using Orm::Constants::driver_;
+using Orm::Constants::engine_;
 using Orm::Constants::foreign_key_constraints;
 using Orm::Constants::host_;
+using Orm::Constants::InnoDB;
 using Orm::Constants::isolation_level;
 using Orm::Constants::LOCAL;
 using Orm::Constants::options_;
 using Orm::Constants::password_;
 using Orm::Constants::port_;
 using Orm::Constants::prefix_;
+using Orm::Constants::prefix_indexes;
 using Orm::Constants::PUBLIC;
 using Orm::Constants::schema_;
 using Orm::Constants::strict_;
@@ -120,9 +123,10 @@ const Configuration::OrmConfigurationsType &Configuration::initDBConfigurations(
             {password_, qEnvironmentVariable("DB_PGSQL_PASSWORD", "")},
             {charset_,  qEnvironmentVariable("DB_PGSQL_CHARSET",  UTF8)},
             // I don't use timezone types in postgres anyway
-            {timezone_, LOCAL},
-            {prefix_,   ""},
-            {options_,  QVariantHash(/*{{"requiressl", 1}}*/)},
+            {timezone_,       LOCAL},
+            {prefix_,         ""},
+            {prefix_indexes,  true},
+            {options_,        QVariantHash(/*{{"requiressl", 1}}*/)},
         }},
     };
 
@@ -144,8 +148,10 @@ QVariantHash Configuration::initMysqlConfiguration()
         // CUR add timezone names to the MySQL server and test them silverqx
         {timezone_,       SYSTEM},
         {prefix_,         ""},
+        {prefix_indexes,  true},
         {strict_,         true},
         {isolation_level, QStringLiteral("REPEATABLE READ")},
+        {engine_,         InnoDB},
         {options_,        QVariantHash()},
     };
 
@@ -169,8 +175,10 @@ QVariantHash Configuration::initMysqlLaravel8Configuration()
                                           QStringLiteral("utf8mb4_0900_ai_ci"))},
         {timezone_,       SYSTEM},
         {prefix_,         ""},
+        {prefix_indexes,  true},
         {strict_,         true},
         {isolation_level, QStringLiteral("REPEATABLE READ")},
+        {engine_,         InnoDB},
         {options_,        QVariantHash()},
     };
 
