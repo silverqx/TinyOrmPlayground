@@ -4,7 +4,12 @@
 
 #ifdef _WIN32
 #include <qt_windows.h>
+
+#include <fcntl.h>
+#include <io.h>
 #endif
+
+#include <iostream>
 
 #include <orm/utils/thread.hpp>
 
@@ -22,19 +27,25 @@ int main(int /*unused*/, char */*unused*/[])
 #ifdef _WIN32
     SetConsoleOutputCP(CP_UTF8);
 //    SetConsoleOutputCP(1250);
+    /* UTF-8 encoding is corrupted for narrow input functions, needed to use wcin/wstring
+       for an input, input will be in the unicode encoding then needed to translate
+       unicode to utf8, eg. by QString::fromStdWString(), WideCharToMultiByte(), or
+       std::codecvt(). It also works with msys2 ucrt64 gcc/clang. */
+    SetConsoleCP(CP_UTF8);
+    _setmode(_fileno(stdin), _O_WTEXT);
 #endif
 
     Thread::nameThreadForDebugging("main");
 
     qInstallMessageHandler(&TinyPlay::Support::tinyMessageHandler);
 
-    QCoreApplication::setOrganizationName("tinyorm");
-    QCoreApplication::setOrganizationDomain("silverqx.github.io");
+    QCoreApplication::setOrganizationName("TinyORM");
+    QCoreApplication::setOrganizationDomain("tinyorm.org");
     QCoreApplication::setApplicationName("TinyOrmPlayground");
 
     qInfo() << "";
 
-    auto excpetion = false;
+    auto exitCode = EXIT_SUCCESS;
 
     QElapsedTimer timer;
     timer.start();
@@ -44,9 +55,10 @@ int main(int /*unused*/, char */*unused*/[])
                  .run();
 
     } catch (const std::exception &e) {
+
         Utils::logException(e);
 
-        excpetion = true;
+        exitCode = EXIT_FAILURE;
     }
 
     qInfo().nospace() << "⚡ Total TestOrm instance execution time : "
@@ -55,5 +67,5 @@ int main(int /*unused*/, char */*unused*/[])
 
     qInfo() << "";
 
-    return excpetion ? 1 : 0;
+    return exitCode;
 }
