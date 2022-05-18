@@ -19,7 +19,7 @@ void Utils::logException(const std::exception &e)
     qCritical().nospace().noquote()
             << "\nCaught '"
             << Orm::Utils::Type::classPureBasename(e, true)
-            << "' Exception:\n" << e.what() << "\n";
+            << "' Exception:\n" << e.what();
 }
 
 void Utils::throwIfNonEmptyConn(const QString &connection)
