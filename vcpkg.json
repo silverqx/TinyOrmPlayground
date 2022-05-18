@@ -8,8 +8,9 @@
   "maintainers": "Silver Zachara <silver.zachara@gmail.com>",
   "supports": "!(uwp | arm | android | emscripten)",
   "dependencies": [
+    "nlohmann-json",
     "range-v3",
-    "nlohmann-json"
+    "tabulate"
   ]
 }
 
