@@ -127,6 +127,8 @@ const Configuration::OrmConfigurationsType &Configuration::initDBConfigurations(
             {timezone_,       LOCAL},
             {prefix_,         EMPTY},
             {prefix_indexes,  true},
+            // ConnectionFactory provides a default value for this, this is only for reference
+//            {dont_drop,      QStringList {QStringLiteral("spatial_ref_sys")}},
             {options_,        QVariantHash(/*{{"requiressl", 1}}*/)},
         }},
     };
