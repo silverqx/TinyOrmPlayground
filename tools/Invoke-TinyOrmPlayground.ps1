@@ -7,7 +7,7 @@ Param(
     [Parameter(Position = 1, Mandatory = $false,
                HelpMessage = 'Specifies an executable to invoke.')]
     [ValidateNotNullOrEmpty()]
-    [string] $Executable = '..\..\TinyOrmPlayground-builds-qmake\build-TinyOrmPlayground-Desktop_Qt_5_15_2_MSVC2019_64bit-Debug\debug\TinyOrmPlayground.exe'
+    [string] $Executable = '..\..\TinyOrmPlayground-builds-qmake\build-TinyOrmPlayground-Desktop_Qt_6_2_4_MSVC2019_64bit-Debug\debug\TinyOrmPlayground.exe'
 )
 
 Set-StrictMode -Version 3.0
