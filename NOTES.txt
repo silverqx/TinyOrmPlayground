@@ -22,3 +22,30 @@ cmake.exe -S E:/c/qMedia/TinyOrmPlayground/TinyOrmPlayground `
 `
 dot -Tpng -o .\graph\graph.png .\graph\graph.dot; `
 .\graph\graph.png
+
+
+Invoke-TinyOrmPlayground.ps1:
+-----------------------------
+
+ - qtenv6.ps1
+ - Add-FolderOnPath.ps1 <path>
+ - stp not needed
+ - invoke inside the TinyOrmPlayground/tools/ folder
+
+- single-threaded
+  - 100 times run (with testschemabuilder)
+    - 24. may 2022
+      - Windows 11:
+        - Qt 6.2.4 ; msvc 16.11.15 x64
+          - debug build
+Average Functions execution time         : 10581ms
+Average Queries execution time           : 7503ms
+Average TestOrm instances execution time : 10650ms
+
+- multi-threaded
+  - 100 times run (w/o testschemabuilder)
+    - 24. may 2022
+      - Windows 11:
+        - Qt 6.2.4 ; msvc 16.11.15 x64
+          - debug build
+Average TestOrm instances execution time : 2200ms
