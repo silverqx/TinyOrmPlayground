@@ -57,7 +57,7 @@ namespace TinyPlay
         /*! Whether log output from connections in threads to a file or to the console. */
         constexpr static const bool IsLoggingToFile = true;
         /*! Filepath to the log file for connections in threads. */
-        constexpr static const char *LogFilepath
+        constexpr static const char *const LogFilepath
 #ifdef __linux__
         {"~/Code/tmp/tinyplay.txt"};
 #else

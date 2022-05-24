@@ -181,8 +181,10 @@ void TestOrm::testConnectionInMainThread(const QString &connection)
     Tests::TestQueryBuilder(m_config, m_queryCountersService).run();
     Tests::TestTinyOrm(m_config, m_queryCountersService).run();
 
-    // Schema builder currently supports MySQL database only
-    if (connection == Mysql && !Configuration::ExcludeSchemaBuilder)
+    // Schema builder currently supports MySQL and PostgreSQL database only
+    if (!Configuration::ExcludeSchemaBuilder &&
+        (connection == Mysql || connection == Postgres)
+    )
         Tests::TestSchemaBuilder(m_config, m_queryCountersService).run();
 }
 
@@ -209,9 +211,7 @@ void TestOrm::testConnectionInWorkerThread(const QString &connection)
         Tests::TestQueryBuilder(m_config, m_queryCountersService).run();
         Tests::TestTinyOrm(m_config, m_queryCountersService).run();
 
-        // Schema builder currently supports MySQL database only
-        if (connection == Mysql && !Configuration::ExcludeSchemaBuilder)
-            Tests::TestSchemaBuilder(m_config, m_queryCountersService).run();
+        // Schema builder doesn't support multi-threading
 
         // Save counters from a current thread for Application Summary
         m_queryCountersService.saveCountersForAppSummary(connection);

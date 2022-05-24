@@ -4,6 +4,7 @@
 #include <QElapsedTimer>
 
 #include <orm/db.hpp>
+#include <orm/exceptions/runtimeerror.hpp>
 #include <orm/schema.hpp>
 
 #include "models/user.hpp"
@@ -13,7 +14,15 @@
 // clazy:excludeall=unused-non-trivial-variable
 
 using Orm::Constants::ID;
+using Orm::Constants::MyISAM;
 using Orm::Constants::NAME;
+using Orm::Constants::QMYSQL;
+using Orm::Constants::QPSQL;
+using Orm::Constants::UTF8;
+using Orm::Constants::UTF8Generalci;
+using Orm::Constants::UTF8Unicodeci;
+using Orm::Constants::NotImplemented;
+using Orm::Exceptions::RuntimeError;
 
 using Orm::DB;
 using Orm::Schema;
@@ -31,6 +40,9 @@ void TestSchemaBuilder::run() const
     timer.start();
 
     resetAllQueryLogCounters();
+
+    // For current connection
+    const auto driverName = DB::driverName();
 
     qInfo().nospace()
             << "\n\n================="
@@ -51,7 +63,7 @@ void TestSchemaBuilder::run() const
     {
         qInfo() << "\n\nSchema modifiers and dropColumns\n---";
 
-        Schema::create("schema_modifiers", [](Blueprint &table)
+        Schema::create("schema_modifiers", [&driverName](Blueprint &table)
         {
 //                table.id().startingValue(10);
             table.bigInteger("id").autoIncrement().isUnsigned().startingValue(5);
@@ -60,9 +72,13 @@ void TestSchemaBuilder::run() const
             table.string("name2").comment("name2 note");
             table.string("name3");
             table.string("name4").invisible();
-            table.string("name5").charset("utf8");
-            table.string("name6").collation("utf8mb4_unicode_ci");
-            table.string("name7").charset("utf8").collation("utf8_unicode_ci");
+            table.string("name5").charset(UTF8);
+            table.string("name6");
+            table.string("name7").charset(UTF8);
+            if (driverName == QMYSQL) {
+                table.string("name8").collation(UTF8Unicodeci);
+                table.string("name9").charset(UTF8).collation(UTF8Unicodeci);
+            }
             table.bigInteger("big_int").isUnsigned();
             table.bigInteger("big_int1");
         });
@@ -159,12 +175,15 @@ void TestSchemaBuilder::run() const
     {
         qInfo() << "\n\nSchema types and after, first modifiers\n---";
 
-        Schema::create("schema_types_after_first", [](Blueprint &table)
+        Schema::create("schema_types_after_first", [&driverName](Blueprint &table)
         {
-            table.charset = "utf8";
-            table.collation = "utf8_general_ci";
+            // PostgreSQL supports temporary only
+            if (driverName == QMYSQL) {
+                table.charset = UTF8;
+                table.collation = UTF8Generalci;
+                table.engine = MyISAM;
+            }
             table.temporary();
-            table.engine = "MyISAM";
 
             table.id().from(15);
             table.Char("char");
@@ -189,6 +208,12 @@ void TestSchemaBuilder::run() const
             table.unsignedBigInteger("unsignedBigInteger");
 
             table.unsignedDecimal("money", 10, 2);
+
+            table.lineString("linestring1");
+            table.lineString("linestring2").isGeometry();
+            table.point("point1");
+            table.point("point2", 3200).isGeometry();
+            table.point("point3").isGeometry().srid(3400);
         });
 
         Schema::dropIfExists("schema_types_after_first");
@@ -292,8 +317,10 @@ void TestSchemaBuilder::run() const
                     .spatialIndex("coordinates_s_cn_spatial");
         });
 
+        Schema::dropIfExists("schema_indexes_fluent");
+
         // Blueprint indexes
-        Schema::create("schema_indexes_blueprint", [](Blueprint &table)
+        Schema::create("schema_indexes_blueprint", [&driverName](Blueprint &table)
         {
             table.id();
 
@@ -308,7 +335,12 @@ void TestSchemaBuilder::run() const
 
             table.string("name_r");
             table.string("name_r1");
-            table.rawIndex(DB::raw("`name_r`, name_r1"), "name_r_raw");
+            if (driverName == QMYSQL)
+                table.rawIndex(DB::raw("`name_r`, name_r1"), "name_r_raw");
+            else if (driverName == QPSQL)
+                table.rawIndex(DB::raw(R"("name_r", name_r1)"), "name_r_raw");
+            else
+                throw RuntimeError(NotImplemented);
 
             table.string("name_f");
             table.fullText({"name_f"});
@@ -323,7 +355,6 @@ void TestSchemaBuilder::run() const
             table.spatialIndex("coordinates_s_cn", "coordinates_s_cn_spatial");
         });
 
-        Schema::dropIfExists("schema_indexes_fluent");
         Schema::dropIfExists("schema_indexes_blueprint");
 
         qt_noop();
@@ -556,6 +587,27 @@ void TestSchemaBuilder::run() const
         });
 
         Schema::dropIfExists("schema_foreign_model");
+
+        qt_noop();
+    }
+
+    /* Schema rename table */
+    {
+        qInfo() << "\n\nSchema rename table\n---";
+
+        Models::Torrent torrent;
+        Models::User user;
+
+        Schema::create("schema_rename_table", [](Blueprint &table)
+        {
+            table.id();
+            table.string(NAME);
+        });
+
+        Schema::rename("schema_rename_table", "schema_rename_table_renamed");
+
+        Schema::dropIfExists("schema_rename_table");
+        Schema::dropIfExists("schema_rename_table_renamed");
 
         qt_noop();
     }
