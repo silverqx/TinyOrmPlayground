@@ -145,6 +145,22 @@ void TestSchemaBuilder::run() const
         qt_noop();
     }
 
+    /* Schema escaping in the defaultValue modifier */
+    {
+        qInfo() << "\n\nSchema escaping in the defaultValue modifier\n---";
+
+        Schema::create("schema_modifier_defaultValue_escaping", [](Blueprint &table)
+        {
+            // String contains \t after tab word
+            table.string("string").defaultValue(R"(Text ' and " or \ newline
+and tab	end)");
+        });
+
+        Schema::dropIfExists("schema_modifier_defaultValue_escaping");
+
+        qt_noop();
+    }
+
     /* Schema useCurrent/OnUpdate modifiers */
     {
         qInfo() << "\n\nSchema useCurrent/OnUpdate modifiers\n---";
