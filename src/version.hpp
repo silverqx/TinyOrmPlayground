@@ -3,7 +3,7 @@
 #define TINYPLAY_VERSION_HPP
 
 #define TINYPLAY_VERSION_MAJOR 0
-#define TINYPLAY_VERSION_MINOR 2
+#define TINYPLAY_VERSION_MINOR 3
 #define TINYPLAY_VERSION_BUGFIX 0
 #define TINYPLAY_VERSION_BUILD 0
 // Should be empty for stable releases, and use hypen before for SemVer compatibility!
