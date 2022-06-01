@@ -6,6 +6,8 @@
 #include <QDir>
 #endif
 
+#include <unordered_set>
+
 #include <orm/macros/threadlocal.hpp>
 #include <orm/support/databaseconfiguration.hpp>
 
@@ -34,6 +36,28 @@ namespace TinyPlay
         static const QString Sqlite_CheckExistsTrue;
         static const QString Sqlite_CheckExistsFalse;
 
+        /*! All supported Tests. */
+        enum struct Test
+        {
+            TestForPlay,
+            TestAllOtherTests,
+            TestConnection,
+            TestQueryBuilderDbSpecific,
+            TestQueryBuilder,
+            TestTinyOrm,
+            TestSchemaBuilder,
+        };
+
+        // All supported tests
+        constexpr static Test TestForPlay       = Test::TestForPlay;
+        constexpr static Test TestAllOtherTests = Test::TestAllOtherTests;
+        constexpr static Test TestConnection    = Test::TestConnection;
+        constexpr static Test
+        TestQueryBuilderDbSpecific              = Test::TestQueryBuilderDbSpecific;
+        constexpr static Test TestQueryBuilder  = Test::TestQueryBuilder;
+        constexpr static Test TestTinyOrm       = Test::TestTinyOrm;
+        constexpr static Test TestSchemaBuilder = Test::TestSchemaBuilder;
+
         /*! Default constructor. */
         inline Configuration() = default;
 
@@ -48,11 +72,19 @@ namespace TinyPlay
         /*! All connections configurations. */
         const OrmConfigurationsType Configurations {initDBConfigurations()};
 
+        /*! Tests to invoke. */
+        inline static std::unordered_set TestsToInvoke {
+            TestForPlay,
+            TestAllOtherTests,
+            TestConnection,
+            TestQueryBuilderDbSpecific,
+            TestQueryBuilder,
+            TestTinyOrm,
+//            TestSchemaBuilder,
+        };
+
         /*! Run connections defined in the ConnectionsToRunInThread in threads. */
         constexpr static const bool ConnectionsInThreads = true;
-
-        /*! Whether to skip schema builder related PlayTest. */
-        constexpr static const bool ExcludeSchemaBuilder = true;
 
         /*! Whether log output from connections in threads to a file or to the console. */
         constexpr static const bool IsLoggingToFile = true;
@@ -66,12 +98,18 @@ namespace TinyPlay
 
         /*! Connections, for which the testQueryBuilder() and testTinyOrm()
             will be ran on. */
-        const QStringList
-        ConnectionsToTest {Mysql, Sqlite, Postgres};
-//        ConnectionsToTest {Mysql};
+        const QStringList ConnectionsToTest {
+            Mysql,
+            Sqlite,
+            Postgres,
+        };
 
         /*! Which connections will run in separate threads, one connection per thread. */
-        QStringList ConnectionsToRunInThread {Mysql, Sqlite, Postgres};
+        QStringList ConnectionsToRunInThread {
+            Mysql,
+            Sqlite,
+            Postgres,
+        };
 
         /*! Connections to count on statements and execution times, computed
             at runtime. */

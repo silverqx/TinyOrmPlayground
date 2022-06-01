@@ -114,18 +114,23 @@ TestOrm &TestOrm::connectToDatabase()
 TestOrm &TestOrm::run()
 {
     // Test intended for play
-    Tests::TestForPlay(m_config, m_queryCountersService).run();
+    if (shouldTest(TestForPlay))
+        Tests::TestForPlay(m_config, m_queryCountersService).run();
 
     // Throw when unsupported environment detected
     throwIfUnsupportedEnv();
 
     // All other tests - jsonConfig(), standardPaths()
-    Tests::TestAllOtherTests(m_config, m_queryCountersService).run();
+    if (shouldTest(TestAllOtherTests))
+        Tests::TestAllOtherTests(m_config, m_queryCountersService).run();
 
     // Test TinyORM's Database Connections
-    Tests::TestConnection(m_config, m_queryCountersService).run();
+    if (shouldTest(TestConnection))
+        Tests::TestConnection(m_config, m_queryCountersService).run();
+
     // Database-specific tests related to the QueryBuilder
-    Tests::TestQueryBuilderDbSpecific(m_config, m_queryCountersService).run();
+    if (shouldTest(TestQueryBuilderDbSpecific))
+        Tests::TestQueryBuilderDbSpecific(m_config, m_queryCountersService).run();
 
     /* Main Playground's test code */
     testAllConnections();
@@ -178,11 +183,14 @@ void TestOrm::testConnectionInMainThread(const QString &connection)
 {
     DB::setDefaultConnection(connection);
 
-    Tests::TestQueryBuilder(m_config, m_queryCountersService).run();
-    Tests::TestTinyOrm(m_config, m_queryCountersService).run();
+    if (shouldTest(TestQueryBuilder))
+        Tests::TestQueryBuilder(m_config, m_queryCountersService).run();
+
+    if (shouldTest(TestTinyOrm))
+        Tests::TestTinyOrm(m_config, m_queryCountersService).run();
 
     // Schema builder currently supports MySQL and PostgreSQL database only
-    if (!Configuration::ExcludeSchemaBuilder &&
+    if (shouldTest(TestSchemaBuilder) &&
         (connection == Mysql || connection == Postgres)
     )
         Tests::TestSchemaBuilder(m_config, m_queryCountersService).run();
@@ -208,8 +216,11 @@ void TestOrm::testConnectionInWorkerThread(const QString &connection)
         // Enable counters on all database connections to count
         m_queryCountersService.enableAllQueryLogCounters();
 
-        Tests::TestQueryBuilder(m_config, m_queryCountersService).run();
-        Tests::TestTinyOrm(m_config, m_queryCountersService).run();
+        if (shouldTest(TestQueryBuilder))
+            Tests::TestQueryBuilder(m_config, m_queryCountersService).run();
+
+        if (shouldTest(TestTinyOrm))
+            Tests::TestTinyOrm(m_config, m_queryCountersService).run();
 
         // Schema builder doesn't support multi-threading
 

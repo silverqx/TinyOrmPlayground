@@ -41,6 +41,22 @@ namespace TinyPlay
         /*! Testing method used when database connection will run in a worker thread. */
         void testConnectionInWorkerThread(const QString &connection);
 
+        /*! Alias for the Configuration::Test enum. */
+        using Test = Configuration::Test;
+
+        // All supported tests
+        constexpr static Test TestForPlay       = Test::TestForPlay;
+        constexpr static Test TestAllOtherTests = Test::TestAllOtherTests;
+        constexpr static Test TestConnection    = Test::TestConnection;
+        constexpr static Test
+        TestQueryBuilderDbSpecific              = Test::TestQueryBuilderDbSpecific;
+        constexpr static Test TestQueryBuilder  = Test::TestQueryBuilder;
+        constexpr static Test TestTinyOrm       = Test::TestTinyOrm;
+        constexpr static Test TestSchemaBuilder = Test::TestSchemaBuilder;
+
+        /*! Whether to invoke the given test. */
+        inline static bool shouldTest(Configuration::Test test);
+
         /*! Throw when m_configurations hash does not contain a given connection. */
         void throwIfNoConfig(const QString &connection) const;
         /*! Throw if connectToDatabase() was already called. */
@@ -60,9 +76,18 @@ namespace TinyPlay
         std::shared_ptr<Orm::DatabaseManager> m_db = nullptr;
     };
 
+    /* public */
+
     const Configuration &TestOrm::config() const
     {
         return m_config;
+    }
+
+    /* private */
+
+    bool TestOrm::shouldTest(Configuration::Test test)
+    {
+        return Configuration::TestsToInvoke.contains(test);
     }
 
 } // namespace TinyPlay
