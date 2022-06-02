@@ -44,6 +44,8 @@ using Orm::Constants::username_;
 namespace TinyPlay
 {
 
+/* public */
+
 const QString Configuration::Mysql            = QStringLiteral("mysql");
 const QString Configuration::Mysql_Alt        = QStringLiteral("mysql_alt");
 const QString Configuration::Mysql_MainThread = QStringLiteral("mysql_mainthread");
@@ -55,6 +57,8 @@ const QString
 Configuration::Sqlite_CheckExistsTrue  = QStringLiteral("sqlite_check_exists_true");
 const QString
 Configuration::Sqlite_CheckExistsFalse = QStringLiteral("sqlite_check_exists_false");
+
+/* private */
 
 const Configuration::OrmConfigurationsType &Configuration::initDBConfigurations() const
 {

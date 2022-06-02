@@ -160,6 +160,8 @@ namespace TinyPlay
         QString initMySqlMainThreadConnection() const;
     };
 
+    /* public */
+
     constexpr bool Configuration::isDebugBuild()
     {
 #ifdef TINYPLAY_DEBUG

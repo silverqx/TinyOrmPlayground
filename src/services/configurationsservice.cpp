@@ -9,6 +9,8 @@ using TinyPlay::Support::Utils;
 namespace TinyPlay::Services
 {
 
+/* public */
+
 ConfigurationsService::ConfigurationsService(Configuration &config)
     : Service(config)
 {}
@@ -41,6 +43,8 @@ QString ConfigurationsService::getDefaultConnectionName() const
 
     return Mysql;
 }
+
+/* private */
 
 ConfigurationsService::OrmConfigurationsType
 ConfigurationsService::configurationsWhenSingleThread() const
