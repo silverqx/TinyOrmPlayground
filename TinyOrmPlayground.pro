@@ -115,7 +115,7 @@ include(qmake/common.pri)
 # ---
 
 # Provides:
-# - TINY_RELEASE_TYPE - folder by release type (/debug, /release, or empty)
+# - TINY_BUILD_SUBFOLDER - folder by release type (/debug, /release, or empty)
 include($$PWD/../../TinyOrm/TinyORM/qmake/TinyOrm.pri)
 
 # User Configuration

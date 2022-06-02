@@ -28,8 +28,8 @@ win32-g++|win32-clang-g++ {
     # TinyORM library path
     # Support gcc and clang
     # build-TinyOrm-Desktop_Qt_5_15_2_MSYS2_UCRT64_clang_64bit-Debug
-    clang: LIBS += $$quote(-L$$TINY_TINYORM_BUILDS_DIR/build-TinyOrm-Desktop_Qt_$${TINY_QT_VERSION_UNDERSCORED}_MSYS2_UCRT64_clang_64bit-$${TINY_RELEASE_TYPE_CAMEL}/src$${TINY_RELEASE_TYPE}/)
-    else:gcc: LIBS += $$quote(-L$$TINY_TINYORM_BUILDS_DIR/build-TinyOrm-Desktop_Qt_$${TINY_QT_VERSION_UNDERSCORED}_MSYS2_UCRT64_64bit-$${TINY_RELEASE_TYPE_CAMEL}/src$${TINY_RELEASE_TYPE}/)
+    clang: LIBS += $$quote(-L$$TINY_TINYORM_BUILDS_DIR/build-TinyOrm-Desktop_Qt_$${TINY_QT_VERSION_UNDERSCORED}_MSYS2_UCRT64_clang_64bit-$${TINY_RELEASE_TYPE_CAMEL}/src$${TINY_BUILD_SUBFOLDER}/)
+    else:gcc: LIBS += $$quote(-L$$TINY_TINYORM_BUILDS_DIR/build-TinyOrm-Desktop_Qt_$${TINY_QT_VERSION_UNDERSCORED}_MSYS2_UCRT64_64bit-$${TINY_RELEASE_TYPE_CAMEL}/src$${TINY_BUILD_SUBFOLDER}/)
 
     # Use faster linker
     QMAKE_LFLAGS *= -fuse-ld=lld
@@ -41,7 +41,7 @@ else:win32-msvc {
 
     # Libraries
     # TinyORM library path
-    LIBS += $$quote(-L$$TINY_TINYORM_BUILDS_DIR/build-TinyOrm-Desktop_Qt_$${TINY_QT_VERSION_UNDERSCORED}_MSVC2019_64bit-$${TINY_RELEASE_TYPE_CAMEL}/src$${TINY_RELEASE_TYPE}/)
+    LIBS += $$quote(-L$$TINY_TINYORM_BUILDS_DIR/build-TinyOrm-Desktop_Qt_$${TINY_QT_VERSION_UNDERSCORED}_MSVC2019_64bit-$${TINY_RELEASE_TYPE_CAMEL}/src$${TINY_BUILD_SUBFOLDER}/)
 }
 else:unix {
     # Includes
@@ -54,8 +54,8 @@ else:unix {
     contains(OUT_PWD, .*ccache.*): TINY_CCACHE_BUILD = _ccache
     else: TINY_CCACHE_BUILD =
     # Support gcc and clang
-    clang: LIBS += $$quote(-L$$TINY_TINYORM_BUILDS_DIR/build-TinyOrm-Desktop_Qt_$${TINY_QT_VERSION_UNDERSCORED}_clang$${QMAKE_CLANG_MAJOR_VERSION}_64bit$${TINY_CCACHE_BUILD}-$${TINY_RELEASE_TYPE_CAMEL}/src$${TINY_RELEASE_TYPE}/)
-    else:gcc: LIBS += $$quote(-L$$TINY_TINYORM_BUILDS_DIR/build-TinyOrm-Desktop_Qt_$${TINY_QT_VERSION_UNDERSCORED}_GCC_64bit$${TINY_CCACHE_BUILD}-$${TINY_RELEASE_TYPE_CAMEL}/src$${TINY_RELEASE_TYPE}/)
+    clang: LIBS += $$quote(-L$$TINY_TINYORM_BUILDS_DIR/build-TinyOrm-Desktop_Qt_$${TINY_QT_VERSION_UNDERSCORED}_clang$${QMAKE_CLANG_MAJOR_VERSION}_64bit$${TINY_CCACHE_BUILD}-$${TINY_RELEASE_TYPE_CAMEL}/src$${TINY_BUILD_SUBFOLDER}/)
+    else:gcc: LIBS += $$quote(-L$$TINY_TINYORM_BUILDS_DIR/build-TinyOrm-Desktop_Qt_$${TINY_QT_VERSION_UNDERSCORED}_GCC_64bit$${TINY_CCACHE_BUILD}-$${TINY_RELEASE_TYPE_CAMEL}/src$${TINY_BUILD_SUBFOLDER}/)
 
     # Use faster linkers
     clang: CONFIG *= use_lld_linker

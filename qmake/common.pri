@@ -3,7 +3,7 @@
 
 TINY_QT_VERSION_UNDERSCORED = $$replace(QT_VERSION, \., _)
 
-# TINY_RELEASE_TYPE - folder by release type is set in the TinyOrm.pri
+# TINY_BUILD_SUBFOLDER - folder by release type is set in the TinyOrm.pri
 
 CONFIG(debug, debug|release): \
     TINY_RELEASE_TYPE_CAMEL = Debug
