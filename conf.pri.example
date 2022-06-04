@@ -41,7 +41,7 @@ else:win32-msvc {
 
     # Libraries
     # TinyORM library path
-    LIBS += $$quote(-L$$TINY_TINYORM_BUILDS_DIR/build-TinyOrm-Desktop_Qt_$${TINY_QT_VERSION_UNDERSCORED}_MSVC2019_64bit-$${TINY_RELEASE_TYPE_CAMEL}/src$${TINY_BUILD_SUBFOLDER}/)
+    LIBS += $$quote(-L$$TINY_TINYORM_BUILDS_DIR/build-TinyOrm-Desktop_Qt_$${TINY_QT_VERSION_UNDERSCORED}_$${TINY_MSVC_VERSION}_64bit-$${TINY_RELEASE_TYPE_CAMEL}/src$${TINY_BUILD_SUBFOLDER}/)
 }
 else:unix {
     # Includes

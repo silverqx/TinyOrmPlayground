@@ -13,3 +13,8 @@ else:CONFIG(release, debug|release): \
         TINY_RELEASE_TYPE_CAMEL = Profile
     else: \
         TINY_RELEASE_TYPE_CAMEL = Release
+
+greaterThan(QMAKE_MSC_VER, 1929): \
+    TINY_MSVC_VERSION = MSVC2022
+else: \
+    TINY_MSVC_VERSION = MSVC2019
