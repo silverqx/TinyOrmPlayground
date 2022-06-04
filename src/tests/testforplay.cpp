@@ -147,11 +147,14 @@ void TestForPlay::run() const
         printf("Function name __tiny_func__ : %s\n", __tiny_func__.toUtf8().constData());
         printf("Function name __FUNCTION__ : %s\n", __FUNCTION__);
         printf("Function name __func__ : %s\n", static_cast<const char *>(__func__));
-#ifdef _MSC_VER
-        printf("Decorated function name __FUNCDNAME__ : %s\n", __FUNCDNAME__);
-#endif
         // GCC : __PRETTY_FUNCTION__ ; MSVC : __FUNCSIG__
         printf("Function signature Q_FUNC_INFO: %s\n", Q_FUNC_INFO);
+#ifdef _MSC_VER
+        printf("Decorated function name __FUNCDNAME__ : %s\n", __FUNCDNAME__);
+#elif defined(__GNUG__) || defined(__clang__)
+        printf("Function name __PRETTY_FUNCTION__ : %s\n", __PRETTY_FUNCTION__);
+#endif
+
         qt_noop();
     }
 
