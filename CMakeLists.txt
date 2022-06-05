@@ -33,9 +33,9 @@ project(${TinyOrmPlayground_ns}
 )
 
 # Specify the C++ standard
-if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU"
-        OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang"
-        OR CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang"
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR
+        CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR
+        CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang"
 )
     set(CMAKE_CXX_STANDARD 20)
 else()

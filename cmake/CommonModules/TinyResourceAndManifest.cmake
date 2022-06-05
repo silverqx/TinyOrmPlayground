@@ -2,7 +2,7 @@
 function(tiny_resource_and_manifest target)
 
     set(options TEST)
-    set(oneValueArgs OUTPUT_DIR RESOURCES_DIR)
+    set(oneValueArgs OUTPUT_DIR RESOURCES_DIR RESOURCE_BASENAME MANIFEST_BASENAME)
     cmake_parse_arguments(PARSE_ARGV 1 TINY ${options} "${oneValueArgs}" "")
 
     if(DEFINED TINY_UNPARSED_ARGUMENTS)
@@ -39,19 +39,22 @@ ${TINY_UNPARSED_ARGUMENTS}")
         BASE_DIRECTORY "${PROJECT_SOURCE_DIR}"
     )
 
-    # All tests use the same TinyTest.rc.in file
-    if(TINY_TEST)
-        set(rcBasename TinyTest)
-
-        # Used for icon basename
-        set(TinyTest_icon ${rcBasename})
-        # Test's RC file has a common substitution token for all tests
-        set(TinyTest_target ${target})
+    # Allow to pass a custom RC basename
+    if(DEFINED TINY_RESOURCE_BASENAME)
+        set(rcBasename ${TINY_RESOURCE_BASENAME})
     else()
         set(rcBasename ${target})
     endif()
 
-    set(tiny_manifest_basename ${rcBasename})
+    # Allow to pass a custom manifest basename
+    if(DEFINED TINY_MANIFEST_BASENAME)
+        set(tiny_manifest_basename ${TINY_MANIFEST_BASENAME})
+    else()
+        set(tiny_manifest_basename ${rcBasename})
+    endif()
+
+    # CMake doesn't have problem with UTF-8 encoded files
+    set(pragma_codepage "65001")
 
     # Start configuring
     configure_file(
