@@ -278,6 +278,10 @@ void QueryCountersService::logQueryCountersBlock(
     if (loggingAppSummary) {
         qInfo().nospace() << "⚙ Compiler version             : "
                           << TINYORM_COMPILER_STRING;
+#ifdef TINYORM_SIMULATED_STRING
+        qInfo().nospace() << "⚙ Simulated compiler version   : "
+                          << TINYORM_SIMULATED_STRING;
+#endif
         qInfo().nospace() << "⚙ Qt version                   : "
                           << QT_VERSION_STR;
         qInfo().nospace() << "  Qt build type                : "

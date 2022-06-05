@@ -56,20 +56,24 @@ set(CMAKE_AUTOMOC ON)
 
 # Compilers
 # 16.10/16.11 (1929) to support pragma system_header
-set(minReqMsvcVersion  19.29)
-set(minRecGCCVersion   10.2)
-set(minRecClangVersion 12)
+set(minReqMsvcVersion    19.29)
+set(minReqClangClVersion 14.0.3)
+set(minRecGCCVersion     10.2)
+set(minRecClangVersion   12)
 # Packages
 set(minQtVersion           5.15.2)
 set(minRangeV3Version      0.11.0)
 set(minNlohmannJsonVersion 3.9.1)
 set(minTinyOrmVersion      0.1.0)
+# tabulate doesn't provide Package Version File
+#set(minTabulateVersion 1.4.0)
 
 # Make minimum toolchain version a requirement
 tiny_toolchain_requirement(
-    MSVC  ${minReqMsvcVersion}
-    GCC   ${minRecGCCVersion}
-    CLANG ${minRecClangVersion}
+    MSVC     ${minReqMsvcVersion}
+    CLANG_CL ${minReqClangClVersion}
+    GCC      ${minRecGCCVersion}
+    CLANG    ${minRecClangVersion}
 )
 
 # TinyORM build options

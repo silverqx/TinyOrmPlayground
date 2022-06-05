@@ -264,10 +264,15 @@ void TestOrm::throwIfUnsupportedEnv() const
     throw Orm::Exceptions::RuntimeError(
                 "Multi-threading is not supported for Clang on MinGW because of TLS "
                 "wrapper bugs and crashes.");
-#elif defined(__clang__) && !defined(__MINGW32__) && __clang_major__ < 13
+#elif defined(__clang__) && !defined(__MINGW32__) && defined(_MSC_VER)
     throw Orm::Exceptions::RuntimeError(
-                "Multi-threading is not supported for Clang <13 on Linux because of "
+                "Multi-threading is not supported for clang-cl with MSVC because of "
                 "TLS wrapper bugs and crashes.");
+// I have disable multi-threading for Clang on Linux
+//#elif defined(__clang__) && !defined(__MINGW32__) && __clang_major__ < 13
+//    throw Orm::Exceptions::RuntimeError(
+//                "Multi-threading is not supported for Clang <13 on Linux because of "
+//                "TLS wrapper bugs and crashes.");
 #elif defined(__GNUG__) && !defined(__clang__) && defined(__MINGW32__)
     throw Orm::Exceptions::RuntimeError(
                 "Multi-threading is not supported for GCC on MinGW because of TLS "
