@@ -1,6 +1,8 @@
 # My variables
 # ---
 
+# All variables below are used to target a correct build folder
+
 TINY_QT_VERSION_UNDERSCORED = $$replace(QT_VERSION, \., _)
 
 # TINY_BUILD_SUBFOLDER - folder by release type is set in the TinyOrm.pri
@@ -18,3 +20,6 @@ greaterThan(QMAKE_MSC_VER, 1929): \
     TINY_MSVC_VERSION = MSVC2022
 else: \
     TINY_MSVC_VERSION = MSVC2019
+
+win32-clang-msvc: \
+    TINY_MSVC_VERSION = $${TINY_MSVC_VERSION}_LLVM

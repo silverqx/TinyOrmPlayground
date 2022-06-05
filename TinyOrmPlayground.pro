@@ -10,10 +10,11 @@ TEMPLATE = app
 # Rec - recommended, shows message
 
 # 16.10/16.11 (1929) - to support #pragma system_header
-tinyMinReqMsvc  = 19.29
-tinyMinRecClang = 12
-tinyMinRecGCC   = 10.2
-tinyMinRecQt    = 5.15.2
+tinyMinReqMsvc    = 19.29
+tinyMinRecClang   = 12
+tinyMinRecGCC     = 10.2
+tinyMinRecQt      = 5.15.2
+tinyMinReqClangCl = 14.0.3
 
 # Make minimum toolchain version a requirement
 load(tiny_toolchain_requirement)
@@ -21,8 +22,7 @@ load(tiny_toolchain_requirement)
 # Configuration
 # ---
 
-CONFIG *= console c++2a strict_c++ warn_on utf8_source link_prl hide_symbols silent
-CONFIG -= c++11 app_bundle
+CONFIG *= console
 
 # TinyOrmPlayground defines
 # ---
@@ -36,20 +36,6 @@ CONFIG(debug, debug|release): DEFINES *= TINYPLAY_DEBUG
 
 # Qt defines
 # ---
-
-# You can also make your code fail to compile if it uses deprecated APIs.
-# In order to do so, uncomment the following line.
-# You can also select to disable deprecated APIs only up to a certain version of Qt.
-# Disables all the APIs deprecated before Qt 6.0.0
-DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000
-
-#DEFINES *= QT_ASCII_CAST_WARNINGS
-#DEFINES *= QT_NO_CAST_FROM_ASCII
-#DEFINES *= QT_RESTRICTED_CAST_FROM_ASCII
-DEFINES *= QT_NO_CAST_TO_ASCII
-DEFINES *= QT_NO_CAST_FROM_BYTEARRAY
-DEFINES *= QT_USE_QSTRINGBUILDER
-DEFINES *= QT_STRICT_ITERATORS
 
 # Disable debug output in release mode
 CONFIG(release, debug|release): DEFINES *= QT_NO_DEBUG_OUTPUT
@@ -132,3 +118,8 @@ else: \
 # ---
 
 LIBS *= -lTinyOrm
+
+# Others
+# ---
+
+#CONFIG -= silent

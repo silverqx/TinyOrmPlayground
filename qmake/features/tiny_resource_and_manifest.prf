@@ -3,9 +3,10 @@ defineTest(tiny_resource_and_manifest) {
     # Relevant for Windows build only
     !win32: return()
     # Relevant for exe or shared library
-    !contains(TEMPLATE, ".*(lib|app)"): \
+    !contains(TEMPLATE, ".*(lib|app)$"): \
         return()
     # Library archive does not need RC or manifest file
+    contains(TEMPLATE, ".*lib$"): \
     !CONFIG(shared, dll|shared|static|staticlib): \
     !CONFIG(dll, dll|shared|static|staticlib): \
         return()
@@ -14,16 +15,12 @@ defineTest(tiny_resource_and_manifest) {
     isEmpty(2): resourcesFolder = $$absolute_path(resources, $$_PRO_FILE_PWD_)
     else: resourcesFolder = $$absolute_path($$2)
 
-    # Processing of RC file and manifest file for the test?
-    defined(3, var):$$3: isTest = true
-    else: isTest = false
-
     # Target's extension
     contains(TEMPLATE, ".*app"): targetExt = ".exe"
     else:contains(TEMPLATE, ".*lib"): targetExt = ".dll"
 
     # Windows Resource file
-    rcFile = $$tiny_configure_cmake_rc($$resourcesFolder, $$targetExt, $$isTest)
+    rcFile = $$tiny_configure_cmake_rc($$resourcesFolder, $$targetExt, $$3, $$4)
 
     # Needed in the RC file, MinGW does not define _DEBUG macro
     mingw:CONFIG(debug, debug|release): DEFINES += _DEBUG
@@ -34,8 +31,8 @@ defineTest(tiny_resource_and_manifest) {
     # Manifest file
     CONFIG -= embed_manifest_dll
 
-    # Use the same manifest file for all tests
-    $$isTest: manifestBasename = TinyTest
+    # Allow to pass RC/manifest file basename as 3. argument (default is a $$TARGET value)
+    defined(3, var):!isEmpty(3): manifestBasename = $$3
     else: manifestBasename = $$TARGET
 
     # On MSVC use EMBED and on MinGW injected through the RC file
@@ -56,10 +53,11 @@ defineTest(tiny_resource_and_manifest) {
 # RC file than manage two practically the same files.
 defineReplace(tiny_configure_cmake_rc) {
     # All tests use the same test.rc.in file
-    defined(3, var):$$3: rcBasename = TinyTest
+    defined(3, var):!isEmpty(3): rcBasename = $$3
     else: rcBasename = $$TARGET
 
     rcFile = $$absolute_path($$1/$${rcBasename}.rc.in)
+
     exists(rcFile) {
         error( "Windows RC file $$rcFile does not exists, the path passed to the\
                 tiny_configure_cmake_rc() was $${1}." )
@@ -75,8 +73,21 @@ defineReplace(tiny_configure_cmake_rc) {
 
     tiny_manifest_basename = $$rcBasename
 
-    # The same logic for the substitution token, is 'test' for tests and $$TARGET instead
-    token = $$rcBasename
+    # Allow to pass a custom token as 4. argument (default is a $$TARGET value)
+    defined(4, var):!isEmpty(4): token = $$4
+    else: token = $$rcBasename
+
+    # This solves the problem with the © character, problem with the encoding
+    # I have tried to solve this min. 5 times 🤬🤔
+    # Use utf8 on MinGW and ANSI with msvc Qt6, msvc Qt5 accepts utf8!
+    # The core of the problem is in the $$cat() and write_file() qmake functions they
+    # don't know process UTF-8 encoded files, they use the ANSI encoding.
+    # Few weeks later: I don't understand how the heck is possible that it works with
+    # the msvc Qt5.
+    win32-msvc|win32-clang-msvc:greaterThan(QT_MAJOR_VERSION, 5): \
+        pragmaCodepage = DEFAULT
+    else: \
+        pragmaCodepage = 65001
 
     rcFileContent = $$cat($$rcFile, blob)
 
@@ -88,6 +99,7 @@ defineReplace(tiny_configure_cmake_rc) {
     rcFileContent ~= s/@tiny_manifest_basename@/$$tiny_manifest_basename
     rcFileContent ~= s/\\$<TARGET_FILE_NAME:$$TARGET>/$$basename(QMAKE_RESOLVED_TARGET)
     rcFileContent ~= s/\\$<TARGET_FILE_SUFFIX:$$TARGET>/$$2
+    rcFileContent ~= s/@pragma_codepage@/$$pragmaCodepage
 
     !write_file($$rcFilepath, rcFileContent) {
         error( "Can not write to the file $${rcFilepath}." )
