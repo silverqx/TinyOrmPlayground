@@ -1,4 +1,4 @@
-#pragma code_page(65001) // UTF-8
+#pragma code_page(@pragma_codepage@) // DEFAULT for msvc >=Qt6 and UTF-8 in any other case
 
 //IDI_ICON1 ICON "icons/@TinyOrmPlayground_target@.ico"
 
