@@ -260,24 +260,29 @@ void TestOrm::throwIfUnsupportedEnv() const
     if constexpr (!Configuration::ConnectionsInThreads)
         return;
 
-#if defined(__clang__) && defined(__MINGW32__)
+/* thread_local started working with Clang 14 so enabling for >=Clang 14.0.4 on Linux
+   and for >=Clang 14.0.3 on MSYS2 👀, finally. */
+#if defined(__clang__) && defined(__MINGW32__) && !defined(__linux__) &&              \
+    (__clang_major__ < 14 ||                                                          \
+    (__clang_major__ == 14 && __clang_minor__ == 0 && __clang_patchlevel__ < 3))
     throw Orm::Exceptions::RuntimeError(
-                "Multi-threading is not supported for Clang on MinGW because of TLS "
-                "wrapper bugs and crashes.");
+                "Multi-threading is not supported for Clang <14.0.3 on MinGW because of "
+                "TLS wrapper bugs and crashes.");
 #elif defined(__clang__) && !defined(__MINGW32__) && defined(_MSC_VER)
     throw Orm::Exceptions::RuntimeError(
                 "Multi-threading is not supported for clang-cl with MSVC because of "
                 "TLS wrapper bugs and crashes.");
-// I have disable multi-threading for Clang on Linux
-//#elif defined(__clang__) && !defined(__MINGW32__) && __clang_major__ < 13
-//    throw Orm::Exceptions::RuntimeError(
-//                "Multi-threading is not supported for Clang <13 on Linux because of "
-//                "TLS wrapper bugs and crashes.");
+#elif defined(__clang__) && !defined(__MINGW32__) && defined(__linux__) &&            \
+    (__clang_major__ < 14 ||                                                          \
+    (__clang_major__ == 14 && __clang_minor__ == 0 && __clang_patchlevel__ < 4))
+    throw Orm::Exceptions::RuntimeError(
+                "Multi-threading is not supported for Clang <14.0.4 on Linux because of "
+                "TLS wrapper bugs and crashes.");
 #elif defined(__GNUG__) && !defined(__clang__) && defined(__MINGW32__)
     throw Orm::Exceptions::RuntimeError(
                 "Multi-threading is not supported for GCC on MinGW because of TLS "
                 "wrapper bugs, problems with duplicit TLS wrappers during linkage "
-                "with ld 2.3.7 or lld 13.");
+                "with ld 2.3.7 or lld 13/14.");
 #endif
 }
 
