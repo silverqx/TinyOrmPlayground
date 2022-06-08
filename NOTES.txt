@@ -45,7 +45,7 @@ Average TestOrm instances execution time : 10650ms
 - multi-threaded
   - 100 times run (w/o testschemabuilder)
     - 24. may 2022
-      - Windows 11:
+      - Windows 11 21H2:
         - Qt 6.2.4 ; msvc2019 16.11.15 x64
           - debug build
 Average TestOrm instances execution time : 2200ms
