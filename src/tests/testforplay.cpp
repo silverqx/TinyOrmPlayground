@@ -14,6 +14,7 @@
 #include <orm/schema.hpp>
 #include <orm/tiny/tinytypes.hpp>
 #include <orm/utils/helpers.hpp>
+#include <orm/utils/query.hpp>
 #include <orm/version.hpp>
 
 #include "configuration.hpp"
@@ -37,6 +38,7 @@ using Orm::SchemaNs::Blueprint; // NOLINT(misc-unused-using-decls)
 using Orm::Tiny::AttributeItem;
 
 using Helpers = Orm::Utils::Helpers; // NOLINT(misc-unused-using-decls)
+using QueryUtils = Orm::Utils::Query; // NOLINT(misc-unused-using-decls)
 
 // NOLINTNEXTLINE(google-build-using-namespace)
 using namespace Models;
