@@ -190,9 +190,7 @@ void TestOrm::testConnectionInMainThread(const QString &connection)
         Tests::TestTinyOrm(m_config, m_queryCountersService).run();
 
     // Schema builder currently supports MySQL and PostgreSQL database only
-    if (shouldTest(TestSchemaBuilder) &&
-        (connection == Mysql || connection == Postgres)
-    )
+    if (shouldTest(TestSchemaBuilder))
         Tests::TestSchemaBuilder(m_config, m_queryCountersService).run();
 }
 

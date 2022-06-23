@@ -3,6 +3,8 @@
 #include <QDebug>
 #include <QElapsedTimer>
 
+#include <filesystem>
+
 #include <orm/db.hpp>
 #include <orm/exceptions/runtimeerror.hpp>
 #include <orm/schema.hpp>
@@ -13,11 +15,14 @@
 
 // clazy:excludeall=unused-non-trivial-variable
 
+using fspath = std::filesystem::path;
+
 using Orm::Constants::ID;
 using Orm::Constants::MyISAM;
 using Orm::Constants::NAME;
 using Orm::Constants::QMYSQL;
 using Orm::Constants::QPSQL;
+using Orm::Constants::QSQLITE;
 using Orm::Constants::UTF8;
 using Orm::Constants::UTF8Generalci;
 using Orm::Constants::UTF8Unicodeci;
@@ -53,8 +58,15 @@ void TestSchemaBuilder::run() const
     {
         qInfo() << "\n\nSchema create and drop database\n---";
 
-        Schema::createDatabase("tinyplay_schema_database");
-        Schema::dropDatabaseIfExists("tinyplay_schema_database");
+        auto database = QStringLiteral("tinyplay_schema_database");
+
+        // SQLite database names the file
+        if (driverName == QSQLITE)
+            database.prepend(QStringLiteral("tmp/"))
+                    .append(QStringLiteral(".sqlite3"));
+
+        Schema::createDatabase(database);
+        Schema::dropDatabaseIfExists(database);
 
         qt_noop();
     }
@@ -316,7 +328,7 @@ and tab	end)");
         qInfo() << "\n\nSchema indexes\n---";
 
         // Fluent indexes
-        Schema::create("schema_indexes_fluent", [](Blueprint &table)
+        Schema::create("schema_indexes_fluent", [&driverName](Blueprint &table)
         {
             table.id();
 
@@ -325,12 +337,14 @@ and tab	end)");
             table.string("name_i").index();
             table.string("name_i_cn").index("name_i_cn_index");
 
-            table.string("name_f").fulltext();
-            table.string("name_f_cn").fulltext("name_f_cn_fulltext");
+            if (driverName != QSQLITE) {
+                table.string("name_f").fulltext();
+                table.string("name_f_cn").fulltext("name_f_cn_fulltext");
 
-            table.geometry("coordinates_s").spatialIndex();
-            table.geometry("coordinates_s_cn")
-                    .spatialIndex("coordinates_s_cn_spatial");
+                table.geometry("coordinates_s").spatialIndex();
+                table.geometry("coordinates_s_cn")
+                        .spatialIndex("coordinates_s_cn_spatial");
+            }
         });
 
         Schema::dropIfExists("schema_indexes_fluent");
@@ -353,22 +367,24 @@ and tab	end)");
             table.string("name_r1");
             if (driverName == QMYSQL)
                 table.rawIndex(DB::raw("`name_r`, name_r1"), "name_r_raw");
-            else if (driverName == QPSQL)
+            else if (std::unordered_set {QPSQL, QSQLITE}.contains(driverName))
                 table.rawIndex(DB::raw(R"("name_r", name_r1)"), "name_r_raw");
             else
                 throw RuntimeError(NotImplemented);
 
-            table.string("name_f");
-            table.fullText({"name_f"});
+            if (driverName != QSQLITE) {
+                table.string("name_f");
+                table.fullText({"name_f"});
 
-            table.string("name_f_cn");
-            table.fullText("name_f_cn", "name_f_cn_fulltext");
+                table.string("name_f_cn");
+                table.fullText("name_f_cn", "name_f_cn_fulltext");
 
-            table.geometry("coordinates_s");
-            table.spatialIndex("coordinates_s");
+                table.geometry("coordinates_s");
+                table.spatialIndex("coordinates_s");
 
-            table.geometry("coordinates_s_cn");
-            table.spatialIndex("coordinates_s_cn", "coordinates_s_cn_spatial");
+                table.geometry("coordinates_s_cn");
+                table.spatialIndex("coordinates_s_cn", "coordinates_s_cn_spatial");
+            }
         });
 
         Schema::dropIfExists("schema_indexes_blueprint");
@@ -380,20 +396,22 @@ and tab	end)");
     {
         qInfo() << "\n\nSchema rename index\n---";
 
-        Schema::create("schema_rename_index", [](Blueprint &table)
-        {
-            table.id();
+        if (driverName != QSQLITE) {
+            Schema::create("schema_rename_index", [](Blueprint &table)
+            {
+                table.id();
 
-            table.string(NAME).unique();
-        });
+                table.string(NAME).unique();
+            });
 
-        Schema::table("schema_rename_index", [](Blueprint &table)
-        {
-            table.renameIndex("schema_rename_index_name_unique",
-                              "schema_rename_index_name_unique_renamed");
-        });
+            Schema::table("schema_rename_index", [](Blueprint &table)
+            {
+                table.renameIndex("schema_rename_index_name_unique",
+                                  "schema_rename_index_name_unique_renamed");
+            });
 
-        Schema::dropIfExists("schema_rename_index");
+            Schema::dropIfExists("schema_rename_index");
+        }
 
         qt_noop();
     }
@@ -402,24 +420,30 @@ and tab	end)");
     {
         qInfo() << "\n\nSchema drop index by index name\n---";
 
-        Schema::create("schema_dropindex_byname", [](Blueprint &table)
+        Schema::create("schema_dropindex_byname", [&driverName](Blueprint &table)
         {
             table.unsignedInteger(ID);
             table.primary(ID);
 
             table.string("name_u").unique();
             table.string("name_i").index();
-            table.string("name_f").fulltext();
-            table.geometry("coordinates_s").spatialIndex();
+            if (driverName != QSQLITE) {
+                table.string("name_f").fulltext();
+                table.geometry("coordinates_s").spatialIndex();
+            }
         });
 
-        Schema::table("schema_dropindex_byname", [](Blueprint &table)
+        Schema::table("schema_dropindex_byname", [&driverName](Blueprint &table)
         {
-            table.dropPrimary();
+            if (driverName != QSQLITE)
+                table.dropPrimary();
             table.dropUnique("schema_dropindex_byname_name_u_unique");
             table.dropIndex("schema_dropindex_byname_name_i_index");
-            table.dropFullText("schema_dropindex_byname_name_f_fulltext");
-            table.dropSpatialIndex("schema_dropindex_byname_coordinates_s_spatialindex");
+            if (driverName != QSQLITE) {
+                table.dropFullText("schema_dropindex_byname_name_f_fulltext");
+                table.dropSpatialIndex(
+                            "schema_dropindex_byname_coordinates_s_spatialindex");
+            }
         });
 
         Schema::dropIfExists("schema_dropindex_byname");
@@ -431,24 +455,29 @@ and tab	end)");
     {
         qInfo() << "\n\nSchema drop index by column name\n---";
 
-        Schema::create("schema_dropindex_bycolumn", [](Blueprint &table)
+        Schema::create("schema_dropindex_bycolumn", [&driverName](Blueprint &table)
         {
             table.unsignedInteger(ID);
             table.primary(ID);
 
             table.string("name_u").unique();
             table.string("name_i").index();
-            table.string("name_f").fulltext();
-            table.geometry("coordinates_s").spatialIndex();
+            if (driverName != QSQLITE) {
+                table.string("name_f").fulltext();
+                table.geometry("coordinates_s").spatialIndex();
+            }
         });
 
-        Schema::table("schema_dropindex_bycolumn", [](Blueprint &table)
+        Schema::table("schema_dropindex_bycolumn", [&driverName](Blueprint &table)
         {
-            table.dropPrimary();
+            if (driverName != QSQLITE)
+                table.dropPrimary();
             table.dropUnique({"name_u"});
             table.dropIndex({"name_i"});
-            table.dropFullText({"name_f"});
-            table.dropSpatialIndex({"coordinates_s"});
+            if (driverName != QSQLITE) {
+                table.dropFullText({"name_f"});
+                table.dropSpatialIndex({"coordinates_s"});
+            }
         });
 
         Schema::dropIfExists("schema_dropindex_bycolumn");
@@ -460,7 +489,7 @@ and tab	end)");
     {
         qInfo() << "\n\nSchema drop index by multiple column names\n---";
 
-        Schema::create("schema_dropindex_bymorecolumns", [](Blueprint &table)
+        Schema::create("schema_dropindex_bymorecolumns", [&driverName](Blueprint &table)
         {
             table.unsignedInteger(ID);
             table.unsignedInteger("id1");
@@ -474,17 +503,21 @@ and tab	end)");
             table.string("name_i1");
             table.index({"name_i", "name_i1"});
 
-            table.string("name_f");
-            table.string("name_f1");
-            table.fullText({"name_f", "name_f1"});
+            if (driverName != QSQLITE) {
+                table.string("name_f");
+                table.string("name_f1");
+                table.fullText({"name_f", "name_f1"});
+            }
         });
 
-        Schema::table("schema_dropindex_bymorecolumns", [](Blueprint &table)
+        Schema::table("schema_dropindex_bymorecolumns", [&driverName](Blueprint &table)
         {
-            table.dropPrimary({ID, "id1"});
+            if (driverName != QSQLITE)
+                table.dropPrimary({ID, "id1"});
             table.dropUnique({"name_u", "name_u1"});
             table.dropIndex({"name_i", "name_i1"});
-            table.dropFullText({"name_f", "name_f1"});
+            if (driverName != QSQLITE)
+                table.dropFullText({"name_f", "name_f1"});
         });
 
         Schema::dropIfExists("schema_dropindex_bymorecolumns");
@@ -520,6 +553,7 @@ and tab	end)");
 
             table.dropColumn("long_text");
             table.dropColumns({"medium_text", "text"});
+            // BUG schema sqlite, mediumInteger is not dropped silverqx
             table.dropColumns("smallInteger", "mediumInteger");
 
             // Rename column
@@ -564,7 +598,7 @@ and tab	end)");
     {
         qInfo() << "\n\nSchema foreign key constraints terser syntax\n---";
 
-        Schema::create("schema_foreign_terser", [](Blueprint &table)
+        Schema::create("schema_foreign_terser", [&driverName](Blueprint &table)
         {
             table.id();
 
@@ -575,9 +609,11 @@ and tab	end)");
             table.foreignId("role_id").nullable().constrained()
                     .nullOnDelete().cascadeOnUpdate();
 
-            table.dropForeign({"user_id"});
-            table.dropForeign("schema_foreign_terser_torrent_id_foreign");
-            table.dropConstrainedForeignId("role_id");
+            if (driverName != QSQLITE) {
+                table.dropForeign({"user_id"});
+                table.dropForeign("schema_foreign_terser_torrent_id_foreign");
+                table.dropConstrainedForeignId("role_id");
+            }
         });
 
         Schema::dropIfExists("schema_foreign_terser");
@@ -610,9 +646,6 @@ and tab	end)");
     /* Schema rename table */
     {
         qInfo() << "\n\nSchema rename table\n---";
-
-        Models::Torrent torrent;
-        Models::User user;
 
         Schema::create("schema_rename_table", [](Blueprint &table)
         {
