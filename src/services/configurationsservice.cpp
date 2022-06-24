@@ -51,12 +51,12 @@ ConfigurationsService::configurationsWhenSingleThread() const
 {
     OrmConfigurationsType configurations;
 
-    auto itConfig = m_config.Configurations.constBegin();
-    while (itConfig != m_config.Configurations.constEnd()) {
-        const auto &key = itConfig.key();
+    auto itConfig = m_config.Configurations.cbegin();
+    while (itConfig != m_config.Configurations.cend()) {
+        const auto &key = itConfig->first;
 
         if (key != Mysql_MainThread)
-            configurations.insert(key, itConfig.value());
+            configurations.emplace(key, itConfig->second);
 
         ++itConfig;
     }
@@ -70,13 +70,13 @@ ConfigurationsService::configsForMainThrdWhenMultiThrd() const
     OrmConfigurationsType configurationsForMainThread;
     configurationsForMainThread.reserve(m_config.Configurations.size());
 
-    auto itConfig = m_config.Configurations.constBegin();
-    while (itConfig != m_config.Configurations.constEnd()) {
-        const auto &key = itConfig.key();
-        const auto &value = itConfig.value();
+    auto itConfig = m_config.Configurations.cbegin();
+    while (itConfig != m_config.Configurations.cend()) {
+        const auto &key = itConfig->first;
+        const auto &value = itConfig->second;
 
         if (!m_config.ConnectionsToRunInThread.contains(key))
-            configurationsForMainThread.insert(key, value);
+            configurationsForMainThread.emplace(key, value);
 
         ++itConfig;
     }
@@ -94,8 +94,8 @@ ConfigurationsService::configsForWorkerThrdWhenMultiThrd(const QString &connecti
     configurationsForWorkerThread.reserve(mappedConnections.size());
 
     for (const auto &connection_ : mappedConnections)
-        configurationsForWorkerThread.insert(connection_,
-                                             m_config.Configurations[connection_]);
+        configurationsForWorkerThread.emplace(connection_,
+                                              m_config.Configurations.at(connection_));
 
     return configurationsForWorkerThread;
 }
