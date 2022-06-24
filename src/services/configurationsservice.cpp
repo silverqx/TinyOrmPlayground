@@ -50,16 +50,11 @@ ConfigurationsService::OrmConfigurationsType
 ConfigurationsService::configurationsWhenSingleThread() const
 {
     OrmConfigurationsType configurations;
+    configurations.reserve(m_config.Configurations.size());
 
-    auto itConfig = m_config.Configurations.cbegin();
-    while (itConfig != m_config.Configurations.cend()) {
-        const auto &key = itConfig->first;
-
-        if (key != Mysql_MainThread)
-            configurations.emplace(key, itConfig->second);
-
-        ++itConfig;
-    }
+    for (const auto &[name, config] : m_config.Configurations)
+        if (name != Mysql_MainThread)
+            configurations.emplace(name, config);
 
     return configurations;
 }
@@ -70,16 +65,9 @@ ConfigurationsService::configsForMainThrdWhenMultiThrd() const
     OrmConfigurationsType configurationsForMainThread;
     configurationsForMainThread.reserve(m_config.Configurations.size());
 
-    auto itConfig = m_config.Configurations.cbegin();
-    while (itConfig != m_config.Configurations.cend()) {
-        const auto &key = itConfig->first;
-        const auto &value = itConfig->second;
-
-        if (!m_config.ConnectionsToRunInThread.contains(key))
-            configurationsForMainThread.emplace(key, value);
-
-        ++itConfig;
-    }
+    for (const auto &[name, config] : m_config.Configurations)
+        if (!m_config.ConnectionsToRunInThread.contains(name))
+            configurationsForMainThread.emplace(name, config);
 
     return configurationsForMainThread;
 }
@@ -91,7 +79,8 @@ ConfigurationsService::configsForWorkerThrdWhenMultiThrd(const QString &connecti
     const QStringList mappedConnections = getMappedConnections(connection);
 
     OrmConfigurationsType configurationsForWorkerThread;
-    configurationsForWorkerThread.reserve(mappedConnections.size());
+    configurationsForWorkerThread.reserve(
+                static_cast<OrmConfigurationsType::size_type>(mappedConnections.size()));
 
     for (const auto &connection_ : mappedConnections)
         configurationsForWorkerThread.emplace(connection_,
