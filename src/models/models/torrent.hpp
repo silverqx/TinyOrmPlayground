@@ -76,10 +76,9 @@ public:
 //        relation->withDefault();
 //        relation->withDefault({{"seeds", 0}, {"total_seeds", -1}});
         // This callback variant is not yet implemented 😟
-//        relation->withDefault([](Torrent &torrent,
-//                              const TorrentPreviewableFile &/*torrentFile*/)
+//        relation->withDefault([](TorrentPeer &torrentPeer, const Torrent &/*torrent*/)
 //        {
-//            torrent[NAME] = "default_model_name";
+//            torrentPeer[NAME] = "default_peer_name";
 //        });
 //        return relation;
     }
@@ -185,7 +184,7 @@ private:
     /*! The storage format of the model's date columns. */
 //    inline static QString u_dateFormat {"yyyy-MM-dd HH:mm:ss"};
 
-    /*! The attributes that should be mutated to dates. @deprecated */
+    /*! The attributes that should be mutated to dates. */
     inline static const QStringList u_dates {"added_on"};
 
     /*! All of the relationships to be touched. */
