@@ -19,6 +19,9 @@ INCLUDEPATH += $$quote($$TINY_MAIN_DIR/TinyORM/include/)
 
 # MinGW
 win32-g++|win32-clang-g++ {
+    # Enable ccache wrapper
+    CONFIG *= tiny_ccache
+
     # Includes
     # nlohmann-json, range-v3 and tabulate
     INCLUDEPATH += $$quote(C:/msys64/home/xyz/vcpkg/installed/x64-mingw-dynamic/include/)
@@ -35,6 +38,9 @@ win32-g++|win32-clang-g++ {
     QMAKE_LFLAGS *= -fuse-ld=lld
 }
 else:win32-msvc|win32-clang-msvc {
+    # Enable ccache wrapper
+    CONFIG *= tiny_ccache
+
     # Includes
     # nlohmann-json, range-v3 and tabulate
     INCLUDEPATH += $$quote(E:/xyz/vcpkg/installed/x64-windows/include/)
