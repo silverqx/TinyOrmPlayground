@@ -18,19 +18,70 @@
 #include <nlohmann/json.hpp>
 
 #include <orm/db.hpp>
+#include <orm/query/querybuilder.hpp>
 
 #include "configuration.hpp"
 
 using json = nlohmann::json;
+
+using Orm::Constants::ID;
+using Orm::DB;
 
 namespace TinyPlay::Tests
 {
 
 void TestAllOtherTests::run() const
 {
+    qInfo().nospace()
+            << "\n\n========================"
+            << "\n  Test All Other Tests  "
+            << "\n========================";
+
+    tinyOrmOthers();
     jsonConfig();
     standardPaths();
-//    ctorAggregate();
+    //    ctorAggregate();
+}
+
+void TestAllOtherTests::tinyOrmOthers() const
+{
+    // Counting queries not needed here
+
+    qInfo().nospace()
+            << "\n=================="
+            << "\n  TinyORM others  "
+            << "\n==================";
+
+    /* QueryUtils::parseExecutedQuery() */
+    {
+        qInfo() << "\n\nQueryUtils::parseExecutedQuery()\n---";
+
+        DB::table("users")
+                ->where("id", ">", 2)
+                .orWhereNull("note")
+                .orWhereEq("is_banned", true)
+                .orWhereEq("name", QVariant(QMetaType(QMetaType::QString)))
+                .orWhereEq("name", QVariant())
+                .addBinding("xx")
+                .orderByDesc(ID).dump();
+
+        // Test transactional queries
+        DB::beginTransaction();
+        DB::table("torrents")->get();
+        DB::commit();
+
+        DB::beginTransaction();
+        DB::table("torrents")->get();
+        DB::rollBack();
+
+        // Test pretended queries
+        DB::pretend([]()
+        {
+            DB::table("users")->get();
+        });
+
+        qt_noop();
+    }
 }
 
 void TestAllOtherTests::jsonConfig() const

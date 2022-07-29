@@ -23,6 +23,8 @@ namespace TinyPlay::Tests
         void run() const final;
 
     private:
+        /*! Test TinyORM functions that cannot be included anywhere else. */
+        void tinyOrmOthers() const;
         /*! Test nlohmann-json library. */
         void jsonConfig() const;
         /*! Test Qt's QStandardPaths. */
