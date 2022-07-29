@@ -54,3 +54,19 @@ Average TestOrm instances execution time : 2200ms
         - Qt 6.2.4 ; msvc2022 17.2.3 x64
           - debug build
 Average TestOrm instances execution time : 1892ms
+
+
+Number of queries:
+------------------
+
+- all tests except TestSchemaBuilder (no queries in the TestForPlay):
+  - Normal        : 1591
+  - Affecting     : 335
+  - Transaction   : 0
+  - Total         : 1926
+
+- TestSchemaBuilder only:
+  - mysql    : 126
+  - sqlite   : 104
+  - postgres : 127
+  - total    : 357
