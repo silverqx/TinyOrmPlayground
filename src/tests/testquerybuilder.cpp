@@ -11,6 +11,10 @@
 
 // clazy:excludeall=unused-non-trivial-variable
 
+using Orm::Constants::COMMA;
+using Orm::Constants::ID;
+using Orm::Constants::NAME;
+
 using Orm::DB;
 
 namespace TinyPlay::Tests
@@ -779,6 +783,75 @@ void TestQueryBuilder::run() const
         auto r9 = DB::table("torrents")->distinct().count("size");
         [[maybe_unused]]
         auto r10 = DB::table("torrents")->distinct().count({"size"});
+
+        qt_noop();
+    }
+
+    /* QueryBuilder::inRandomOrder() */
+    {
+        qInfo() << "\n\nQueryBuilder::inRandomOrder()\n---";
+
+        auto query = DB::table("torrents")->inRandomOrder().get();
+
+        while (query.next())
+            qDebug() << "id :" << query.value("id").value<quint64>() << ";"
+                     << "name :" << query.value("name").value<QString>();
+
+        qt_noop();
+    }
+
+    /* QueryBuilder::implode() */
+    {
+        qInfo() << "\n\nQueryBuilder::implode()\n---";
+
+        qDebug() << DB::table("torrents")->orderBy(NAME).implode(NAME);
+        qDebug() << DB::table("torrents")->orderBy(NAME).implode(NAME, COMMA);
+
+        qt_noop();
+    }
+
+    /* QueryBuilder::whereExists() */
+    {
+        qInfo() << "\n\nQueryBuilder::whereExists()\n---";
+
+        auto query = DB::table("torrents")->whereExists([](auto &query)
+        {
+            query.from("torrents").where("size", ">=", 13);
+        }).get();
+
+        while (query.next())
+            qDebug() << "id :" << query.value("id").value<quint64>() << ";"
+                     << "name :" << query.value("name").value<QString>();
+
+        qt_noop();
+    }
+
+    /* QueryBuilder::exists() */
+    {
+        qInfo() << "\n\nQueryBuilder::exists()\n---";
+
+        qDebug() << DB::table("torrents")->whereEq(ID, 1).exists();
+        qDebug() << DB::table("torrents")->whereEq(ID, 100).exists();
+        qDebug() << DB::table("torrents")->whereEq(ID, 1).doesntExist();
+        qDebug() << DB::table("torrents")->whereEq(ID, 100).doesntExist();
+
+        qt_noop();
+    }
+
+    /*  */
+    {
+        qInfo() << "\n\n\n---";
+
+
+
+        qt_noop();
+    }
+
+    /*  */
+    {
+        qInfo() << "\n\n\n---";
+
+
 
         qt_noop();
     }
