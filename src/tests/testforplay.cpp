@@ -55,7 +55,7 @@ void TestForPlay::run() const
 
     qInfo().nospace()
             << "================="
-            << "\n  Another Tests  "
+            << "\n  Test for Play  "
             << "\n=================\n";
 
     {
