@@ -33,6 +33,7 @@ using Orm::Constants::INNER;
 using Orm::Constants::UNDERSCORE;
 
 using Orm::DB; // NOLINT(misc-unused-using-decls)
+using Orm::Query::Builder; // NOLINT(misc-unused-using-decls)
 using Orm::Schema; // NOLINT(misc-unused-using-decls)
 using Orm::SchemaNs::Blueprint; // NOLINT(misc-unused-using-decls)
 using Orm::Tiny::AttributeItem;
