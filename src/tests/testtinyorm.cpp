@@ -27,6 +27,9 @@ using Models::TorrentPreviewableFile;
 using Models::TorrentPreviewableFileProperty;
 using Models::User;
 
+using Orm::Constants::ID;
+using Orm::Constants::NAME;
+
 using Orm::DB;
 using Orm::One;
 using Orm::Tiny::Exceptions::ModelNotFoundError;
@@ -2021,6 +2024,62 @@ void TestTinyOrm::run() const
         for (auto &torrent : torrents)
             qDebug().noquote() << torrent["id"]->value<quint64>() << "|"
                                << torrent["name"]->value<QString>();
+
+        qt_noop();
+    }
+
+    /* Model::whereExists() */
+    {
+        qInfo() << "\n\nModel::whereExists()\n---";
+
+        auto torrents = Torrent::whereExists([](auto &query)
+        {
+            query.from("torrents").where("size", ">=", 13);
+        })->get();
+
+        for (const auto &torrent : torrents)
+            qDebug() << "id :" << torrent[ID].toULongLong()
+                     << "; name :" << torrent[NAME].toString();
+
+        qt_noop();
+    }
+
+    /* Model::exists() */
+    {
+        qInfo() << "\n\nModel::exists()\n---";
+
+        qDebug() << Torrent::whereEq(ID, 1)->exists();
+        qDebug() << Torrent::whereEq(ID, 100)->exists();
+        qDebug() << Torrent::whereEq(ID, 1)->doesntExist();
+        qDebug() << Torrent::whereEq(ID, 100)->doesntExist();
+
+        qt_noop();
+    }
+
+    /* Relation::whereExists() */
+    {
+        qInfo() << "\n\nRelation::whereExists()\n---";
+
+        auto torrents = User::find(1)->torrents()->whereExists([](auto &query)
+        {
+            query.from("torrents").where("size", ">=", 13);
+        }).get();
+
+        for (const auto &torrent : torrents)
+            qDebug() << "id :" << torrent[ID].toULongLong()
+                     << "; name :" << torrent[NAME].toString();
+
+        qt_noop();
+    }
+
+    /* Relation::exists() */
+    {
+        qInfo() << "\n\nRelation::exists()\n---";
+
+        qDebug() << User::find(1)->torrents()->whereEq(ID, 1).exists();
+        qDebug() << User::find(1)->torrents()->whereEq(ID, 100).exists();
+        qDebug() << User::find(1)->torrents()->whereEq(ID, 1).doesntExist();
+        qDebug() << User::find(1)->torrents()->whereEq(ID, 100).doesntExist();
 
         qt_noop();
     }
