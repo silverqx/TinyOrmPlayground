@@ -59,14 +59,37 @@ Average TestOrm instances execution time : 1892ms
 Number of queries:
 ------------------
 
-- all tests except TestSchemaBuilder (no queries in the TestForPlay):
-  - Normal        : 1591
-  - Affecting     : 335
-  - Transaction   : 0
-  - Total         : 1926
+- 29.07.2022:
+  - all tests except TestSchemaBuilder (no queries in the TestForPlay):
+    - Normal        : 1591
+    - Affecting     : 335
+    - Transaction   : 0
+    - Total         : 1926
 
-- TestSchemaBuilder only:
-  - mysql    : 126
-  - sqlite   : 104
-  - postgres : 127
-  - total    : 357
+  - TestSchemaBuilder only:
+    - mysql    : 126
+    - sqlite   : 104
+    - postgres : 127
+    - total    : 357
+
+- 01.08.2022:
+  - all tests except TestSchemaBuilder (no queries in the TestForPlay):
+    - Normal        : 1588
+    - Affecting     : 330
+    - Transaction   : 0
+    - Total         : 1918
+    - ⚡ Total TestOrm instance execution time : 5732ms
+
+  - all tests except TestSchemaBuilder multi-threaded (no queries in the TestForPlay):
+    - Normal        : 1586 [4 (main), 527 (postgres), 527 (sqlite), 528 (mysql)]
+    - Affecting     : 331 [0 (main), 111 (postgres), 110 (sqlite), 110 (mysql)]
+    - Transaction   : 0
+    - Total         : 1917 [4 (main), 638 (postgres), 637 (sqlite), 638 (mysql)]
+    - ⚡ Total TestOrm instance execution time : 1623ms
+
+  - TestSchemaBuilder only:
+    - mysql    : 126
+    - sqlite   : 104
+    - postgres : 127
+    - total    : 357
+    - ⚡ Total TestOrm instance execution time : 6761ms
