@@ -826,9 +826,9 @@ void TestQueryBuilder::run() const
         qt_noop();
     }
 
-    /* QueryBuilder::exists() */
+    /* QueryBuilder::exists()/doesntExist() */
     {
-        qInfo() << "\n\nQueryBuilder::exists()\n---";
+        qInfo() << "\n\nQueryBuilder::exists()/doesntExist()\n---";
 
         qDebug() << DB::table("torrents")->whereEq(ID, 1).exists();
         qDebug() << DB::table("torrents")->whereEq(ID, 100).exists();
