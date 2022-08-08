@@ -838,24 +838,6 @@ void TestQueryBuilder::run() const
         qt_noop();
     }
 
-    /*  */
-    {
-        qInfo() << "\n\n\n---";
-
-
-
-        qt_noop();
-    }
-
-    /*  */
-    {
-        qInfo() << "\n\n\n---";
-
-
-
-        qt_noop();
-    }
-
     logQueryCounters(timer.elapsed());
 }
 
