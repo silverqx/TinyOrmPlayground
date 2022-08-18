@@ -22,6 +22,7 @@ using Orm::Constants::QSQLITE;
 using Orm::Constants::SYSTEM;
 using Orm::Constants::UTF8;
 using Orm::Constants::UTF8MB4;
+using Orm::Constants::Version;
 using Orm::Constants::charset_;
 using Orm::Constants::check_database_exists;
 using Orm::Constants::collation_;
@@ -159,6 +160,7 @@ QVariantHash Configuration::initMysqlConfiguration()
         {strict_,         true},
         {isolation_level, QStringLiteral("REPEATABLE READ")},
         {engine_,         InnoDB},
+        {Version,         {}}, // Autodetect
         {options_,        QVariantHash()},
     };
 
@@ -186,6 +188,7 @@ QVariantHash Configuration::initMysqlLaravel8Configuration()
         {strict_,         true},
         {isolation_level, QStringLiteral("REPEATABLE READ")},
         {engine_,         InnoDB},
+        {Version,         {}}, // Autodetect
         {options_,        QVariantHash()},
     };
 
