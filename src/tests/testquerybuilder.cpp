@@ -838,6 +838,36 @@ void TestQueryBuilder::run() const
         qt_noop();
     }
 
+    /* QueryBuilder::whereBetween() */
+    {
+        qInfo() << "\n\nQueryBuilder::whereBetween()\n---";
+
+        auto users = DB::table("torrents")
+                         ->whereBetween("size", {12, 14})
+                         .get();
+
+        while (users.next())
+            qDebug() << "id :" << users.value("id").value<quint64>() << ";"
+                     << "name :" << users.value("name").value<QString>();
+
+        qt_noop();
+    }
+
+    /* QueryBuilder::whereNotBetween() */
+    {
+        qInfo() << "\n\nQueryBuilder::whereNotBetween()\n---";
+
+        auto users = DB::table("torrents")
+                         ->whereNotBetween("size", {12, 14})
+                         .get();
+
+        while (users.next())
+            qDebug() << "id :" << users.value("id").value<quint64>() << ";"
+                     << "name :" << users.value("name").value<QString>();
+
+        qt_noop();
+    }
+
     logQueryCounters(timer.elapsed());
 }
 
