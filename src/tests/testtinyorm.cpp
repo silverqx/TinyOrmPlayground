@@ -13,6 +13,14 @@
 
 // clazy:excludeall=unused-non-trivial-variable
 
+using Orm::Constants::ID;
+using Orm::Constants::NAME;
+
+using Orm::DB;
+using Orm::One;
+using Orm::Tiny::Exceptions::ModelNotFoundError;
+using Orm::Tiny::Relations::Pivot;
+
 using Models::FilePropertyProperty;
 using Models::Role;
 using Models::RoleUser;
@@ -26,14 +34,6 @@ using Models::TorrentPeerEager_NoRelations;
 using Models::TorrentPreviewableFile;
 using Models::TorrentPreviewableFileProperty;
 using Models::User;
-
-using Orm::Constants::ID;
-using Orm::Constants::NAME;
-
-using Orm::DB;
-using Orm::One;
-using Orm::Tiny::Exceptions::ModelNotFoundError;
-using Orm::Tiny::Relations::Pivot;
 
 namespace TinyPlay::Tests
 {
