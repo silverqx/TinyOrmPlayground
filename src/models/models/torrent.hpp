@@ -5,6 +5,7 @@
 #include "orm/db.hpp"
 #include "orm/tiny/model.hpp"
 #include "orm/tiny/relations/pivot.hpp"
+//#include "orm/tiny/softdeletes.hpp"
 
 #include "models/tag.hpp"
 #include "models/tagged.hpp"
@@ -24,12 +25,15 @@ using Orm::Constants::ID;
 using Orm::Constants::NAME;
 using Orm::Constants::SIZE;
 
+//using Orm::Tiny::CastItem;
+//using Orm::Tiny::CastType;
 using Orm::Tiny::Model;
 using Orm::Tiny::Relations::BelongsTo;
 using Orm::Tiny::Relations::BelongsToMany;
 using Orm::Tiny::Relations::HasOne;
 using Orm::Tiny::Relations::HasMany;
 using Orm::Tiny::Relations::Pivot;
+//using Orm::Tiny::SoftDeletes;
 
 #ifdef PROJECT_TINYORM_PLAYGROUND
 using TinyPlay::Configuration;
@@ -46,6 +50,7 @@ class User;
 class Torrent final :
         public Model<Torrent, TorrentPreviewableFile, TorrentPeer, Tag, User, Pivot>
 //        public Model<Torrent, TorrentPreviewableFile, TorrentPeer, Tag, User, Tagged>
+//        public SoftDeletes<Torrent>
 {
     friend Model;
     using Model::Model;
@@ -190,6 +195,15 @@ private:
     /*! All of the relationships to be touched. */
 //    QStringList u_touches {"tags"};
 //    QStringList u_touches {"relation_name"};
+
+    /*! The attributes that should be cast. */
+//    std::unordered_map<QString, CastItem> u_casts {
+//        {NAME,       CastType::QString},
+//        {"progress", CastType::UShort},
+//        // Showcase only, the Torrent model doesn't have the decimal column
+//        {"decimal",  CastType::Decimal},
+//        {"decimal",  {CastType::Decimal, 2}},
+//    };
 };
 
 } // namespace Models

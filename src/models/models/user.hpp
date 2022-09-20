@@ -4,6 +4,7 @@
 
 #include "orm/tiny/model.hpp"
 #include "orm/tiny/relations/pivot.hpp"
+#include "orm/tiny/softdeletes.hpp"
 
 #include "models/phone.hpp"
 #include "models/role.hpp"
@@ -12,16 +13,20 @@
 namespace Models
 {
 
+using Orm::Tiny::CastItem;
+using Orm::Tiny::CastType;
 using Orm::Tiny::Model;
 using Orm::Tiny::Relations::HasOne;
 using Orm::Tiny::Relations::HasMany;
 using Orm::Tiny::Relations::Pivot;
+using Orm::Tiny::SoftDeletes;
 
 class Phone;
 class Role;
 
 // NOLINTNEXTLINE(misc-no-recursion)
-class User final : public Model<User, Phone, Role, Torrent, Pivot>
+class User final : public Model<User, Phone, Role, Torrent, Pivot>,
+                   public SoftDeletes<User>
 {
     friend Model;
     using Model::Model;
@@ -70,7 +75,12 @@ private:
     };
 
     /*! Indicates whether the model should be timestamped. */
-    bool u_timestamps = false;
+    bool u_timestamps = true;
+
+    /*! The attributes that should be cast. */
+    std::unordered_map<QString, CastItem> u_casts {
+        {"is_banned", CastType::Boolean},
+    };
 };
 
 } // namespace Models

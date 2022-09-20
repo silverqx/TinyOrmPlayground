@@ -7,6 +7,8 @@
 namespace Models
 {
 
+using Orm::Tiny::CastItem;
+using Orm::Tiny::CastType;
 using Orm::Tiny::Relations::BasePivot;
 
 class Tagged final : public BasePivot<Tagged>
@@ -19,11 +21,28 @@ class Tagged final : public BasePivot<Tagged>
     /*! The table associated with the model. */
     QString u_table {"tag_torrent"};
 
-    // TODO add belongsToMany overload, which will not take table argument and obtains a table name from Model::getTable, Eloquent is doing this in the BelongsToMany::resolveTableName() method silverqx
     /*! Indicates if the ID is auto-incrementing. */
 //    bool u_incrementing = true;
 
-    // FUTURE u_connection and u_table can't be overridden, the same is true in Eloquent, add support to be able to override these silveqx
+    /*! The attributes that should be cast. */
+    std::unordered_map<QString, CastItem> u_casts {
+        {"active", CastType::Boolean},
+    };
+
+    /* Below is true, only when obtaining pivot records from the database during
+       the lazy or eager loading with the Custom Pivot models only.
+       It's not true eg. if you call Tagged::create()/save()/update()/..., in all this
+       cases the Ignored u_xyz data members are taken into account normally❗
+
+       Ignored  : u_connection, u_timestamps, CREATED_AT, UPDATED_AT
+       Accepted : u_attributes, u_dates, u_dateFormat, u_fillable, u_guarded,
+                  u_incrementing, u_table
+
+       Notes : u_connection - inferred from the parent model
+               u_timestamps - true if attributes contain both CREATED_AT and UPDATED_AT
+               CREATED/UPDATED_AT - inferred from the parent model, can be overridden
+                                    using the withTimestamps() method
+    */
 };
 
 } // namespace Models
