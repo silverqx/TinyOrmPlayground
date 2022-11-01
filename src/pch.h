@@ -8,6 +8,7 @@
 #include <QHash>
 #include <QMap>
 #include <QStringList>
+#include <QTimeZone>
 #include <QTimer>
 #include <QVariant>
 #include <QVector>
