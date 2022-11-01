@@ -1,17 +1,18 @@
 #include "configuration.hpp"
 
 #include <QDir>
+#include <QTimeZone>
 
 #include <stdexcept>
 
 #include <orm/constants.hpp>
+#include <orm/ormtypes.hpp>
 
 #include "config.hpp"
 
 using Orm::Constants::EMPTY;
 using Orm::Constants::H127001;
 using Orm::Constants::InnoDB;
-using Orm::Constants::LOCAL;
 using Orm::Constants::LOCALHOST;
 using Orm::Constants::P3306;
 using Orm::Constants::P5432;
@@ -19,7 +20,8 @@ using Orm::Constants::PUBLIC;
 using Orm::Constants::QMYSQL;
 using Orm::Constants::QPSQL;
 using Orm::Constants::QSQLITE;
-using Orm::Constants::SYSTEM;
+using Orm::Constants::TZ00;
+using Orm::Constants::UTC;
 using Orm::Constants::UTF8;
 using Orm::Constants::UTF8MB4;
 using Orm::Constants::Version;
@@ -37,6 +39,8 @@ using Orm::Constants::password_;
 using Orm::Constants::port_;
 using Orm::Constants::prefix_;
 using Orm::Constants::prefix_indexes;
+using Orm::Constants::qt_timezone;
+using Orm::Constants::return_qdatetime;
 using Orm::Constants::schema_;
 using Orm::Constants::strict_;
 using Orm::Constants::timezone_;
@@ -90,6 +94,11 @@ const Configuration::OrmConfigurationsType &Configuration::initDBConfigurations(
             {foreign_key_constraints, qEnvironmentVariable("DB_SQLITE_FOREIGN_KEYS",
                                                            QStringLiteral("true"))},
             {check_database_exists,   true},
+            // Specifies what time zone all QDateTime-s will have
+            {qt_timezone,             QVariant::fromValue(Qt::UTC)},
+            /* Return a QDateTime with the correct time zone instead of the QString,
+               only works when the qt_timezone isn't set to the DontConvert. */
+            {return_qdatetime,        true},
         }},
 
         // Used in the testConnection() only to test SQLite :memory: driver
@@ -100,6 +109,11 @@ const Configuration::OrmConfigurationsType &Configuration::initDBConfigurations(
             {options_,   QVariantHash()},
             {foreign_key_constraints, qEnvironmentVariable("DB_SQLITE_FOREIGN_KEYS",
                                                            QStringLiteral("true"))},
+            // Specifies what time zone all QDateTime-s will have
+            {qt_timezone,             QVariant::fromValue(Qt::UTC)},
+            /* Return a QDateTime with the correct time zone instead of the QString,
+               only works when the qt_timezone isn't set to the DontConvert. */
+            {return_qdatetime,        true},
         }},
 
         /* Used in the testConnection() only to test behavior when the configuration
@@ -129,7 +143,9 @@ const Configuration::OrmConfigurationsType &Configuration::initDBConfigurations(
             {password_, qEnvironmentVariable("DB_PGSQL_PASSWORD", EMPTY)},
             {charset_,  qEnvironmentVariable("DB_PGSQL_CHARSET",  UTF8)},
             // I don't use timezone types in postgres anyway
-            {timezone_,       LOCAL},
+            {timezone_,       UTC},
+            // Specifies what time zone all QDateTime-s will have
+            {qt_timezone,     QVariant::fromValue(Qt::UTC)},
             {prefix_,         EMPTY},
             {prefix_indexes,  true},
             // ConnectionFactory provides a default value for this, this is only for reference
@@ -153,8 +169,9 @@ QVariantHash Configuration::initMysqlConfiguration()
         {charset_,   qEnvironmentVariable("DB_MYSQL_CHARSET", UTF8MB4)},
         {collation_, qEnvironmentVariable("DB_MYSQL_COLLATION",
                                           QStringLiteral("utf8mb4_0900_ai_ci"))},
-        // CUR add timezone names to the MySQL server and test them silverqx
-        {timezone_,       SYSTEM},
+        {timezone_,       TZ00},
+        // Specifies what time zone all QDateTime-s will have
+        {qt_timezone,     QVariant::fromValue(Qt::UTC)},
         {prefix_,         EMPTY},
         {prefix_indexes,  true},
         {strict_,         true},
@@ -182,7 +199,9 @@ QVariantHash Configuration::initMysqlLaravel8Configuration()
         {charset_,   qEnvironmentVariable("DB_MYSQL_LARAVEL_CHARSET", UTF8MB4)},
         {collation_, qEnvironmentVariable("DB_MYSQL_LARAVEL_COLLATION",
                                           QStringLiteral("utf8mb4_0900_ai_ci"))},
-        {timezone_,       SYSTEM},
+        {timezone_,       TZ00},
+        // Specifies what time zone all QDateTime-s will have
+        {qt_timezone,     QVariant::fromValue(Qt::UTC)},
         {prefix_,         EMPTY},
         {prefix_indexes,  true},
         {strict_,         true},
