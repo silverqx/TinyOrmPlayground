@@ -39,7 +39,7 @@ ConfigurationsService::computeConfigurationsToAdd(const QString &connection)
 QString ConfigurationsService::getDefaultConnectionName() const
 {
     if constexpr (Configuration::ConnectionsInThreads)
-            return Mysql_MainThread;
+        return Mysql_MainThread;
 
     return Mysql;
 }
