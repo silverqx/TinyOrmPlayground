@@ -17,9 +17,10 @@
 #include <orm/utils/query.hpp>
 #include <orm/version.hpp>
 
-#include "configuration.hpp"
 #include "models/torrent.hpp"
 #include "models/torrenteager.hpp"
+
+#include "configuration.hpp"
 #include "version.hpp"
 
 // BUG this causes crash of code model after upgrade to QtCreator 5 with clang 12 silverqx
