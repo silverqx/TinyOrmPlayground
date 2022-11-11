@@ -26,30 +26,23 @@
 // BUG this causes crash of code model after upgrade to QtCreator 5 with clang 12 silverqx
 //using namespace ranges;
 
-using Orm::Constants::ASTERISK;
-using Orm::Constants::COLON;
-using Orm::Constants::COMMA;
-using Orm::Constants::DOT;
-using Orm::Constants::INNER;
-using Orm::Constants::UNDERSCORE;
-
 using Orm::DB; // NOLINT(misc-unused-using-decls)
 using Orm::Query::Builder; // NOLINT(misc-unused-using-decls)
 using Orm::Schema; // NOLINT(misc-unused-using-decls)
 using Orm::SchemaNs::Blueprint; // NOLINT(misc-unused-using-decls)
 using Orm::Tiny::AttributeItem;
+using Orm::Utils::Helpers; // NOLINT(misc-unused-using-decls)
 
-using Helpers = Orm::Utils::Helpers; // NOLINT(misc-unused-using-decls)
 using QueryUtils = Orm::Utils::Query; // NOLINT(misc-unused-using-decls)
-
-// NOLINTNEXTLINE(google-build-using-namespace)
-using namespace Models;
 
 namespace TinyPlay::Tests
 {
 
 void TestForPlay::run() const
 {
+    using namespace Orm::Constants;
+    using namespace Models;
+
     QElapsedTimer timer;
     timer.start();
 
