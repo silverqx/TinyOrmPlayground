@@ -34,7 +34,9 @@ using Orm::SchemaNs::Blueprint; // NOLINT(misc-unused-using-decls)
 using Orm::Tiny::AttributeItem;
 using Orm::Utils::Helpers; // NOLINT(misc-unused-using-decls)
 
-using QueryUtils = Orm::Utils::Query; // NOLINT(misc-unused-using-decls)
+using ContainerUtils = Orm::Utils::Container; // NOLINT(misc-unused-using-decls)
+using QueryUtils     = Orm::Utils::Query; // NOLINT(misc-unused-using-decls)
+using StringUtils    = Orm::Utils::String; // NOLINT(misc-unused-using-decls)
 
 namespace TinyPlay::Tests
 {
