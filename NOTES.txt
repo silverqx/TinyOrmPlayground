@@ -59,6 +59,8 @@ Average TestOrm instances execution time : 1892ms
 Number of queries:
 ------------------
 
+- count of the 'exception' word in the output is 29 (all these exceptions are expected)
+
 - 29.07.2022:
   - all tests except TestSchemaBuilder (no queries in the TestForPlay):
     - Normal        : 1591
