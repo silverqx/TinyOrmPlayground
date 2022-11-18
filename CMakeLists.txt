@@ -1,5 +1,5 @@
-# Policies <= CMP0126 default to NEW
-cmake_minimum_required(VERSION 3.20...3.23 FATAL_ERROR)
+# Policies <= CMP0128 default to NEW
+cmake_minimum_required(VERSION 3.22...3.25 FATAL_ERROR)
 
 list(APPEND CMAKE_MODULE_PATH
     "${CMAKE_CURRENT_SOURCE_DIR}/cmake/CommonModules"
