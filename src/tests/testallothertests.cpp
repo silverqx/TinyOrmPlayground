@@ -60,7 +60,11 @@ void TestAllOtherTests::tinyOrmOthers() const
                 ->where("id", ">", 2)
                 .orWhereNull("note")
                 .orWhereEq("is_banned", true)
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
                 .orWhereEq("name", QVariant(QMetaType(QMetaType::QString)))
+#else
+                .orWhereEq("name", QVariant(QVariant::String))
+#endif
                 .orWhereEq("name", QVariant())
                 .addBinding("xx")
                 .orderByDesc(ID).dump();
