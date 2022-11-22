@@ -95,3 +95,10 @@ Number of queries:
     - postgres : 127
     - total    : 357
     - ⚡ Total TestOrm instance execution time : 6761ms
+
+- 22.11.2022:
+  - single-threaded, default configuration:
+    - Normal        : 1594
+    - Affecting     : 329
+    - Transaction   : 0
+    - Total         : 1923
