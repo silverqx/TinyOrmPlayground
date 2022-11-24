@@ -22,7 +22,7 @@ load(tiny_toolchain_requirement)
 # Configuration
 # ---
 
-CONFIG *= console
+CONFIG *= cmdline
 
 # TinyOrmPlayground defines
 # ---
