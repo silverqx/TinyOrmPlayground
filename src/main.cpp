@@ -28,7 +28,7 @@ int main(int /*unused*/, char */*unused*/[])
     SetConsoleOutputCP(CP_UTF8);
 //    SetConsoleOutputCP(1250);
     /* UTF-8 encoding is corrupted for narrow input functions, needed to use wcin/wstring
-       for an input, input will be in the unicode encoding then needed to translate
+       for an input, input will be in the unicode encoding then is needed to translate
        unicode to utf8, eg. by QString::fromStdWString(), WideCharToMultiByte(), or
        std::codecvt(). It also works with msys2 ucrt64 gcc/clang. */
     SetConsoleCP(CP_UTF8);
