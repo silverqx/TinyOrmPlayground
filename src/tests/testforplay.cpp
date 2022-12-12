@@ -24,27 +24,31 @@
 #include "configuration.hpp"
 #include "version.hpp"
 
-// BUG this causes crash of code model after upgrade to QtCreator 5 with clang 12 silverqx
-//using namespace ranges;
+//using namespace std::chrono_literals;
 
-using Orm::DB; // NOLINT(misc-unused-using-decls)
-using Orm::Query::Builder; // NOLINT(misc-unused-using-decls)
-using Orm::Schema; // NOLINT(misc-unused-using-decls)
+// BUG this causes crash of code model after upgrade to QtCreator 5 with clang 12 silverqx
+using namespace ranges; // NOLINT(google-build-using-namespace)
+
+//using namespace Orm::Support::TimerCategories; // NOLINT(google-build-using-namespace)
+
+using Orm::DB;                  // NOLINT(misc-unused-using-decls)
+using Orm::Query::Builder;      // NOLINT(misc-unused-using-decls)
+using Orm::Schema;              // NOLINT(misc-unused-using-decls)
 using Orm::SchemaNs::Blueprint; // NOLINT(misc-unused-using-decls)
 using Orm::Tiny::AttributeItem;
-using Orm::Utils::Helpers; // NOLINT(misc-unused-using-decls)
+using Orm::Utils::Helpers;      // NOLINT(misc-unused-using-decls)
 
 using ContainerUtils = Orm::Utils::Container; // NOLINT(misc-unused-using-decls)
-using QueryUtils     = Orm::Utils::Query; // NOLINT(misc-unused-using-decls)
-using StringUtils    = Orm::Utils::String; // NOLINT(misc-unused-using-decls)
+using QueryUtils     = Orm::Utils::Query;     // NOLINT(misc-unused-using-decls)
+using StringUtils    = Orm::Utils::String;    // NOLINT(misc-unused-using-decls)
 
 namespace TinyPlay::Tests
 {
 
 void TestForPlay::run() const
 {
-    using namespace Orm::Constants;
-    using namespace Models;
+    using namespace Orm::Constants; // NOLINT(google-build-using-namespace)
+    using namespace Models; // NOLINT(google-build-using-namespace)
 
     QElapsedTimer timer;
     timer.start();
@@ -55,6 +59,10 @@ void TestForPlay::run() const
             << "================="
             << "\n  Test for Play  "
             << "\n=================\n";
+
+    /*! Local connection override, helps to switch connection in the test code. */
+    const auto &LocalConnection = Mysql;
+//    const auto &LocalConnection = Postgres;
 
     {
         {
