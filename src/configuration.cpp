@@ -247,7 +247,7 @@ QString Configuration::initCheckDatabaseExistsFile()
     return path + "/q_tinyorm_test-check_exists.sqlite3";
 }
 
-QString Configuration::initMySqlMainThreadConnection() const
+QString Configuration::initMySqlMainThreadConnection()
 {
     if constexpr (Configuration::ConnectionsInThreads)
         return Mysql_MainThread;

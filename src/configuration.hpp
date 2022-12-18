@@ -154,10 +154,10 @@ namespace TinyPlay
 
         /*! Get the filepath to the SQLite database file, for testing
             the 'check_database_exists' configuration option. */
-        QString initCheckDatabaseExistsFile();
+        static QString initCheckDatabaseExistsFile();
         /*! Obtain MySQL connection name, it has a different name when multi-threading
             is enabled to avoid collision in connection names. */
-        QString initMySqlMainThreadConnection() const;
+        static QString initMySqlMainThreadConnection();
     };
 
     /* public */
