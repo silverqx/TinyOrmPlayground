@@ -6,8 +6,11 @@
 #include <stdexcept>
 
 #include <orm/constants.hpp>
+#include <orm/exceptions/invalidargumenterror.hpp>
 #include <orm/exceptions/runtimeerror.hpp>
 #include <orm/ormtypes.hpp>
+#include <orm/utils/helpers.hpp>
+#include <orm/utils/type.hpp>
 
 #include "config.hpp"
 
@@ -18,6 +21,9 @@ using Orm::Constants::LOCALHOST;
 using Orm::Constants::P3306;
 using Orm::Constants::P5432;
 using Orm::Constants::PUBLIC;
+using Orm::Constants::SSL_CA;
+using Orm::Constants::SSL_CERT;
+using Orm::Constants::SSL_KEY;
 using Orm::Constants::QMYSQL;
 using Orm::Constants::QPSQL;
 using Orm::Constants::QSQLITE;
@@ -46,6 +52,8 @@ using Orm::Constants::schema_;
 using Orm::Constants::strict_;
 using Orm::Constants::timezone_;
 using Orm::Constants::username_;
+
+using Orm::Utils::Helpers;
 
 namespace TinyPlay
 {
@@ -182,8 +190,8 @@ QVariantHash Configuration::initMysqlConfiguration()
         {options_,        QVariantHash()},
     };
 
-    // Minimize all timeouts, on localhost it's ok
-    minimizeMysqlTimeouts(mysqlConnection);
+    // Minimize timeouts and setup SSL connection
+    commonMySqlOptions(mysqlConnection);
 
     return mysqlConnection;
 }
@@ -212,27 +220,59 @@ QVariantHash Configuration::initMysqlLaravel8Configuration()
         {options_,        QVariantHash()},
     };
 
-    // Minimize all timeouts, on localhost it's ok
-    minimizeMysqlTimeouts(mysqlLaravel8Connection);
+    // Minimize timeouts and setup SSL connection
+    commonMySqlOptions(mysqlLaravel8Connection);
 
     return mysqlLaravel8Connection;
 }
 
-void Configuration::minimizeMysqlTimeouts(QVariantHash &connectionOptions)
+void Configuration::commonMySqlOptions(QVariantHash &connectionOptions)
 {
-    if (const auto &host = connectionOptions.find(host_).value();
-        host != H127001 && host != LOCALHOST
-    )
-        return;
-
     auto &options = connectionOptions.find(options_).value();
 
+    /* Validate, because the options.value<QVariantHash>() call returns empty hash if
+       the value is the non-empty QString. */
+    throwIfMySqlOptionsNotHash(options);
+
     auto newOptions = options.value<QVariantHash>();
-    newOptions.insert({{"MYSQL_OPT_CONNECT_TIMEOUT", 1},
-                       {"MYSQL_OPT_READ_TIMEOUT",    1},
-                       {"MYSQL_OPT_WRITE_TIMEOUT",   1}});
+    newOptions.reserve(6);
+
+    // Minimize all timeouts, on localhost it's ok
+    if (const auto &host = connectionOptions.find(host_).value();
+        host == H127001 || host == LOCALHOST
+    )
+        minimizeMysqlTimeouts(newOptions);
+
+    mysqlSslOptions(newOptions);
 
     options = std::move(newOptions);
+}
+
+void Configuration::minimizeMysqlTimeouts(QVariantHash &options)
+{
+    options.insert({{"MYSQL_OPT_CONNECT_TIMEOUT", 1},
+                    {"MYSQL_OPT_READ_TIMEOUT",    1},
+                    {"MYSQL_OPT_WRITE_TIMEOUT",   1}});
+}
+
+void Configuration::mysqlSslOptions(QVariantHash &options)
+{
+    options.insert({{SSL_CERT, qEnvironmentVariable("DB_MYSQL_SSL_CERT")},
+                    {SSL_KEY,  qEnvironmentVariable("DB_MYSQL_SSL_KEY")},
+                    {SSL_CA,   qEnvironmentVariable("DB_MYSQL_SSL_CA")}});
+}
+
+void Configuration::throwIfMySqlOptionsNotHash(const QVariant &optionsVariant)
+{
+    if (Helpers::qVariantTypeId(optionsVariant) == QMetaType::QVariantHash)
+        return;
+
+    throw Orm::Exceptions::InvalidArgumentError(
+                QStringLiteral(
+                    "MySQL 'options' value must be the QVariantHash, TinyORM also "
+                    "supports a QString, but I'm not going to implement this case "
+                    "here, in %1().")
+                .arg(__tiny_func__));
 }
 
 QString Configuration::initCheckDatabaseExistsFile()
