@@ -6,6 +6,7 @@
 #include <stdexcept>
 
 #include <orm/constants.hpp>
+#include <orm/exceptions/runtimeerror.hpp>
 #include <orm/ormtypes.hpp>
 
 #include "config.hpp"
@@ -239,7 +240,7 @@ QString Configuration::initCheckDatabaseExistsFile()
     auto path = qEnvironmentVariable("DB_SQLITE_DATABASE", EMPTY);
 
     if (path.isEmpty())
-        throw std::runtime_error(
+        throw Orm::Exceptions::RuntimeError(
                 "Undefined environment variable 'DB_SQLITE_DATABASE'.");
 
     path.truncate(QDir::fromNativeSeparators(path).lastIndexOf(QChar('/')));
