@@ -63,7 +63,7 @@ namespace TinyPlay
         void throwIfAlreadyCalled() const;
 
         /*! Throw when unsupported environment detected. */
-        void throwIfUnsupportedEnv() const;
+        static void throwIfUnsupportedEnv();
 
         /*! Configuration for TinyOrmPlayground. */
         Configuration m_config {};

@@ -250,7 +250,7 @@ void TestOrm::throwIfAlreadyCalled() const
         throw LogicError("TestOrm::connectToDatabase() can be called only once.");
 }
 
-void TestOrm::throwIfUnsupportedEnv() const
+void TestOrm::throwIfUnsupportedEnv()
 {
     /* thread_local is not used on unsupported compilers, T_THREAD_LOCAL macro is empty
        in this case, so running TinyPlay in single thread works good on all compilers. */
