@@ -814,9 +814,9 @@ void TestQueryBuilder::run() const
     {
         qInfo() << "\n\nQueryBuilder::whereExists()\n---";
 
-        auto query = DB::table("torrents")->whereExists([](auto &query)
+        auto query = DB::table("torrents")->whereExists([](auto &query_)
         {
-            query.from("torrents").where("size", ">=", 13);
+            query_.from("torrents").where("size", ">=", 13);
         }).get();
 
         while (query.next())

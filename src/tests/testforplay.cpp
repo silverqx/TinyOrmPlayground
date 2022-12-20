@@ -61,7 +61,7 @@ void TestForPlay::run() const
             << "\n=================\n";
 
     /*! Local connection override, helps to switch connection in the test code. */
-    const auto &LocalConnection = Mysql;
+//    const auto &LocalConnection = Mysql;
 //    const auto &LocalConnection = Postgres;
 
     {
