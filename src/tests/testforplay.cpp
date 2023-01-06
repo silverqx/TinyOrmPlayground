@@ -17,11 +17,11 @@
 #include <orm/utils/query.hpp>
 #include <orm/version.hpp>
 
-#include "models/datetime.hpp"
-#include "models/torrent.hpp"
-#include "models/torrenteager.hpp"
+#include "models/datetime.hpp" // IWYU pragma: keep
+#include "models/torrent.hpp" // IWYU pragma: keep
+#include "models/torrenteager.hpp" // IWYU pragma: keep
 
-#include "configuration.hpp"
+#include "configuration.hpp" // IWYU pragma: keep
 #include "version.hpp"
 
 //using namespace std::chrono_literals;
