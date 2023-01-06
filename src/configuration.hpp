@@ -151,10 +151,6 @@ namespace TinyPlay
         static QVariantHash initMysqlLaravel8Configuration();
         /*! Prepare the MySQL options hash. */
         inline static void commonMySqlOptions(QVariantHash &connectionOptions);
-        /*! Set connect/read/write timeouts to 1. */
-        static void minimizeMysqlTimeouts(QVariantHash &options);
-        /*! Set up the TLS connection. */
-        static void mysqlSslOptions(QVariantHash &options);
         /*! Throw if the MySQL options value is not the QVariantHash. */
         static void throwIfMySqlOptionsNotHash(const QVariant &optionsVariant);
 

@@ -9,6 +9,7 @@
 #include <orm/exceptions/invalidargumenterror.hpp>
 #include <orm/exceptions/runtimeerror.hpp>
 #include <orm/ormtypes.hpp>
+#include <orm/utils/configuration.hpp>
 #include <orm/utils/helpers.hpp>
 #include <orm/utils/type.hpp>
 
@@ -21,9 +22,6 @@ using Orm::Constants::LOCALHOST;
 using Orm::Constants::P3306;
 using Orm::Constants::P5432;
 using Orm::Constants::PUBLIC;
-using Orm::Constants::SSL_CA;
-using Orm::Constants::SSL_CERT;
-using Orm::Constants::SSL_KEY;
 using Orm::Constants::QMYSQL;
 using Orm::Constants::QPSQL;
 using Orm::Constants::QSQLITE;
@@ -54,6 +52,8 @@ using Orm::Constants::timezone_;
 using Orm::Constants::username_;
 
 using Orm::Utils::Helpers;
+
+using ConfigUtils = Orm::Utils::Configuration;
 
 namespace TinyPlay
 {
@@ -241,25 +241,11 @@ void Configuration::commonMySqlOptions(QVariantHash &connectionOptions)
     if (const auto &host = connectionOptions.find(host_).value();
         host == H127001 || host == LOCALHOST
     )
-        minimizeMysqlTimeouts(newOptions);
+        ConfigUtils::minimizeMySqlTimeouts(newOptions);
 
-    mysqlSslOptions(newOptions);
+    ConfigUtils::insertMySqlSslOptions(newOptions);
 
     options = std::move(newOptions);
-}
-
-void Configuration::minimizeMysqlTimeouts(QVariantHash &options)
-{
-    options.insert({{"MYSQL_OPT_CONNECT_TIMEOUT", 1},
-                    {"MYSQL_OPT_READ_TIMEOUT",    1},
-                    {"MYSQL_OPT_WRITE_TIMEOUT",   1}});
-}
-
-void Configuration::mysqlSslOptions(QVariantHash &options)
-{
-    options.insert({{SSL_CERT, qEnvironmentVariable("DB_MYSQL_SSL_CERT")},
-                    {SSL_KEY,  qEnvironmentVariable("DB_MYSQL_SSL_KEY")},
-                    {SSL_CA,   qEnvironmentVariable("DB_MYSQL_SSL_CA")}});
 }
 
 void Configuration::throwIfMySqlOptionsNotHash(const QVariant &optionsVariant)
