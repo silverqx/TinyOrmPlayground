@@ -221,7 +221,7 @@ tiny_resource_and_manifest(${TinyOrmPlayground_target}
 # Unconditional dependencies
 find_package(QT NAMES Qt5 Qt6 REQUIRED COMPONENTS Core Sql)
 tiny_find_package(Qt${QT_VERSION_MAJOR} ${minQtVersion} CONFIG
-    REQUIRED COMPONENTS Core Sql
+    REQUIRED COMPONENTS Core #[[Network]] Sql
 )
 tiny_find_package(range-v3 ${minRangeV3Version} CONFIG REQUIRED)
 tiny_find_package(nlohmann_json ${minNlohmannJsonVersion} CONFIG REQUIRED)
@@ -230,6 +230,7 @@ tiny_find_package(TinyOrm ${minTinyOrmVersion} CONFIG REQUIRED)
 target_link_libraries(${TinyOrmPlayground_target}
     PRIVATE
         Qt${QT_VERSION_MAJOR}::Core
+#        Qt${QT_VERSION_MAJOR}::Network
         Qt${QT_VERSION_MAJOR}::Sql
         range-v3::range-v3
         nlohmann_json::nlohmann_json
@@ -265,6 +266,13 @@ set_package_properties(Qt${QT_VERSION_MAJOR}Core
         TYPE REQUIRED
         PURPOSE "Provides QVariant, QString, and Qt containers"
 )
+#set_package_properties(Qt${QT_VERSION_MAJOR}Network
+#    PROPERTIES
+#        URL "https://doc.qt.io/qt-${QT_VERSION_MAJOR}/qtnetwork-index.html"
+#        DESCRIPTION "Classes to make network programming easier and more portable"
+#        TYPE REQUIRED
+#        PURPOSE "Provides QHostInfo (for now unused)"
+#)
 set_package_properties(Qt${QT_VERSION_MAJOR}Sql
     PROPERTIES
         URL "https://doc.qt.io/qt-${QT_VERSION_MAJOR}/qtsql-index.html"
