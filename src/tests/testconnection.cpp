@@ -5,13 +5,14 @@
 #include <QFile>
 
 #include <orm/db.hpp>
+#include <orm/exceptions/sqlitedatabasedoesnotexisterror.hpp>
 #include <orm/mysqlconnection.hpp>
 
 #include "configuration.hpp"
 #include "macros.hpp"
 
 using Orm::DB;
-using Orm::Exceptions::RuntimeError;
+using Orm::Exceptions::SQLiteDatabaseDoesNotExistError;
 using Orm::MySqlConnection;
 
 namespace TinyPlay::Tests
@@ -75,7 +76,7 @@ void TestConnection::run() const
             TINY_VERIFY_EXCEPTION_THROWN(
                         DB::connection(Sqlite_CheckExistsTrue)
                         .statement("create table tbl1 (one varchar(10), two smallint)"),
-                        RuntimeError);
+                        SQLiteDatabaseDoesNotExistError);
 
             qt_noop();
         }
