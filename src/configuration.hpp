@@ -80,6 +80,7 @@ namespace TinyPlay
             TestQueryBuilderDbSpecific,
             TestQueryBuilder,
             TestTinyOrm,
+            // Depends on the postgis extension and doesn't support multi-threading
 //            TestSchemaBuilder,
         };
 
