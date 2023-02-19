@@ -3,12 +3,9 @@
 #include <QDir>
 #include <QTimeZone>
 
-#include <stdexcept>
-
 #include <orm/constants.hpp>
 #include <orm/exceptions/invalidargumenterror.hpp>
 #include <orm/exceptions/runtimeerror.hpp>
-#include <orm/ormtypes.hpp>
 #include <orm/utils/configuration.hpp>
 #include <orm/utils/helpers.hpp>
 #include <orm/utils/type.hpp>
@@ -29,7 +26,9 @@ using Orm::Constants::TZ00;
 using Orm::Constants::UTC;
 using Orm::Constants::UTF8;
 using Orm::Constants::UTF8MB4;
+using Orm::Constants::UTF8MB40900aici;
 using Orm::Constants::Version;
+using Orm::Constants::application_name;
 using Orm::Constants::charset_;
 using Orm::Constants::check_database_exists;
 using Orm::Constants::collation_;
@@ -42,11 +41,12 @@ using Orm::Constants::isolation_level;
 using Orm::Constants::options_;
 using Orm::Constants::password_;
 using Orm::Constants::port_;
+using Orm::Constants::postgres_;
 using Orm::Constants::prefix_;
 using Orm::Constants::prefix_indexes;
 using Orm::Constants::qt_timezone;
 using Orm::Constants::return_qdatetime;
-using Orm::Constants::schema_;
+using Orm::Constants::search_path;
 using Orm::Constants::strict_;
 using Orm::Constants::timezone_;
 using Orm::Constants::username_;
@@ -96,10 +96,8 @@ const Configuration::OrmConfigurationsType &Configuration::initDBConfigurations(
 
         // Main SQLite connection in test loop
         {Sqlite, {
-            {driver_,    QSQLITE},
-            {database_,  qEnvironmentVariable("DB_SQLITE_DATABASE", EMPTY)},
-            {prefix_,    EMPTY},
-            {options_,   QVariantHash()},
+            {driver_,                 QSQLITE},
+            {database_,               qEnvironmentVariable("DB_SQLITE_DATABASE", EMPTY)},
             {foreign_key_constraints, qEnvironmentVariable("DB_SQLITE_FOREIGN_KEYS",
                                                            QStringLiteral("true"))},
             {check_database_exists,   true},
@@ -108,14 +106,16 @@ const Configuration::OrmConfigurationsType &Configuration::initDBConfigurations(
             /* Return a QDateTime with the correct time zone instead of the QString,
                only works when the qt_timezone isn't set to the DontConvert. */
             {return_qdatetime,        true},
+            {prefix_,                 EMPTY},
+            // Prefixing indexes also works with the SQLite database
+            {prefix_indexes,          false},
+            {options_,                QVariantHash()},
         }},
 
         // Used in the testConnection() only to test SQLite :memory: driver
         {Sqlite_Memory, {
-            {driver_,    QSQLITE},
-            {database_,  QStringLiteral(":memory:")},
-            {prefix_,    EMPTY},
-            {options_,   QVariantHash()},
+            {driver_,                 QSQLITE},
+            {database_,               QStringLiteral(":memory:")},
             {foreign_key_constraints, qEnvironmentVariable("DB_SQLITE_FOREIGN_KEYS",
                                                            QStringLiteral("true"))},
             // Specifies what time zone all QDateTime-s will have
@@ -123,43 +123,48 @@ const Configuration::OrmConfigurationsType &Configuration::initDBConfigurations(
             /* Return a QDateTime with the correct time zone instead of the QString,
                only works when the qt_timezone isn't set to the DontConvert. */
             {return_qdatetime,        true},
+            {prefix_,                 EMPTY},
+            // Prefixing indexes also works with the SQLite database
+            {prefix_indexes,          false},
+            {options_,                QVariantHash()},
         }},
 
         /* Used in the testConnection() only to test behavior when the configuration
            option check_database_exists = true. */
         {Sqlite_CheckExistsTrue, {
-            {driver_,    QSQLITE},
-            {database_,  CheckDatabaseExistsFile},
+            {driver_,               QSQLITE},
+            {database_,             CheckDatabaseExistsFile},
             {check_database_exists, true},
         }},
 
         /* Used in the testConnection() only to test behavior when the configuration
            option check_database_exists = false. */
         {Sqlite_CheckExistsFalse, {
-            {driver_,    QSQLITE},
-            {database_,  CheckDatabaseExistsFile},
+            {driver_,               QSQLITE},
+            {database_,             CheckDatabaseExistsFile},
             {check_database_exists, false},
         }},
 
         // Main PostgreSQL connection in test loop
         {Postgres, {
-            {driver_,   QPSQL},
-            {host_,     qEnvironmentVariable("DB_PGSQL_HOST",     H127001)},
-            {port_,     qEnvironmentVariable("DB_PGSQL_PORT",     P5432)},
-            {database_, qEnvironmentVariable("DB_PGSQL_DATABASE", EMPTY)},
-            {schema_,   qEnvironmentVariable("DB_PGSQL_SCHEMA",   PUBLIC)},
-            {username_, qEnvironmentVariable("DB_PGSQL_USERNAME", "postgres")},
-            {password_, qEnvironmentVariable("DB_PGSQL_PASSWORD", EMPTY)},
-            {charset_,  qEnvironmentVariable("DB_PGSQL_CHARSET",  UTF8)},
+            {driver_,            QPSQL},
+            {application_name,   QStringLiteral("TinyOrmPlayground")},
+            {host_,              qEnvironmentVariable("DB_PGSQL_HOST",       H127001)},
+            {port_,              qEnvironmentVariable("DB_PGSQL_PORT",       P5432)},
+            {database_,          qEnvironmentVariable("DB_PGSQL_DATABASE",   EMPTY)},
+            {search_path,        qEnvironmentVariable("DB_PGSQL_SEARCHPATH", PUBLIC)},
+            {username_,          qEnvironmentVariable("DB_PGSQL_USERNAME",   postgres_)},
+            {password_,          qEnvironmentVariable("DB_PGSQL_PASSWORD",   EMPTY)},
+            {charset_,           qEnvironmentVariable("DB_PGSQL_CHARSET",    UTF8)},
             // I don't use timezone types in postgres anyway
-            {timezone_,       UTC},
+            {timezone_,          UTC},
             // Specifies what time zone all QDateTime-s will have
-            {qt_timezone,     QVariant::fromValue(Qt::UTC)},
-            {prefix_,         EMPTY},
-            {prefix_indexes,  true},
+            {qt_timezone,        QVariant::fromValue(Qt::UTC)},
+            {prefix_,            EMPTY},
+            {prefix_indexes,     false},
             // ConnectionFactory provides a default value for this, this is only for reference
-//            {dont_drop,      QStringList {QStringLiteral("spatial_ref_sys")}},
-            {options_,        QVariantHash(/*{{"requiressl", 1}}*/)},
+//            {dont_drop,          QStringList {spatial_ref_sys}},
+            {options_,           ConfigUtils::postgresSslOptions()},
         }},
     };
 
@@ -169,22 +174,22 @@ const Configuration::OrmConfigurationsType &Configuration::initDBConfigurations(
 QVariantHash Configuration::initMysqlConfiguration()
 {
     QVariantHash mysqlConnection {
-        {driver_,    QMYSQL},
-        {host_,      qEnvironmentVariable("DB_MYSQL_HOST", H127001)},
-        {port_,      qEnvironmentVariable("DB_MYSQL_PORT", P3306)},
-        {database_,  qEnvironmentVariable("DB_MYSQL_DATABASE", EMPTY)},
-        {username_,  qEnvironmentVariable("DB_MYSQL_USERNAME", EMPTY)},
-        {password_,  qEnvironmentVariable("DB_MYSQL_PASSWORD", EMPTY)},
-        {charset_,   qEnvironmentVariable("DB_MYSQL_CHARSET", UTF8MB4)},
-        {collation_, qEnvironmentVariable("DB_MYSQL_COLLATION",
-                                          QStringLiteral("utf8mb4_0900_ai_ci"))},
+        {driver_,         QMYSQL},
+        {host_,           qEnvironmentVariable("DB_MYSQL_HOST",      H127001)},
+        {port_,           qEnvironmentVariable("DB_MYSQL_PORT",      P3306)},
+        {database_,       qEnvironmentVariable("DB_MYSQL_DATABASE",  EMPTY)},
+        {username_,       qEnvironmentVariable("DB_MYSQL_USERNAME",  EMPTY)},
+        {password_,       qEnvironmentVariable("DB_MYSQL_PASSWORD",  EMPTY)},
+        {charset_,        qEnvironmentVariable("DB_MYSQL_CHARSET",   UTF8MB4)},
+        {collation_,      qEnvironmentVariable("DB_MYSQL_COLLATION", UTF8MB40900aici)},
+        // Very important for tests
         {timezone_,       TZ00},
         // Specifies what time zone all QDateTime-s will have
         {qt_timezone,     QVariant::fromValue(Qt::UTC)},
         {prefix_,         EMPTY},
-        {prefix_indexes,  true},
+        {prefix_indexes,  false},
         {strict_,         true},
-        {isolation_level, QStringLiteral("REPEATABLE READ")},
+        {isolation_level, QStringLiteral("REPEATABLE READ")}, // MySQL default is REPEATABLE READ for InnoDB
         {engine_,         InnoDB},
         {Version,         {}}, // Autodetect
         {options_,        QVariantHash()},
@@ -199,22 +204,23 @@ QVariantHash Configuration::initMysqlConfiguration()
 QVariantHash Configuration::initMysqlLaravel8Configuration()
 {
     QVariantHash mysqlLaravel8Connection {
-        {driver_,    QMYSQL},
-        {host_,      qEnvironmentVariable("DB_MYSQL_LARAVEL_HOST", H127001)},
-        {port_,      qEnvironmentVariable("DB_MYSQL_LARAVEL_PORT", P3306)},
-        {database_,  qEnvironmentVariable("DB_MYSQL_LARAVEL_DATABASE", EMPTY)},
-        {username_,  qEnvironmentVariable("DB_MYSQL_LARAVEL_USERNAME", EMPTY)},
-        {password_,  qEnvironmentVariable("DB_MYSQL_LARAVEL_PASSWORD", EMPTY)},
-        {charset_,   qEnvironmentVariable("DB_MYSQL_LARAVEL_CHARSET", UTF8MB4)},
-        {collation_, qEnvironmentVariable("DB_MYSQL_LARAVEL_COLLATION",
-                                          QStringLiteral("utf8mb4_0900_ai_ci"))},
+        {driver_,         QMYSQL},
+        {host_,           qEnvironmentVariable("DB_MYSQL_LARAVEL_HOST",      H127001)},
+        {port_,           qEnvironmentVariable("DB_MYSQL_LARAVEL_PORT",      P3306)},
+        {database_,       qEnvironmentVariable("DB_MYSQL_LARAVEL_DATABASE",  EMPTY)},
+        {username_,       qEnvironmentVariable("DB_MYSQL_LARAVEL_USERNAME",  EMPTY)},
+        {password_,       qEnvironmentVariable("DB_MYSQL_LARAVEL_PASSWORD",  EMPTY)},
+        {charset_,        qEnvironmentVariable("DB_MYSQL_LARAVEL_CHARSET",   UTF8MB4)},
+        {collation_,      qEnvironmentVariable("DB_MYSQL_LARAVEL_COLLATION",
+                                               UTF8MB40900aici)},
+        // Very important for tests
         {timezone_,       TZ00},
         // Specifies what time zone all QDateTime-s will have
         {qt_timezone,     QVariant::fromValue(Qt::UTC)},
         {prefix_,         EMPTY},
-        {prefix_indexes,  true},
+        {prefix_indexes,  false},
         {strict_,         true},
-        {isolation_level, QStringLiteral("REPEATABLE READ")},
+        {isolation_level, QStringLiteral("REPEATABLE READ")}, // MySQL default is REPEATABLE READ for InnoDB
         {engine_,         InnoDB},
         {Version,         {}}, // Autodetect
         {options_,        QVariantHash()},
