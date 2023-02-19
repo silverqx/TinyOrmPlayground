@@ -134,7 +134,7 @@ const Configuration::OrmConfigurationsType &Configuration::initDBConfigurations(
         }},
 
         /* Used in the testConnection() only to test behavior when the configuration
-           option check_database_exists = true. */
+           option check_database_exists = false. */
         {Sqlite_CheckExistsFalse, {
             {driver_,    QSQLITE},
             {database_,  CheckDatabaseExistsFile},
