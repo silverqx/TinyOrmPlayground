@@ -271,7 +271,7 @@ QString Configuration::initCheckDatabaseExistsFile()
 
     path.truncate(QDir::fromNativeSeparators(path).lastIndexOf(QChar('/')));
 
-    return path + "/q_tinyorm_test-check_exists.sqlite3";
+    return path + "/tinyorm_test-check_exists.sqlite3";
 }
 
 QString Configuration::initMySqlMainThreadConnection()
