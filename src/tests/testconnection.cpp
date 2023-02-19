@@ -95,8 +95,8 @@ void TestConnection::run() const
             qt_noop();
         }
 
-        QSqlDatabase::database(Sqlite_CheckExistsTrue).close();
-        QSqlDatabase::database(Sqlite_CheckExistsFalse).close();
+        DB::removeConnection(Sqlite_CheckExistsTrue);
+        DB::removeConnection(Sqlite_CheckExistsFalse);
 
         // Remove the SQLite database file
         QFile::remove(m_config.CheckDatabaseExistsFile);
