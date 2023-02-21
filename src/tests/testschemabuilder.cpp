@@ -181,14 +181,14 @@ and tab	end)");
         {
             table.id();
 
-            table.dateTime("created");
-            table.dateTime("created_current").useCurrent();
+            table.datetime("created");
+            table.datetime("created_current").useCurrent();
 
             table.timestamp("created_t");
             table.timestamp("created_t_current").useCurrent();
 
-            table.dateTime("updated");
-            table.dateTime("updated_current").useCurrentOnUpdate();
+            table.datetime("updated");
+            table.datetime("updated_current").useCurrentOnUpdate();
 
             table.timestamp("updated_t");
             table.timestamp("updated_t_current").useCurrentOnUpdate();
