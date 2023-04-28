@@ -18,7 +18,6 @@
 #include <nlohmann/json.hpp>
 
 #include <orm/db.hpp>
-#include <orm/query/querybuilder.hpp>
 
 #include "configuration.hpp"
 

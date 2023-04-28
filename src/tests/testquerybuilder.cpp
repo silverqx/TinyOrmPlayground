@@ -1,11 +1,9 @@
 #include "tests/testquerybuilder.hpp"
 
 #include <QDebug>
-#include <QElapsedTimer>
 
 #include <orm/db.hpp>
 #include <orm/query/joinclause.hpp>
-#include <orm/query/querybuilder.hpp>
 
 #include "configuration.hpp"
 

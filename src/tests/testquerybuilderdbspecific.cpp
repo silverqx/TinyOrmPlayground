@@ -1,10 +1,8 @@
 #include "tests/testquerybuilderdbspecific.hpp"
 
 #include <QDebug>
-#include <QElapsedTimer>
 
 #include <orm/db.hpp>
-#include <orm/query/querybuilder.hpp>
 
 #include "configuration.hpp"
 
