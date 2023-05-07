@@ -11,7 +11,8 @@ namespace Models
 {
 
 using Orm::Constants::NAME;
-using Orm::Constants::SIZE;
+using Orm::Constants::NOTE;
+using Orm::Constants::SIZE_;
 
 using Orm::Tiny::Model;
 using Orm::Tiny::Relations::BelongsTo;
@@ -57,7 +58,7 @@ public:
         auto relation = belongsTo<TorrentEager_WithDefault>(
                             {}, {}, QString::fromUtf8(__func__)); // NOLINT(cppcoreguidelines-pro-bounds-array-to-pointer-decay)
 
-        relation->withDefault({{NAME, "default_torrent_name"}, {SIZE, 123}});
+        relation->withDefault({{NAME, "default_torrent_name"}, {SIZE_, 123}});
 
         return relation;
     }
@@ -91,7 +92,7 @@ public:
         auto relation =
                 hasOne<TorrentPreviewableFilePropertyEager>("previewable_file_id");
 
-        relation->withDefault({{NAME, "default_fileproperty_name"}, {SIZE, 321}});
+        relation->withDefault({{NAME, "default_fileproperty_name"}, {SIZE_, 321}});
 
         return relation;
     }
@@ -124,9 +125,9 @@ private:
     inline static QStringList u_fillable { // NOLINT(cppcoreguidelines-interfaces-global-init)
         "file_index",
         "filepath",
-        SIZE,
+        SIZE_,
         "progress",
-        "note",
+        NOTE,
     };
 };
 
