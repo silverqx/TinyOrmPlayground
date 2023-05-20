@@ -5,7 +5,6 @@
 #ifdef PROJECT_TINYORM_PLAYGROUND
 #  include "orm/db.hpp"
 #endif
-#include "orm/tiny/model.hpp"
 #include "orm/tiny/relations/pivot.hpp"
 //#include "orm/tiny/softdeletes.hpp"
 
@@ -98,17 +97,19 @@ public:
         // Ownership of a unique_ptr()
 //        auto relation = belongsToMany<Tag>();
 //        relation->as("tagged")
-//                .withPivot("active")
-//                .withTimestamps();
+//                 .withPivot("active")
+//                 .withTimestamps();
 
-        // Ownership of a unique_ptr()
         // Custom 'Tagged' pivot model ✨
+        // Ownership of a unique_ptr()
         auto relation = belongsToMany<Tag, Tagged>();
         relation->as("tagged")
-                .withPivot("active")
-                .withTimestamps(/*"created_at_custom", "updated_at_custom"*/);
+                 .withPivot("active")
+                 .withTimestamps(/*"created_at_custom", "updated_at_custom"*/);
 
         return relation;
+
+        // Basic pivot model
 //        return belongsToMany<Tag>("tag_torrent", "torrent_id", "tag_id", ID, ID,
 //                                  "tags");
     }
