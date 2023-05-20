@@ -4,7 +4,7 @@
 
 #ifndef QT_NO_EXCEPTIONS
 
-#  include "orm/utils/type.hpp" // IWYU pragma: keep
+#  include <orm/utils/type.hpp> // IWYU pragma: keep
 
 #  define TINY_VERIFY_EXCEPTION_THROWN(expression, exceptiontype)                        \
     do {                                                                                 \
