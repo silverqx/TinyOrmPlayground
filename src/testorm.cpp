@@ -152,7 +152,7 @@ void TestOrm::testAllConnections()
     {
         // BUG QDateTime is not reentrant, this avoids crashes in threads during added calendar to the Registry silverqx
         [[maybe_unused]]
-        auto _ = QDateTime::fromString("st jan 6 14:51:23 2021"); // clazy:exclude=unused-non-trivial-variable
+        const auto _ = QDateTime::fromString("st jan 6 14:51:23 2021"); // clazy:exclude=unused-non-trivial-variable
 
         // To join threads at the current block
         std::vector<std::jthread> threads;
