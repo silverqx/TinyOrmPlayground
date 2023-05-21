@@ -157,19 +157,18 @@ void TestOrm::testAllConnections()
         // To join threads at the current block
         std::vector<std::jthread> threads;
 
-        for (const auto &connection : m_config.ConnectionsToTest) {
+        for (const auto &connection : m_config.ConnectionsToTest)
             // Run connection in the worker thread
             if (Configuration::ConnectionsInThreads &&
                 m_config.ConnectionsToRunInThread.contains(connection)
-            ) {
+            )
                 threads.emplace_back(&TestOrm::testConnectionInWorkerThread, this,
                                      connection);
-                continue;
-            }
 
             // Otherwise run in the main thread
-            testConnectionInMainThread(connection);
-        }
+            else
+                testConnectionInMainThread(connection);
+
     } // join threads
 
     // Restore default connection
