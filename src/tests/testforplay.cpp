@@ -1,7 +1,9 @@
 #include "tests/testforplay.hpp"
 
+//#include <QObject>
 #include <QDebug>
 #include <QElapsedTimer>
+//#include <QHostInfo>
 
 #include <filesystem>
 #include <iostream>
@@ -11,6 +13,7 @@
 #include <range/v3/all.hpp>
 
 #include <orm/db.hpp>
+//#include <orm/postgresconnection.hpp>
 #include <orm/schema.hpp>
 #include <orm/tiny/tinytypes.hpp>
 #include <orm/utils/helpers.hpp>
@@ -31,12 +34,15 @@ using namespace ranges; // NOLINT(google-build-using-namespace)
 
 //using namespace Orm::Support::TimerCategories; // NOLINT(google-build-using-namespace)
 
-using Orm::DB;                  // NOLINT(misc-unused-using-decls)
-using Orm::Query::Builder;      // NOLINT(misc-unused-using-decls)
-using Orm::Schema;              // NOLINT(misc-unused-using-decls)
-using Orm::SchemaNs::Blueprint; // NOLINT(misc-unused-using-decls)
-using Orm::Tiny::AttributeItem;
-using Orm::Utils::Helpers;      // NOLINT(misc-unused-using-decls)
+using Orm::DB;                            // NOLINT(misc-unused-using-decls)
+using Orm::Query::Builder;                // NOLINT(misc-unused-using-decls)
+using Orm::Schema;                        // NOLINT(misc-unused-using-decls)
+using Orm::SchemaNs::Blueprint;           // NOLINT(misc-unused-using-decls)
+//using Orm::Support::Timer;              // NOLINT(misc-unused-using-decls)
+using Orm::Tiny::AttributeItem;           // NOLINT(misc-unused-using-decls)
+using Orm::Tiny::Types::ModelsCollection; // NOLINT(misc-unused-using-decls)
+using Orm::Utils::Helpers;                // NOLINT(misc-unused-using-decls)
+using Orm::Utils::NullVariant;            // NOLINT(misc-unused-using-decls)
 
 using ContainerUtils = Orm::Utils::Container; // NOLINT(misc-unused-using-decls)
 using QueryUtils     = Orm::Utils::Query;     // NOLINT(misc-unused-using-decls)
@@ -48,7 +54,7 @@ namespace TinyPlay::Tests
 void TestForPlay::run() const
 {
     using namespace Orm::Constants; // NOLINT(google-build-using-namespace)
-    using namespace Models; // NOLINT(google-build-using-namespace)
+    using namespace Models;         // NOLINT(google-build-using-namespace)
 
     QElapsedTimer timer;
     timer.start();
