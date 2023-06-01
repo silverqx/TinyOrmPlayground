@@ -9,8 +9,10 @@
 namespace Models
 {
 
+using Orm::Constants::ID;
 using Orm::Constants::NAME;
 using Orm::Constants::NOTE;
+using Orm::Constants::SIZE_;
 
 using Orm::Tiny::Model;
 using Orm::Tiny::Relations::HasMany;
@@ -44,8 +46,10 @@ private:
 
     /*! The attributes that are mass assignable. */
     inline static const QStringList u_fillable { // NOLINT(cppcoreguidelines-interfaces-global-init)
+        ID,
         NAME,
         NOTE,
+        SIZE_, // Database table doesn't contain the size column but I need it in tests
     };
 };
 
