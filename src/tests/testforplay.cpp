@@ -183,15 +183,15 @@ void TestForPlay::run() const
             << "\n    std::format   "
             << "\n==================\n\n";
 
-        int num = 100;
+        const int num = 100;
         std::string s = "hello";
 
         printf("before: %i\n", num);
 //        printf("before: %f\n", num);
         printf("before: %s\n", s.c_str());
 
-        std::string m1 = std::format("The answer is {}.", 42);
-        std::string m2 = std::format("The answer is {}.", s);
+        const std::string m1 = std::format("The answer is {}.", 42);
+        const std::string m2 = std::format("The answer is {}.", s);
 
         qDebug() << QString::fromStdString(m1);
         qDebug() << QString::fromStdString(m2);
