@@ -20,6 +20,7 @@
 #include <orm/utils/query.hpp>
 #include <orm/version.hpp>
 
+#include "models/album.hpp" // IWYU pragma: keep
 #include "models/datetime.hpp" // IWYU pragma: keep
 #include "models/torrent.hpp" // IWYU pragma: keep
 #include "models/torrenteager.hpp" // IWYU pragma: keep
@@ -47,6 +48,8 @@ using Orm::Utils::NullVariant;            // NOLINT(misc-unused-using-decls)
 using ContainerUtils = Orm::Utils::Container; // NOLINT(misc-unused-using-decls)
 using QueryUtils     = Orm::Utils::Query;     // NOLINT(misc-unused-using-decls)
 using StringUtils    = Orm::Utils::String;    // NOLINT(misc-unused-using-decls)
+
+using AttributeUtils = Orm::Tiny::Utils::Attribute; // NOLINT(misc-unused-using-decls)
 
 namespace TinyPlay::Tests
 {
