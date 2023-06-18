@@ -18,6 +18,7 @@ using Orm::Constants::NOTE;
 using Orm::Tiny::CastItem;
 using Orm::Tiny::CastType;
 using Orm::Tiny::Model;
+using Orm::Tiny::Relations::BelongsToMany;
 using Orm::Tiny::Relations::HasOne;
 using Orm::Tiny::Relations::HasMany;
 using Orm::Tiny::Relations::Pivot;
@@ -25,6 +26,7 @@ using Orm::Tiny::SoftDeletes;
 
 class Phone;
 class Role;
+class Torrent;
 
 // NOLINTNEXTLINE(misc-no-recursion, bugprone-exception-escape)
 class User final : public Model<User, Phone, Role, Torrent, Pivot>,

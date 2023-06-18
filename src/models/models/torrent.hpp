@@ -12,6 +12,7 @@
 #include "models/tagged.hpp"
 #include "models/torrentpeer.hpp"
 #include "models/torrentpreviewablefile.hpp"
+#include "models/torrentstate.hpp"
 #include "models/user.hpp"
 
 #ifdef PROJECT_TINYORM_PLAYGROUND
@@ -22,6 +23,7 @@ namespace Models
 {
 
 //using Orm::AttributeItem;
+using Orm::Constants::HASH_;
 using Orm::Constants::ID;
 using Orm::Constants::NAME;
 using Orm::Constants::NOTE;
@@ -46,12 +48,15 @@ using TinyPlay::Configuration;
 class Tag;
 class TorrentPeer;
 class TorrentPreviewableFile;
+class TorrentState;
 class User;
 
 // NOLINTNEXTLINE(misc-no-recursion, bugprone-exception-escape)
 class Torrent final :
-        public Model<Torrent, TorrentPreviewableFile, TorrentPeer, Tag, User, Pivot>
-//        public Model<Torrent, TorrentPreviewableFile, TorrentPeer, Tag, User, Tagged>
+        public Model<Torrent, TorrentPreviewableFile, TorrentPeer, Tag, User,
+                     TorrentState, Pivot>
+//        public Model<Torrent, TorrentPreviewableFile, TorrentPeer, Tag, User,
+//                     TorrentState, Tagged>
 //        public SoftDeletes<Torrent>
 {
     friend Model;
@@ -121,6 +126,18 @@ public:
         return belongsTo<User>();
     }
 
+    /*! Get torrent states that belong to the torrent. */
+    std::unique_ptr<BelongsToMany<Torrent, TorrentState>>
+    torrentStates()
+    {
+        // Ownership of a unique_ptr()
+        auto relation = belongsToMany<TorrentState>("state_torrent", {}, "state_id");
+
+        relation->withPivot("active");
+
+        return relation;
+    }
+
 private:
     /*! The name of the "created at" column. */
     inline static const QString &CREATED_AT() noexcept { return Orm::CREATED_AT; }
@@ -137,10 +154,11 @@ private:
 
     /*! Map of relation names to methods. */
     QHash<QString, RelationVisitor> u_relations {
-        {"torrentFiles", [](auto &v) { v(&Torrent::torrentFiles); }},
-        {"torrentPeer",  [](auto &v) { v(&Torrent::torrentPeer); }},
-        {"tags",         [](auto &v) { v(&Torrent::tags); }},
-        {"user",         [](auto &v) { v(&Torrent::user); }},
+        {"torrentFiles",  [](auto &v) { v(&Torrent::torrentFiles); }},
+        {"torrentPeer",   [](auto &v) { v(&Torrent::torrentPeer); }},
+        {"tags",          [](auto &v) { v(&Torrent::tags); }},
+        {"user",          [](auto &v) { v(&Torrent::user); }},
+        {"torrentStates", [](auto &v) { v(&Torrent::torrentStates); }},
     };
 
     /*! The relations to eager load on every query. */
@@ -177,7 +195,7 @@ private:
         SIZE_,
         "progress",
         "added_on",
-        "hash",
+        HASH_,
         NOTE,
         UPDATED_AT(),
     };
@@ -208,6 +226,9 @@ private:
 //        {"decimal",  CastType::Decimal},
 //        {"decimal",  {CastType::Decimal, 2}},
 //    };
+
+    /*! Indicates whether attributes are snake cased during serialization. */
+//    inline static const bool u_snakeAttributes = false;
 };
 
 } // namespace Models
