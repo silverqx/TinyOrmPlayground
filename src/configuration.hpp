@@ -67,10 +67,10 @@ namespace TinyPlay
 
         /*! Path to the SQLite database file, for testing the 'check_database_exists'
             configuration option. */
-        const QString CheckDatabaseExistsFile {initCheckDatabaseExistsFile()};
+        /*const*/ QString CheckDatabaseExistsFile {initCheckDatabaseExistsFile()};
 
         /*! All connections configurations. */
-        const OrmConfigurationsType Configurations {initDBConfigurations()};
+        /*const*/ OrmConfigurationsType Configurations {initDBConfigurations()};
 
         /*! Tests to invoke. */
         inline static std::unordered_set TestsToInvoke {
@@ -99,7 +99,7 @@ namespace TinyPlay
 
         /*! Connections, for which the testQueryBuilder() and testTinyOrm()
             will be ran on. */
-        const QStringList ConnectionsToTest {
+        /*const*/ QStringList ConnectionsToTest {
             Mysql,
             Sqlite,
             Postgres,
@@ -119,28 +119,28 @@ namespace TinyPlay
         ConnectionsToCount {};
 
         /*! All countable connections. */
-        const QStringList CountableConnections {
+        /*const*/ QStringList CountableConnections {
             Mysql, Mysql_Alt, Mysql_MainThread,
             Sqlite, Sqlite_Memory,
             Postgres
         };
         /*! Connections that can run in a thread, so they are removable in the context
             of Configuration::ConnectionsToCount/m_config.CountableConnections. */
-        const QStringList RemovableConnections {Mysql, Sqlite, Postgres};
+        /*const*/ QStringList RemovableConnections {Mysql, Sqlite, Postgres};
 
         /*! Map of connection name to more related connections. */
-        const std::unordered_map<QString, QStringList> ConnectionsMap {
+        /*const*/ std::unordered_map<QString, QStringList> ConnectionsMap {
             {Mysql, {Mysql, Mysql_Alt}},
         };
         /*! Map real connection name to mapped connection name. */
-        const std::unordered_map<QString, QString> ConnectionsMapReverse {
+        /*const*/ std::unordered_map<QString, QString> ConnectionsMapReverse {
             {Mysql,     Mysql},
             {Mysql_Alt, Mysql},
         };
 
         /*! MySQL connection name used in the main thread, based on whether
             multi-threading is enabled. */
-        const QString MysqlMainThreadConnection {initMySqlMainThreadConnection()};
+        /*const*/ QString MysqlMainThreadConnection {initMySqlMainThreadConnection()};
 
     private:
         /*! Get DB connection configurations hash with all connections. */
