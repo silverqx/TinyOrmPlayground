@@ -22,7 +22,7 @@ namespace Tests
         explicit Test(const Configuration &config,
                       QueryCountersService &queryCountersService);
         /*! Pure virtual destructor. */
-        inline virtual ~Test() = 0;
+        inline ~Test() override = 0;
 
         /*! Execute PlayTest. */
         virtual void run() const = 0;
