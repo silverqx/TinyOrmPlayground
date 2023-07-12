@@ -9,7 +9,6 @@
 #include <orm/utils/thread.hpp>
 
 #include "support/globals.hpp"
-#include "support/utils.hpp"
 #include "tests/testallothertests.hpp"
 #include "tests/testconnection.hpp"
 #include "tests/testforplay.hpp"
@@ -21,9 +20,9 @@
 using Orm::DB;
 using Orm::Exceptions::InvalidArgumentError;
 using Orm::Exceptions::LogicError;
-using Orm::Utils::Thread;
+using Orm::Utils::Helpers;
 
-using TinyPlay::Support::Utils;
+using ThreadUtils = Orm::Utils::Thread;
 
 /*
    Notes:
@@ -195,7 +194,7 @@ void TestOrm::testConnectionInMainThread(const QString &connection)
 void TestOrm::testConnectionInWorkerThread(const QString &connection)
 {
     try {
-        Thread::nameThreadForDebugging(connection);
+        ThreadUtils::nameThreadForDebugging(connection);
 
         throwIfNoConfig(connection);
 
@@ -230,7 +229,7 @@ void TestOrm::testConnectionInWorkerThread(const QString &connection)
         // Secure that an exception will be logged to the console
         Support::g_inThread = false;
 
-        Utils::logException(e);
+        Helpers::logException(e);
     }
 }
 

@@ -1,6 +1,5 @@
 #include <QCoreApplication>
 #include <QDebug>
-#include <QElapsedTimer>
 
 #ifdef _WIN32
 #include <qt_windows.h>
@@ -11,16 +10,17 @@
 
 #include <iostream>
 
+#include <orm/utils/helpers.hpp>
 #include <orm/utils/thread.hpp>
 
 #include "support/messagehandler.hpp"
-#include "support/utils.hpp"
 #include "testorm.hpp"
 
-using Orm::Utils::Thread;
+using Orm::Utils::Helpers;
+
+using ThreadUtils = Orm::Utils::Thread;
 
 using TinyPlay::TestOrm;
-using TinyPlay::Support::Utils;
 
 int main(int /*unused*/, char */*unused*/[])
 {
@@ -35,7 +35,7 @@ int main(int /*unused*/, char */*unused*/[])
     _setmode(_fileno(stdin), _O_WTEXT);
 #endif
 
-    Thread::nameThreadForDebugging("main");
+    ThreadUtils::nameThreadForDebugging("main");
 
     qInstallMessageHandler(&TinyPlay::Support::tinyMessageHandler);
 
@@ -44,8 +44,6 @@ int main(int /*unused*/, char */*unused*/[])
     QCoreApplication::setApplicationName("TinyOrmPlayground");
 
     qInfo() << "";
-
-    auto exitCode = EXIT_SUCCESS;
 
     QElapsedTimer timer;
     timer.start();
@@ -56,9 +54,9 @@ int main(int /*unused*/, char */*unused*/[])
 
     } catch (const std::exception &e) {
 
-        Utils::logException(e);
+        Helpers::logException(e);
 
-        exitCode = EXIT_FAILURE;
+        return EXIT_FAILURE;
     }
 
     qInfo().nospace() << "⚡ Total TestOrm instance execution time : "
@@ -67,5 +65,5 @@ int main(int /*unused*/, char */*unused*/[])
 
     qInfo() << "";
 
-    return exitCode;
+    return EXIT_SUCCESS;
 }

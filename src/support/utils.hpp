@@ -18,9 +18,6 @@ namespace TinyPlay::Support
         /*! Deleted destructor. */
         ~Utils() = delete;
 
-        /*! Log exception caught in the main exception handler in a current thread. */
-        static void logException(const std::exception &e);
-
         /*! Throw when a connection parameter was passed in the main thread. */
         static void throwIfNonEmptyConn(const QString &connection);
         /*! Throw when a connection parameter was not passed in a worker thread. */

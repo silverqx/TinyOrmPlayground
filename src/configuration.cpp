@@ -6,6 +6,7 @@
 #include <orm/constants.hpp>
 #include <orm/exceptions/invalidargumenterror.hpp>
 #include <orm/exceptions/runtimeerror.hpp>
+#include <orm/ormtypes.hpp>
 #include <orm/utils/configuration.hpp>
 #include <orm/utils/helpers.hpp>
 #include <orm/utils/type.hpp>
