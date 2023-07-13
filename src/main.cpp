@@ -54,6 +54,8 @@ int main(int /*unused*/, char */*unused*/[])
 
     } catch (const std::exception &e) {
 
+        timer.invalidate();
+
         Helpers::logException(e);
 
         return EXIT_FAILURE;
