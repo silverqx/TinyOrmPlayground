@@ -12,7 +12,7 @@
 namespace Models
 {
 
-using Orm::Tiny::Relations::HasMany;
+using Orm::Tiny::Model;
 
 class FilePropertyProperty;
 class TorrentPreviewableFile;

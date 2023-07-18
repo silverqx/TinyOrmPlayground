@@ -16,15 +16,11 @@ using Orm::Constants::NOTE;
 using Orm::Constants::Progress;
 using Orm::Constants::SIZE_;
 
-using Orm::Tiny::AttributeItem;
 using Orm::Tiny::Model;
-using Orm::Tiny::Relations::HasOne;
-using Orm::Tiny::Relations::HasMany;
 
 // NOLINTNEXTLINE(bugprone-exception-escape)
-class TorrentEager final :
-        public Model<TorrentEager, TorrentPreviewableFileEager,
-                     TorrentPeerEager_NoRelations>
+class TorrentEager final : public Model<TorrentEager, TorrentPreviewableFileEager,
+                                        TorrentPeerEager_NoRelations>
 {
     friend Model;
     using Model::Model;

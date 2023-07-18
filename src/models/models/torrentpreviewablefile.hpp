@@ -17,9 +17,7 @@ using Orm::Constants::Progress;
 using Orm::Constants::SIZE_;
 using Orm::Constants::SPACE_IN;
 
-using Orm::Tiny::Casts::Attribute;
-using Orm::Tiny::Relations::BelongsTo;
-using Orm::Tiny::Relations::HasOne;
+using Orm::Tiny::Model;
 
 class Torrent;
 class TorrentPreviewableFileProperty;

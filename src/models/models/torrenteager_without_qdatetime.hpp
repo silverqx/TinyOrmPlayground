@@ -13,12 +13,10 @@ using Orm::Constants::NOTE;
 using Orm::Constants::Progress;
 using Orm::Constants::SIZE_;
 
-using Orm::Tiny::AttributeItem;
 using Orm::Tiny::Model;
 
 // NOLINTNEXTLINE(bugprone-exception-escape)
-class TorrentEager_Without_QDateTime final :
-        public Model<TorrentEager_Without_QDateTime>
+class TorrentEager_Without_QDateTime final : public Model<TorrentEager_Without_QDateTime>
 {
     friend Model;
     using Model::Model;

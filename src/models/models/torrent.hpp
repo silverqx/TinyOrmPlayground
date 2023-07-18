@@ -32,17 +32,9 @@ using Orm::Constants::Progress;
 using Orm::Constants::SIZE_;
 using Orm::Constants::SPACE_IN;
 
-//using Orm::Tiny::CastItem;
-//using Orm::Tiny::CastType;
-using Orm::Tiny::Casts::Attribute;
 using Orm::Tiny::Model;
-using Orm::Tiny::Relations::BelongsTo;
-using Orm::Tiny::Relations::BelongsToMany;
-using Orm::Tiny::Relations::HasOne;
-using Orm::Tiny::Relations::HasMany;
 using Orm::Tiny::Relations::Pivot;
 //using Orm::Tiny::SoftDeletes;
-using Orm::Tiny::Types::ModelAttributes;
 
 #ifdef PROJECT_TINYORM_PLAYGROUND
 using TinyPlay::Configuration;
@@ -261,11 +253,11 @@ private:
 
     /*! The attributes that should be cast. */
 //    inline static std::unordered_map<QString, CastItem> u_casts {
-//        {NAME,       CastType::QString},
-//        {Progress, CastType::UShort},
+//        {NAME,      CastType::QString},
+//        {Progress,  CastType::UShort},
 //        // Showcase only, the Torrent model doesn't have the decimal column
-//        {"decimal",  CastType::Decimal},
-//        {"decimal",  {CastType::Decimal, 2}},
+//        {"decimal", CastType::Decimal},
+//        {"decimal", {CastType::Decimal, 2}},
 //    };
 
     /* Serialization */
@@ -289,7 +281,7 @@ private:
         {"name_size",     &Torrent::nameSize},
     };
 
-    /*! The accessor appends for serialized models. */
+    /*! The attributes that should be appended during serialization. */
 //    std::set<QString> u_appends {
 //        "name_progress",
 //    };
