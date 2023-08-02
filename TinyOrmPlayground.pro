@@ -120,8 +120,3 @@ exists(conf.pri): \
 else: \
     error( "'conf.pri' for '$${TARGET}' project does not exist. See an example\
             configuration in 'conf.pri.example' in the project's root." )
-
-# Link against TinyORM library
-# ---
-
-LIBS *= -lTinyOrm
