@@ -88,9 +88,13 @@ CONFIG(release, debug|release) {
 # Some info output
 # ---
 
-CONFIG(debug, debug|release):!build_pass: message( "Project is built in DEBUG mode." )
-CONFIG(release, debug|release):!build_pass: \
-    message( "Project is built in RELEASE mode (disabled debug output and assert)." )
+!build_pass {
+    CONFIG(debug, debug|release): \
+        message( "Project is built in DEBUG mode." )
+
+    CONFIG(release, debug|release): \
+        message( "Project is built in RELEASE mode (disabled debug output and asserts)." )
+}
 
 # Common Logic
 # ---
