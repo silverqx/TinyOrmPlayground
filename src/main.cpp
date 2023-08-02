@@ -2,10 +2,10 @@
 #include <QDebug>
 
 #ifdef _WIN32
-#include <qt_windows.h>
+#  include <qt_windows.h>
 
-#include <fcntl.h>
-#include <io.h>
+#  include <fcntl.h>
+#  include <io.h>
 #endif
 
 #include <iostream>
