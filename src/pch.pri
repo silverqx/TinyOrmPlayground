@@ -5,4 +5,4 @@ PRECOMPILED_HEADER = $$quote($$PWD/pch.h)
 HEADERS += $$PRECOMPILED_HEADER
 
 precompile_header: \
-    DEFINES *= USING_PCH
+    DEFINES *= TINYPLAY_USING_PCH

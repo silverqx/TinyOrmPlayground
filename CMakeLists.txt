@@ -136,7 +136,7 @@ target_precompile_headers(${TinyOrmPlayground_target}
 )
 
 if(NOT CMAKE_DISABLE_PRECOMPILE_HEADERS)
-    target_compile_definitions(${TinyOrmPlayground_target} PRIVATE USING_PCH)
+    target_compile_definitions(${TinyOrmPlayground_target} PRIVATE TINYPLAY_USING_PCH)
 endif()
 
 # TinyOrmPlayground specific configuration
