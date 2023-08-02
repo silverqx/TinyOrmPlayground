@@ -19,7 +19,7 @@ tinyMinReqClangCl = 14.0.3
 # Make minimum toolchain version a requirement
 load(tiny_toolchain_requirement)
 
-# Configuration
+# TinyOrmPlayground specific configuration
 # ---
 
 CONFIG *= cmdline
