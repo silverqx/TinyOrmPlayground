@@ -72,6 +72,8 @@ mingw: tinyRcIncludepath += $$quote($$PWD/resources/)
 load(tiny_resource_and_manifest)
 tiny_resource_and_manifest($$tinyRcIncludepath)
 
+unset(tinyRcIncludepath)
+
 # Use Precompiled headers (PCH)
 # ---
 
