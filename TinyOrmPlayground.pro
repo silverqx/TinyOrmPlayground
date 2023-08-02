@@ -23,6 +23,7 @@ load(tiny_toolchain_requirement)
 # ---
 
 CONFIG *= cmdline
+#CONFIG -= silent
 
 # TinyOrmPlayground defines
 # ---
@@ -122,8 +123,3 @@ else: \
 # ---
 
 LIBS *= -lTinyOrm
-
-# Others
-# ---
-
-#CONFIG -= silent
