@@ -30,9 +30,9 @@ qrc_*.cpp
 Thumbs.db
 *.res
 *.rc
-!/resources/*.rc
 /.qmake.cache
 /.qmake.stash
+*.tmp
 
 # qtcreator generated files
 *.pro.user*
@@ -44,6 +44,8 @@ Thumbs.db
 .*.swp
 
 # Visual Studio generated files
+/.vs/
+/out/
 *.ib_pdb_index
 *.idb
 *.ilk
@@ -57,6 +59,7 @@ Thumbs.db
 *.opensdf
 *.vcxproj
 *vcxproj.*
+/CMakeSettings.json
 
 # MinGW generated files
 *.Debug
@@ -65,13 +68,28 @@ Thumbs.db
 # Python byte code
 *.pyc
 
+# Jetbrains generated files
+.idea/
+
+# Visual Studio Code
+.vscode/
+
 # Binaries
 *.dll
 *.exe
 
-# others
-conf.pri
-/CMakeUserPresets.json
-/vcpkg_installed/
+# CMake
 /CMakeLists.txt.user
+/CMakeUserPresets.json
+
+# others
+~$*.xlsx
+conf.pri
+/TODOS.*.txt
+/compile_commands.json
+/.env
+/.env.*
+!/.env.example
+!/.env.*.example
 /tools/Invoke-TinyOrmPlayground-*.log
+/vcpkg_installed/
