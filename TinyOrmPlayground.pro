@@ -1,4 +1,3 @@
-QT *= core sql
 QT -= gui
 
 TEMPLATE = app
@@ -18,6 +17,11 @@ tinyMinRecQt      = 5.15.2
 
 # Make minimum toolchain version a requirement
 load(tiny_toolchain_requirement)
+
+# Link against TinyORM library for Tom application (also adds defines and include headers)
+# ---
+
+include($$TINY_MAIN_DIR/TinyORM/qmake/TinyOrm.pri)
 
 # TinyOrmPlayground specific configuration
 # ---
@@ -91,25 +95,8 @@ CONFIG(release, debug|release) {
 # Some info output
 # ---
 
-!build_pass {
-    CONFIG(debug, debug|release): \
-        message( "Project is built in DEBUG mode." )
-
-    CONFIG(release, debug|release): \
-        message( "Project is built in RELEASE mode (disabled debug output and asserts)." )
-}
-
-# Common Logic
-# ---
-
-include(qmake/common.pri)
-
-# Configure TinyORM library
-# ---
-
-# Provides:
-# - TINY_BUILD_SUBFOLDER - folder by release type (/debug, /release, or empty)
-include($$PWD/../../TinyOrm/TinyORM/qmake/TinyOrm.pri)
+load(tiny_info_messages)
+tiny_log_info_messages()
 
 # User Configuration
 # ---
@@ -117,6 +104,6 @@ include($$PWD/../../TinyOrm/TinyORM/qmake/TinyOrm.pri)
 exists(conf.pri): \
     include(conf.pri)
 
-else: \
+else:disable_autoconf: \
     error( "'conf.pri' for '$${TARGET}' project does not exist.\
             See an example configuration in 'conf.pri.example'." )

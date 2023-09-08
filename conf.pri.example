@@ -11,63 +11,94 @@
 # Gentoo - emerge dev-cpp/nlohmann_json
 # Ubuntu - apt install nlohmann-json3-dev
 
-TINY_MAIN_DIR = $$quote($$PWD/../../TinyOrm)
-TINY_TINYORM_BUILDS_DIR = $$quote($$TINY_MAIN_DIR/TinyOrm-builds-qmake)
+# ccache
+# Arch   - pacman -S ccache
+# Gentoo - emerge dev-util/ccache
+# Ubuntu - apt install ccache
 
-# TinyORM header files
-INCLUDEPATH += $$quote($$TINY_MAIN_DIR/TinyORM/include/)
+disable_autoconf {
+#    load(tiny_system_includepath)
+    load(tiny_find_packages)
+
+    TINYORM_BUILDS_DIR = $$quote($$TINY_MAIN_DIR/TinyORM-builds-qmake)
+}
 
 # MinGW
 win32-g++|win32-clang-g++ {
     # Enable ccache wrapper
-    CONFIG *= tiny_ccache
-
-    # Includes
-    # nlohmann-json, range-v3 and tabulate
-    INCLUDEPATH += $$quote(C:/msys64/home/xyz/vcpkg/installed/x64-mingw-dynamic/include/)
-    QMAKE_CXXFLAGS += -isystem $$shell_quote(C:/msys64/home/xyz/vcpkg/installed/x64-mingw-dynamic/include/)
-
-    # Libraries
-    # TinyORM library path
-    # Support gcc and clang
-    # build-TinyOrm-Desktop_Qt_5_15_2_MSYS2_UCRT64_clang_64bit-Debug
-    clang: LIBS += $$quote(-L$$TINY_TINYORM_BUILDS_DIR/build-TinyOrm-Desktop_Qt_$${TINY_QT_VERSION_UNDERSCORED}_MSYS2_UCRT64_clang_64bit-$${TINY_RELEASE_TYPE_CAMEL}/src$${TINY_BUILD_SUBFOLDER}/)
-    else:gcc: LIBS += $$quote(-L$$TINY_TINYORM_BUILDS_DIR/build-TinyOrm-Desktop_Qt_$${TINY_QT_VERSION_UNDERSCORED}_MSYS2_UCRT64_64bit-$${TINY_RELEASE_TYPE_CAMEL}/src$${TINY_BUILD_SUBFOLDER}/)
+#    CONFIG *= tiny_ccache_win32
 
     # Use faster linker
+    # CONFIG *= use_lld_linker does not work on MinGW
     QMAKE_LFLAGS *= -fuse-ld=lld
+
+    # Nothing to do, auto-configuration is enabled
+    !disable_autoconf: return()
+
+    # Includes
+    # vcpkg - nlohmann-json and range-v3
+#    tiny_find_vcpkg()
+#    tiny_find_vcpkg($$quote(C:/msys64/home/xyz/Code/vcpkg/), x64-mingw-dynamic)
+#    tiny_add_system_includepath(\
+#        $$quote(C:/msys64/home/xyz/Code/vcpkg/installed/x64-mingw-dynamic/include/))
+
+    # Libraries
+    # TinyORM library
+    # Support GCC and Clang
+    # build-TinyORM-Desktop_Qt_6_5_2_MSYS2_UCRT64_64bit-Debug
+    # build-TinyORM-Desktop_Qt_6_5_2_MSYS2_UCRT64_clang_64bit-Debug
+    clang: LIBS += $$quote(-L$$TINYORM_BUILDS_DIR/build-TinyORM-Desktop_Qt_$${TINY_QT_VERSION_UNDERSCORED}_MSYS2_UCRT64_clang_64bit-$${TINY_RELEASE_TYPE_CAMEL}/src$${TINY_BUILD_SUBFOLDER}/)
+    else:gcc: LIBS += $$quote(-L$$TINYORM_BUILDS_DIR/build-TinyORM-Desktop_Qt_$${TINY_QT_VERSION_UNDERSCORED}_MSYS2_UCRT64_64bit-$${TINY_RELEASE_TYPE_CAMEL}/src$${TINY_BUILD_SUBFOLDER}/)
+    LIBS += -lTinyOrm
 }
+
+# Windows (excluding MinGW)
 else:win32-msvc|win32-clang-msvc {
     # Enable ccache wrapper
-    CONFIG *= tiny_ccache
+#    CONFIG *= tiny_ccache_win32
+
+    # Nothing to do, auto-configuration is enabled
+    !disable_autoconf: return()
 
     # Includes
-    # nlohmann-json, range-v3 and tabulate
-    INCLUDEPATH += $$quote(E:/xyz/vcpkg/installed/x64-windows/include/)
+    # vcpkg - nlohmann-json and range-v3
+#    tiny_find_vcpkg()
+#    tiny_find_vcpkg($$quote(E:/xyz/vcpkg/), x64-windows)
+#    tiny_add_system_includepath($$quote(E:/xyz/vcpkg/installed/x64-windows/include/))
 
     # Libraries
-    # TinyORM library path
-    LIBS += $$quote(-L$$TINY_TINYORM_BUILDS_DIR/build-TinyOrm-Desktop_Qt_$${TINY_QT_VERSION_UNDERSCORED}_$${TINY_MSVC_VERSION}_64bit-$${TINY_RELEASE_TYPE_CAMEL}/src$${TINY_BUILD_SUBFOLDER}/)
-
-    win32-clang-msvc: \
-        QMAKE_CXXFLAGS += \
-            -imsvc $$shell_quote(E:/xyz/vcpkg/installed/x64-windows/include/)
+    # TinyORM library
+    # build-TinyORM-Desktop_Qt_6_5_2_MSVC2022_64bit-Debug
+    LIBS += $$quote(-L$$TINYORM_BUILDS_DIR/build-TinyORM-Desktop_Qt_$${TINY_QT_VERSION_UNDERSCORED}_$${TINY_MSVC_VERSION}_64bit-$${TINY_RELEASE_TYPE_CAMEL}/src$${TINY_BUILD_SUBFOLDER}/)
+    LIBS += -lTinyOrm
 }
+
+# Unix
 else:unix {
-    # Includes
-    # nlohmann-json, range-v3 and tabulate
-    QMAKE_CXXFLAGS += -isystem $$quote(/home/xyz/vcpkg/installed/x64-linux/include/)
-
-    # Libraries
-    # TinyORM library path
-    # Link ccache build against a ccache build
-    contains(OUT_PWD, .*ccache.*): TINY_CCACHE_BUILD = _ccache
-    else: TINY_CCACHE_BUILD =
-    # Support gcc and clang
-    clang: LIBS += $$quote(-L$$TINY_TINYORM_BUILDS_DIR/build-TinyOrm-Desktop_Qt_$${TINY_QT_VERSION_UNDERSCORED}_clang$${QMAKE_CLANG_MAJOR_VERSION}_64bit$${TINY_CCACHE_BUILD}-$${TINY_RELEASE_TYPE_CAMEL}/src$${TINY_BUILD_SUBFOLDER}/)
-    else:gcc: LIBS += $$quote(-L$$TINY_TINYORM_BUILDS_DIR/build-TinyOrm-Desktop_Qt_$${TINY_QT_VERSION_UNDERSCORED}_GCC_64bit$${TINY_CCACHE_BUILD}-$${TINY_RELEASE_TYPE_CAMEL}/src$${TINY_BUILD_SUBFOLDER}/)
-
-    # Use faster linkers
+    # Use faster linker
     clang: CONFIG *= use_lld_linker
     else: CONFIG *= use_gold_linker
+
+    # Or use mold linker
+#    QMAKE_LFLAGS *= -fuse-ld=mold
+
+    # Nothing to do, auto-configuration is enabled
+    !disable_autoconf: return()
+
+    # Includes
+    # vcpkg - nlohmann-json and range-v3
+#    tiny_find_vcpkg()
+#    tiny_find_vcpkg($$quote(/home/xyz/Code/c/vcpkg/installed/x64-linux/include/), \
+#                    x64-linux)
+#    tiny_add_system_includepath(\
+#        $$quote(/home/xyz/Code/c/vcpkg/installed/x64-linux/include/))
+
+    # Libraries
+    # TinyORM library
+    # Support GCC and Clang
+    # build-TinyORM-Desktop_Qt_6_5_2_GCC_64bit_ccache-Debug
+    # build-TinyORM-Desktop_Qt_6_5_2_clang16_64bit_ccache-Debug
+    clang: LIBS += $$quote(-L$$TINYORM_BUILDS_DIR/build-TinyORM-Desktop_Qt_$${TINY_QT_VERSION_UNDERSCORED}_clang$${QMAKE_CLANG_MAJOR_VERSION}_64bit$${TINY_CCACHE_BUILD}-$${TINY_RELEASE_TYPE_CAMEL}/src$${TINY_BUILD_SUBFOLDER}/)
+    else:gcc: LIBS += $$quote(-L$$TINYORM_BUILDS_DIR/build-TinyORM-Desktop_Qt_$${TINY_QT_VERSION_UNDERSCORED}_GCC_64bit$${TINY_CCACHE_BUILD}-$${TINY_RELEASE_TYPE_CAMEL}/src$${TINY_BUILD_SUBFOLDER}/)
+    LIBS += -lTinyOrm
 }
