@@ -11,8 +11,6 @@
 #include <orm/utils/helpers.hpp>
 #include <orm/utils/type.hpp>
 
-#include "config.hpp"
-
 using Orm::Constants::EMPTY;
 using Orm::Constants::H127001;
 using Orm::Constants::InnoDB;
