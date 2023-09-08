@@ -252,7 +252,7 @@ void Configuration::commonMySqlOptions(QVariantHash &connectionOptions)
 
     ConfigUtils::insertMySqlSslOptions(newOptions);
 
-    options = std::move(newOptions);
+    options = newOptions;
 }
 
 void Configuration::throwIfMySqlOptionsNotHash(const QVariant &optionsVariant)
