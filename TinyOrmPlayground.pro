@@ -118,5 +118,5 @@ exists(conf.pri): \
     include(conf.pri)
 
 else: \
-    error( "'conf.pri' for '$${TARGET}' project does not exist. See an example\
-            configuration in 'conf.pri.example' in the project's root." )
+    error( "'conf.pri' for '$${TARGET}' project does not exist.\
+            See an example configuration in 'conf.pri.example'." )
