@@ -39,9 +39,23 @@ ${TINY_UNPARSED_ARGUMENTS}")
         BASE_DIRECTORY "${PROJECT_SOURCE_DIR}"
     )
 
+    # Modify the Tom_target variable for substitution (original exe and icon filename)
+    # This is special logic because Tom_target is used in 3 CMake projects
+    # Used only in the tom.rc.in, I'm not going to wrap it in the if()
+    set(Tom_target ${target})
+
     # Allow to pass a custom RC basename
     if(DEFINED TINY_RESOURCE_BASENAME)
         set(rcBasename ${TINY_RESOURCE_BASENAME})
+
+    # All tests use the same TinyTest.rc.in file
+    elseif(TINY_TEST)
+        set(rcBasename TinyTest)
+
+        # Used for icon basename
+        set(TinyTest_icon ${rcBasename})
+        # Test's RC file has a common substitution token for all tests
+        set(TinyTest_target ${target})
     else()
         set(rcBasename ${target})
     endif()
@@ -49,8 +63,12 @@ ${TINY_UNPARSED_ARGUMENTS}")
     # Allow to pass a custom manifest basename
     if(DEFINED TINY_MANIFEST_BASENAME)
         set(tiny_manifest_basename ${TINY_MANIFEST_BASENAME})
+        # For MinGW (used only in the tom.rc.in)
+        set(Tom_manifest ${TINY_MANIFEST_BASENAME})
     else()
         set(tiny_manifest_basename ${rcBasename})
+        # For MinGW (used only in the tom.rc.in)
+        set(Tom_manifest ${rcBasename})
     endif()
 
     # CMake doesn't have problem with UTF-8 encoded files
