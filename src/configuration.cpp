@@ -245,9 +245,16 @@ void Configuration::commonMySqlOptions(QVariantHash &connectionOptions)
     newOptions.reserve(6);
 
     // Minimize all timeouts, on localhost it's ok
+#if defined(__GNUG__) && !defined(__clang__)
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Wdangling-reference"
+#endif
     if (const auto &host = connectionOptions.find(host_).value();
         host == H127001 || host == LOCALHOST
     )
+#if defined(__GNUG__) && !defined(__clang__)
+#  pragma GCC diagnostic pop
+#endif
         ConfigUtils::minimizeMySqlTimeouts(newOptions);
 
     ConfigUtils::insertMySqlSslOptions(newOptions);
