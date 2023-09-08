@@ -91,5 +91,6 @@ conf.pri
 /.env.*
 !/.env.example
 !/.env.*.example
+/.qmake.conf
 /tools/Invoke-TinyOrmPlayground-*.log
 /vcpkg_installed/
