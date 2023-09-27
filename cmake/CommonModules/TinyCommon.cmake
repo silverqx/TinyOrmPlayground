@@ -137,7 +137,8 @@ ${TINY_UNPARSED_ARGUMENTS}")
             $<$<CONFIG:Debug,RelWithDebInfo>:
                 LINKER:--dynamicbase,--high-entropy-va,--nxcompat
                 LINKER:--default-image-base-high>
-            # Use faster linker ( GNU ld linker doesn't work with the Clang )
+            # Use faster linker ( GNU ld linker doesn't work with the Clang;
+            # for both GCC and Clang )
             -fuse-ld=lld
         )
     endif()
@@ -181,7 +182,8 @@ ${TINY_UNPARSED_ARGUMENTS}")
     endif()
 
     # Use faster lld linker on Clang (target the Clang except clang-cl with MSVC)
-    if(NOT MSVC AND CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    # Don't set for MINGW to avoid duplicate setting (look a few lines above)
+    if(NOT MINGW AND NOT MSVC AND CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
         target_link_options(${target} INTERFACE -fuse-ld=lld)
     endif()
 
