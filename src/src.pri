@@ -16,14 +16,15 @@ HEADERS += \
     $$PWD/support/utils.hpp \
     $$PWD/testorm.hpp \
     $$PWD/tests/test.hpp \
+    $$PWD/tests/testforplay.hpp \
+    $$PWD/version.hpp \
+    # Moved down to be able quicky comment them out
     $$PWD/tests/testallothertests.hpp \
     $$PWD/tests/testconnection.hpp \
-    $$PWD/tests/testforplay.hpp \
     $$PWD/tests/testquerybuilder.hpp \
     $$PWD/tests/testquerybuilderdbspecific.hpp \
     $$PWD/tests/testschemabuilder.hpp \
     $$PWD/tests/testtinyorm.hpp \
-    $$PWD/version.hpp \
 
 SOURCES += \
     $$PWD/concerns/logsquerycounters.cpp \
@@ -36,9 +37,10 @@ SOURCES += \
     $$PWD/support/utils.cpp \
     $$PWD/testorm.cpp \
     $$PWD/tests/test.cpp \
+    $$PWD/tests/testforplay.cpp \
+    # Moved down to be able quicky comment them out
     $$PWD/tests/testallothertests.cpp \
     $$PWD/tests/testconnection.cpp \
-    $$PWD/tests/testforplay.cpp \
     $$PWD/tests/testquerybuilder.cpp \
     $$PWD/tests/testquerybuilderdbspecific.cpp \
     $$PWD/tests/testschemabuilder.cpp \
