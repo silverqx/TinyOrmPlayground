@@ -204,9 +204,9 @@ ${TINY_UNPARSED_ARGUMENTS}")
 
     message(DEBUG "Version file content - ${versionFileContent}")
 
-    set(regexp ".+_MAJOR +([0-9]+);.+_MINOR +([0-9]+);.+_BUGFIX +([0-9]+);\
+    set(regex ".+_MAJOR +([0-9]+);.+_MINOR +([0-9]+);.+_BUGFIX +([0-9]+);\
 .+_BUILD +([0-9]+)")
-    string(REGEX MATCHALL "${regexp}" match "${versionFileContent}")
+    string(REGEX MATCHALL "${regex}" match "${versionFileContent}")
 
     if(NOT match)
         message(FATAL_ERROR
@@ -267,6 +267,8 @@ endmacro()
 # Throw a fatal error for unsupported environments
 function(tiny_check_unsupported_build)
 
+    # Related issue: https://github.com/llvm/llvm-project/issues/55938
+
     if(MINGW AND CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND NOT BUILD_SHARED_LIBS)
         message(FATAL_ERROR "MinGW clang static build is not supported, it has problems \
 with inline constants :/.")
@@ -279,21 +281,24 @@ with inline constants :/.")
 don't enable the INLINE_CONSTANTS cmake option :/.")
     endif()
 
+    if(TINY_VCPKG AND TINY_IS_MULTI_CONFIG)
+        message(FATAL_ERROR "The multi-configuration generators are not supported in vcpkg ports.")
+    endif()
+
 endfunction()
 
 # Print a VERBOSE message against which library is project linking
 function(tiny_print_linking_against target)
 
-    if(TINY_IS_MULTI_CONFIG)
+    # TINY_BUILD_TYPE_UPPER STREQUAL "" means that the CMAKE_BUILD_TYPE was not defined or is empty
+    if(TINY_IS_MULTI_CONFIG OR TINY_BUILD_TYPE_UPPER STREQUAL "")
         return()
     endif()
 
-    string(TOUPPER ${CMAKE_BUILD_TYPE} buildType)
-
     if(WIN32 AND BUILD_SHARED_LIBS)
-        get_target_property(libraryFilepath ${target} IMPORTED_IMPLIB_${buildType})
+        get_target_property(libraryFilepath ${target} IMPORTED_IMPLIB_${TINY_BUILD_TYPE_UPPER})
     else()
-        get_target_property(libraryFilepath ${target} IMPORTED_LOCATION_${buildType})
+        get_target_property(libraryFilepath ${target} IMPORTED_LOCATION_${TINY_BUILD_TYPE_UPPER})
     endif()
 
     message(VERBOSE "Linking against ${target} at ${libraryFilepath}")
@@ -339,6 +344,8 @@ endfunction()
 
 # Disable the precompilation of header files
 function(tiny_disable_precompile_headers)
+
+    message(VERBOSE "Disabled PCH because ccache or sccache is used as compiler launcher for MSVC")
 
     get_property(help_string CACHE CMAKE_DISABLE_PRECOMPILE_HEADERS
         PROPERTY HELPSTRING
@@ -408,21 +415,28 @@ endfunction()
 # Replace /Zi by /Z7 in the CMAKE_<C|CXX>_FLAGS_<CONFIG> option for the CMake <3.25
 function(tiny_fix_ccache_msvc_324)
 
+    # Nothing to do, multi-configuration generators are not supported
+    if(TINY_IS_MULTI_CONFIG OR TINY_BUILD_TYPE_LOWER STREQUAL "")
+        message(STATUS "The ccache compiler launcher is not supported for multi-configuration \
+generators or with undefined CMAKE_BUILD_TYPE on CMake <3.25")
+        return()
+    endif()
+
     # Replace /Zi by /Z7 by the build config type, for the CMake <=3.24
-    if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    if(TINY_BUILD_TYPE_LOWER STREQUAL "debug")
         tiny_replace_Zi_by_Z7_for(CMAKE_CXX_FLAGS_DEBUG
             "Flags used by the CXX compiler during DEBUG builds.")
         tiny_replace_Zi_by_Z7_for(CMAKE_C_FLAGS_DEBUG
             "Flags used by the C compiler during DEBUG builds.")
 
     # This should never happen, but I leave it here because it won't hurt anything
-    elseif(CMAKE_BUILD_TYPE STREQUAL "Release")
+    elseif(TINY_BUILD_TYPE_LOWER STREQUAL "release")
         tiny_replace_Zi_by_Z7_for(CMAKE_CXX_FLAGS_RELEASE
             "Flags used by the CXX compiler during RELEASE builds.")
         tiny_replace_Zi_by_Z7_for(CMAKE_C_FLAGS_RELEASE
             "Flags used by the C compiler during RELEASE builds.")
 
-    elseif(CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
+    elseif(TINY_BUILD_TYPE_LOWER STREQUAL "relwithdebinfo")
         tiny_replace_Zi_by_Z7_for(CMAKE_CXX_FLAGS_RELWITHDEBINFO
             "Flags used by the CXX compiler during RELWITHDEBINFO builds.")
         tiny_replace_Zi_by_Z7_for(CMAKE_C_FLAGS_RELWITHDEBINFO
@@ -444,8 +458,6 @@ function(tiny_fix_ccache_msvc)
     # anyway but I will replace the Zi to Z7 compiler option in both
     # CMAKE_<C|CXX>_FLAGS_<CONFIG> to be consistent 🤔
 
-    tiny_disable_precompile_headers()
-
     # Fix the MSVC debug information format by the CMake version
     set(isNewMsvcDebugInformationFormat FALSE)
     tiny_is_new_msvc_debug_information_format_325(isNewMsvcDebugInformationFormat)
@@ -456,6 +468,13 @@ function(tiny_fix_ccache_msvc)
     else()
         # Replace /Zi by /Z7 in the CMAKE_<C|CXX>_FLAGS_<CONFIG> for the CMake <3.25
         tiny_fix_ccache_msvc_324()
+    endif()
+
+    # Don't disable PCH if no fixes were applied
+    # The new MSVC debug information format flags method also supports multi-config generators
+    # The old replace /Zi by /Z7 method doesn't support multi-config generators
+    if(isNewMsvcDebugInformationFormat OR NOT TINY_IS_MULTI_CONFIG)
+        tiny_disable_precompile_headers()
     endif()
 
 endfunction()
@@ -485,15 +504,17 @@ function(tiny_fix_ccache)
 
     # MSYS2 g++ or clang++ work well with the precompiled headers but the msvc doesn't
 
-    # Fixes for the MSVC compiler
+    # Fixes for the MSVC compiler (including the clang-cl with MSVC)
     set(shouldFixCcacheMsvc FALSE)
     tiny_should_fix_ccache_msvc(shouldFixCcacheMsvc)
 
     if(shouldFixCcacheMsvc)
         tiny_fix_ccache_msvc()
+
+        # The early return() can be here, but I chose not to add it
     endif()
 
-    # Fixes for the Clang compiler
+    # Fixes for the Clang compiler on Linux and MSYS2 (excluding the clang-cl with MSVC)
     # Ignore PCH timestamps if the ccache is used (recommended in ccache docs)
     set(shouldFixCcacheClang FALSE)
     tiny_should_fix_ccache_clang(shouldFixCcacheClang)
