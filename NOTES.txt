@@ -102,3 +102,406 @@ Number of queries:
     - Affecting     : 329
     - Transaction   : 0
     - Total         : 1923
+
+
+Performance tests TinyDrivers era 21.03.2024:
+---------------------------------------------
+
+QtSql (silverqx-develop, all SQL drivers):
+--
+
+single-threaded:
+
+-----------------------
+  Application Summary
+-----------------------
+⚙ Compiler version             : MSVC 2022 (1939)
+⚙ Qt version                   : 6.7.0
+  Qt build type                : Debug
+  Qt full build type           : Qt 6.7.0 (x86_64-little_endian-llp64 shared (dynamic) debug build; by MSVC 2019)
+
+⚙ TinyORM version              : 0.36.5
+  TinyORM build type           : Debug
+  TinyORM full build type      : TinyORM 0.36.5 (x86_64-little_endian-llp64 shared debug build; by MSVC 2022 (1939))
+⚙ TinyOrmPlayground version    : 0.6.0
+  TinyOrmPlayground build type : Debug
+
+⚡ Functions Execution time : 4199ms
+
+♆ Threads mode             : single-thread
+∑ Counted connections      : 5 (mysql, mysql_alt, sqlite, sqlite_memory, postgres)
+⚡ Queries execution time   : 766ms
+✎ Records was modified     : yes
+⚖ Statements counters
+  Normal        : 1594
+  Affecting     : 328
+  Transaction   : 0
+  Total         : 1922
+---
+⚡ Total TestOrm instance execution time : 4327ms
+---
+
+multi-threaded:
+
+-----------------------
+  Application Summary
+-----------------------
+⚙ Compiler version             : MSVC 2022 (1939)
+⚙ Qt version                   : 6.7.0
+  Qt build type                : Debug
+  Qt full build type           : Qt 6.7.0 (x86_64-little_endian-llp64 shared (dynamic) debug build; by MSVC 2019)
+
+⚙ TinyORM version              : 0.36.5
+  TinyORM build type           : Debug
+  TinyORM full build type      : TinyORM 0.36.5 (x86_64-little_endian-llp64 shared debug build; by MSVC 2022 (1939))
+⚙ TinyOrmPlayground version    : 0.6.0
+  TinyOrmPlayground build type : Debug
+
+⚡ Functions Execution time : 14ms (main), 1028ms (postgres), 1150ms (mysql), 2053ms (sqlite)
+
+♆ Threads mode             : multi-thread
+∑ Counted connections      : 6 (mysql, mysql_alt, mysql_mainthread, sqlite, sqlite_memory, postgres)
+⚡ Queries execution time   : 1ms (main), 83ms (postgres), 257ms (mysql), 488ms (sqlite)
+✎ Records was modified     : yes (main), yes (postgres), yes (mysql), yes (sqlite)
+⚖ Statements counters
+  Normal        : 1592 [4 (main), 529 (postgres), 530 (mysql), 529 (sqlite)]
+  Affecting     : 328 [0 (main), 109 (postgres), 109 (mysql), 110 (sqlite)]
+  Transaction   : 0
+  Total         : 1920 [4 (main), 638 (postgres), 639 (mysql), 639 (sqlite)]
+---
+⚡ Total TestOrm instance execution time : 2156ms
+---
+
+
+QtSql (drivers-mysql branch, all SQL drivers):
+--
+
+single-threaded:
+
+-----------------------
+  Application Summary
+-----------------------
+⚙ Compiler version             : MSVC 2022 (1939)
+⚙ Qt version                   : 6.7.0
+  Qt build type                : Debug
+  Qt full build type           : Qt 6.7.0 (x86_64-little_endian-llp64 shared (dynamic) debug build; by MSVC 2019)
+
+⚙ TinyORM version              : 0.36.5
+  TinyORM build type           : Debug
+  TinyORM full build type      : TinyORM 0.36.5 (x86_64-little_endian-llp64 shared debug build; by MSVC 2022 (1939))
+⚙ TinyOrmPlayground version    : 0.6.0
+  TinyOrmPlayground build type : Debug
+
+⚡ Functions Execution time : 4096ms
+
+♆ Threads mode             : single-thread
+∑ Counted connections      : 5 (mysql, mysql_alt, sqlite, sqlite_memory, postgres)
+⚡ Queries execution time   : 713ms
+✎ Records was modified     : yes
+⚖ Statements counters
+  Normal        : 1594
+  Affecting     : 328
+  Transaction   : 0
+  Total         : 1922
+---
+⚡ Total TestOrm instance execution time : 4213ms
+---
+
+multi-threaded:
+
+-----------------------
+  Application Summary
+-----------------------
+⚙ Compiler version             : MSVC 2022 (1939)
+⚙ Qt version                   : 6.7.0
+  Qt build type                : Debug
+  Qt full build type           : Qt 6.7.0 (x86_64-little_endian-llp64 shared (dynamic) debug build; by MSVC 2019)
+
+⚙ TinyORM version              : 0.36.5
+  TinyORM build type           : Debug
+  TinyORM full build type      : TinyORM 0.36.5 (x86_64-little_endian-llp64 shared debug build; by MSVC 2022 (1939))
+⚙ TinyOrmPlayground version    : 0.6.0
+  TinyOrmPlayground build type : Debug
+
+⚡ Functions Execution time : 12ms (main), 1026ms (postgres), 1147ms (mysql), 2056ms (sqlite)
+
+♆ Threads mode             : multi-thread
+∑ Counted connections      : 6 (mysql, mysql_alt, mysql_mainthread, sqlite, sqlite_memory, postgres)
+⚡ Queries execution time   : 1ms (main), 78ms (postgres), 267ms (mysql), 494ms (sqlite)
+✎ Records was modified     : yes (main), yes (postgres), yes (mysql), yes (sqlite)
+⚖ Statements counters
+  Normal        : 1592 [4 (main), 529 (postgres), 530 (mysql), 529 (sqlite)]
+  Affecting     : 328 [0 (main), 109 (postgres), 109 (mysql), 110 (sqlite)]
+  Transaction   : 0
+  Total         : 1920 [4 (main), 638 (postgres), 639 (mysql), 639 (sqlite)]
+---
+⚡ Total TestOrm instance execution time : 2144ms
+---
+
+
+All below will be executed for MySQL driver only, to test our TinyDrivers implementation.
+This means that multi-threaded is pointless because it will run only one connection
+in one thread and that is MySQL, but I will test it anyway.
+
+
+QtSql (silverqx-develop, MySQL driver only):
+--
+
+single-threaded:
+
+-----------------------
+  Application Summary
+-----------------------
+⚙ Compiler version             : MSVC 2022 (1939)
+⚙ Qt version                   : 6.7.0
+  Qt build type                : Debug
+  Qt full build type           : Qt 6.7.0 (x86_64-little_endian-llp64 shared (dynamic) debug build; by MSVC 2019)
+
+⚙ TinyORM version              : 0.36.5
+  TinyORM build type           : Debug
+  TinyORM full build type      : TinyORM 0.36.5 (x86_64-little_endian-llp64 shared debug build; by MSVC 2022 (1939))
+⚙ TinyOrmPlayground version    : 0.6.0
+  TinyOrmPlayground build type : Debug
+
+⚡ Functions Execution time : 1046ms
+
+♆ Threads mode             : single-thread
+∑ Counted connections      : 3 (mysql, mysql_alt, sqlite_memory)
+⚡ Queries execution time   : 174ms
+✎ Records was modified     : yes
+⚖ Statements counters
+  Normal        : 532
+  Affecting     : 109
+  Transaction   : 0
+  Total         : 641
+---
+⚡ Total TestOrm instance execution time : 1137ms
+---
+
+multi-threaded:
+
+-----------------------
+  Application Summary
+-----------------------
+⚙ Compiler version             : MSVC 2022 (1939)
+⚙ Qt version                   : 6.7.0
+  Qt build type                : Debug
+  Qt full build type           : Qt 6.7.0 (x86_64-little_endian-llp64 shared (dynamic) debug build; by MSVC 2019)
+
+⚙ TinyORM version              : 0.36.5
+  TinyORM build type           : Debug
+  TinyORM full build type      : TinyORM 0.36.5 (x86_64-little_endian-llp64 shared debug build; by MSVC 2022 (1939))
+⚙ TinyOrmPlayground version    : 0.6.0
+  TinyOrmPlayground build type : Debug
+
+⚡ Functions Execution time : 2ms (main), 942ms (mysql)
+
+♆ Threads mode             : multi-thread
+∑ Counted connections      : 4 (mysql, mysql_alt, mysql_mainthread, sqlite_memory)
+⚡ Queries execution time   : 0ms (main), 184ms (mysql)
+✎ Records was modified     : no (main), yes (mysql)
+⚖ Statements counters
+  Normal        : 530 [0 (main), 530 (mysql)]
+  Affecting     : 109 [0 (main), 109 (mysql)]
+  Transaction   : 0
+  Total         : 639 [0 (main), 639 (mysql)]
+---
+⚡ Total TestOrm instance execution time : 1023ms
+---
+
+
+QtSql (drivers-mysql branch, MySQL driver only):
+--
+
+single-threaded:
+
+-----------------------
+  Application Summary
+-----------------------
+⚙ Compiler version             : MSVC 2022 (1939)
+⚙ Qt version                   : 6.7.0
+  Qt build type                : Debug
+  Qt full build type           : Qt 6.7.0 (x86_64-little_endian-llp64 shared (dynamic) debug build; by MSVC 2019)
+
+⚙ TinyORM version              : 0.36.5
+  TinyORM build type           : Debug
+  TinyORM full build type      : TinyORM 0.36.5 (x86_64-little_endian-llp64 shared debug build; by MSVC 2022 (1939))
+⚙ TinyOrmPlayground version    : 0.6.0
+  TinyOrmPlayground build type : Debug
+
+⚡ Functions Execution time : 1048ms
+
+♆ Threads mode             : single-thread
+∑ Counted connections      : 3 (mysql, mysql_alt, sqlite_memory)
+⚡ Queries execution time   : 177ms
+✎ Records was modified     : yes
+⚖ Statements counters
+  Normal        : 532
+  Affecting     : 109
+  Transaction   : 0
+  Total         : 641
+---
+⚡ Total TestOrm instance execution time : 1134ms
+---
+
+multi-threaded:
+
+-----------------------
+  Application Summary
+-----------------------
+⚙ Compiler version             : MSVC 2022 (1939)
+⚙ Qt version                   : 6.7.0
+  Qt build type                : Debug
+  Qt full build type           : Qt 6.7.0 (x86_64-little_endian-llp64 shared (dynamic) debug build; by MSVC 2019)
+
+⚙ TinyORM version              : 0.36.5
+  TinyORM build type           : Debug
+  TinyORM full build type      : TinyORM 0.36.5 (x86_64-little_endian-llp64 shared debug build; by MSVC 2022 (1939))
+⚙ TinyOrmPlayground version    : 0.6.0
+  TinyOrmPlayground build type : Debug
+
+⚡ Functions Execution time : 2ms (main), 945ms (mysql)
+
+♆ Threads mode             : multi-thread
+∑ Counted connections      : 4 (mysql, mysql_alt, mysql_mainthread, sqlite_memory)
+⚡ Queries execution time   : 0ms (main), 187ms (mysql)
+✎ Records was modified     : no (main), yes (mysql)
+⚖ Statements counters
+  Normal        : 530 [0 (main), 530 (mysql)]
+  Affecting     : 109 [0 (main), 109 (mysql)]
+  Transaction   : 0
+  Total         : 639 [0 (main), 639 (mysql)]
+---
+⚡ Total TestOrm instance execution time : 1027ms
+---
+
+
+TinyDrivers (build_shared_drivers):
+---
+
+single-threaded:
+
+-----------------------
+  Application Summary
+-----------------------
+⚙ Compiler version             : MSVC 2022 (1939)
+⚙ Qt version                   : 6.7.0
+  Qt build type                : Debug
+  Qt full build type           : Qt 6.7.0 (x86_64-little_endian-llp64 shared (dynamic) debug build; by MSVC 2019)
+
+⚙ TinyORM version              : 0.36.5
+  TinyORM build type           : Debug
+  TinyORM full build type      : TinyORM 0.36.5 (x86_64-little_endian-llp64 shared debug build; by MSVC 2022 (1939))
+⚙ TinyOrmPlayground version    : 0.6.0
+  TinyOrmPlayground build type : Debug
+
+⚡ Functions Execution time : 1171ms
+
+♆ Threads mode             : single-thread
+∑ Counted connections      : 3 (mysql, mysql_alt, sqlite_memory)
+⚡ Queries execution time   : 175ms
+✎ Records was modified     : yes
+⚖ Statements counters
+  Normal        : 532
+  Affecting     : 109
+  Transaction   : 0
+  Total         : 641
+---
+⚡ Total TestOrm instance execution time : 1252ms
+---
+
+multi-threaded:
+
+-----------------------
+  Application Summary
+-----------------------
+⚙ Compiler version             : MSVC 2022 (1939)
+⚙ Qt version                   : 6.7.0
+  Qt build type                : Debug
+  Qt full build type           : Qt 6.7.0 (x86_64-little_endian-llp64 shared (dynamic) debug build; by MSVC 2019)
+
+⚙ TinyORM version              : 0.36.5
+  TinyORM build type           : Debug
+  TinyORM full build type      : TinyORM 0.36.5 (x86_64-little_endian-llp64 shared debug build; by MSVC 2022 (1939))
+⚙ TinyOrmPlayground version    : 0.6.0
+  TinyOrmPlayground build type : Debug
+
+⚡ Functions Execution time : 3ms (main), 1056ms (mysql)
+
+♆ Threads mode             : multi-thread
+∑ Counted connections      : 4 (mysql, mysql_alt, mysql_mainthread, sqlite_memory)
+⚡ Queries execution time   : 0ms (main), 186ms (mysql)
+✎ Records was modified     : no (main), yes (mysql)
+⚖ Statements counters
+  Normal        : 530 [0 (main), 530 (mysql)]
+  Affecting     : 109 [0 (main), 109 (mysql)]
+  Transaction   : 0
+  Total         : 639 [0 (main), 639 (mysql)]
+---
+⚡ Total TestOrm instance execution time : 1134ms
+---
+
+TinyDrivers (build_loadable_drivers):
+---
+
+single-threaded:
+
+-----------------------
+  Application Summary
+-----------------------
+⚙ Compiler version             : MSVC 2022 (1939)
+⚙ Qt version                   : 6.7.0
+  Qt build type                : Debug
+  Qt full build type           : Qt 6.7.0 (x86_64-little_endian-llp64 shared (dynamic) debug build; by MSVC 2019)
+
+⚙ TinyORM version              : 0.36.5
+  TinyORM build type           : Debug
+  TinyORM full build type      : TinyORM 0.36.5 (x86_64-little_endian-llp64 shared debug build; by MSVC 2022 (1939))
+⚙ TinyOrmPlayground version    : 0.6.0
+  TinyOrmPlayground build type : Debug
+
+⚡ Functions Execution time : 1162ms
+
+♆ Threads mode             : single-thread
+∑ Counted connections      : 3 (mysql, mysql_alt, sqlite_memory)
+⚡ Queries execution time   : 176ms
+✎ Records was modified     : yes
+⚖ Statements counters
+  Normal        : 532
+  Affecting     : 109
+  Transaction   : 0
+  Total         : 641
+---
+⚡ Total TestOrm instance execution time : 1255ms
+---
+
+multi-threaded:
+
+-----------------------
+  Application Summary
+-----------------------
+⚙ Compiler version             : MSVC 2022 (1939)
+⚙ Qt version                   : 6.7.0
+  Qt build type                : Debug
+  Qt full build type           : Qt 6.7.0 (x86_64-little_endian-llp64 shared (dynamic) debug build; by MSVC 2019)
+
+⚙ TinyORM version              : 0.36.5
+  TinyORM build type           : Debug
+  TinyORM full build type      : TinyORM 0.36.5 (x86_64-little_endian-llp64 shared debug build; by MSVC 2022 (1939))
+⚙ TinyOrmPlayground version    : 0.6.0
+  TinyOrmPlayground build type : Debug
+
+⚡ Functions Execution time : 3ms (main), 1065ms (mysql)
+
+♆ Threads mode             : multi-thread
+∑ Counted connections      : 4 (mysql, mysql_alt, mysql_mainthread, sqlite_memory)
+⚡ Queries execution time   : 0ms (main), 194ms (mysql)
+✎ Records was modified     : no (main), yes (mysql)
+⚖ Statements counters
+  Normal        : 530 [0 (main), 530 (mysql)]
+  Affecting     : 109 [0 (main), 109 (mysql)]
+  Transaction   : 0
+  Total         : 639 [0 (main), 639 (mysql)]
+---
+⚡ Total TestOrm instance execution time : 1159ms
+---
