@@ -39,7 +39,8 @@ ${TINY_UNPARSED_ARGUMENTS}")
             #QT_RESTRICTED_CAST_FROM_ASCII
             QT_NO_CAST_TO_ASCII
             QT_NO_CAST_FROM_BYTEARRAY
-            QT_USE_QSTRINGBUILDER
+            # Don't define globally, it's better for compatibility, instead use % when needed
+            #QT_USE_QSTRINGBUILDER
             QT_STRICT_ITERATORS
             QT_NO_KEYWORDS
 
@@ -139,6 +140,7 @@ ${TINY_UNPARSED_ARGUMENTS}")
                 LINKER:--default-image-base-high>
             # Use faster linker ( GNU ld linker doesn't work with the Clang;
             # for both GCC and Clang )
+            # TODO use LINKER_TYPE target property when min. version will be CMake v3.29 silverqx
             -fuse-ld=lld
         )
     endif()
@@ -152,7 +154,9 @@ ${TINY_UNPARSED_ARGUMENTS}")
             # -fexceptions for linux is not needed, it is on by default
             -Wall
             -Wextra
-            -Weffc++
+            # Weffc++ is outdated, it warnings about bullshits 🤬, even word about this
+            # in docs: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=110186
+            # -Weffc++
             -Werror
             -Wfatal-errors
             -Wcast-qual
@@ -183,6 +187,7 @@ ${TINY_UNPARSED_ARGUMENTS}")
 
     # Use faster lld linker on Clang (target the Clang except clang-cl with MSVC)
     # Don't set for MINGW to avoid duplicate setting (look a few lines above)
+    # TODO use LINKER_TYPE target property when min. version will be CMake v3.29 silverqx
     if(NOT MINGW AND NOT MSVC AND CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
         target_link_options(${target} INTERFACE -fuse-ld=lld)
     endif()
