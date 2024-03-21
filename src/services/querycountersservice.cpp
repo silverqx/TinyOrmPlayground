@@ -51,7 +51,8 @@ void QueryCountersService::initConnsInThreadsTesting()
     santizeConnectionsToRunInThread();
 }
 
-QStringList QueryCountersService::computeConnectionsToCount(const QString &connection) const
+QStringList
+QueryCountersService::computeConnectionsToCount(const QString &connection) const
 {
     Utils::throwIfNonEmptyConn(connection);
     Utils::throwIfEmptyConn(connection);
