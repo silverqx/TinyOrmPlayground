@@ -7,6 +7,7 @@
 
 #include <orm/db.hpp>
 #include <orm/exceptions/invalidargumenterror.hpp>
+#include <orm/exceptions/runtimeerror.hpp>
 #include <orm/libraryinfo.hpp>
 #include <orm/macros/compilerdetect.hpp>
 #include <orm/utils/fs.hpp>
