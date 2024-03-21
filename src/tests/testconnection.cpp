@@ -43,8 +43,14 @@ void TestConnection::run() const
         qt_noop();
     }
 
+    /* This is the only one special case, so if the Sqlite connection is disabled then
+       also disable the following SQLite related connection tests. This case isn't handled
+       in any mapping logic/container in the TinyPlay::Configuration class. */
+    const auto testSQLite = Configuration::ConnectionsToCount
+                            .contains(Configuration::Sqlite);
+
     /* SQLite :memory: driver [sqlite_memory] */
-    {
+    if (testSQLite) {
         qInfo("\n\nSQLite :memory: driver [%s]\n---", qUtf8Printable(Sqlite_Memory));
 
         auto &conn = DB::connection(Sqlite_Memory);
@@ -63,7 +69,7 @@ void TestConnection::run() const
     }
 
     /* SQLite database - check_database_exists */
-    {
+    if (testSQLite) {
         // Remove the SQLite database file
         QFile::remove(m_config.CheckDatabaseExistsFile);
         Q_ASSERT(!QFile::exists(m_config.CheckDatabaseExistsFile));
