@@ -159,9 +159,9 @@ protected:
 
 private:
     /*! The name of the "created at" column. */
-    inline static const QString &CREATED_AT() noexcept { return Orm::CREATED_AT; }
+    static const QString &CREATED_AT() noexcept { return Orm::CREATED_AT; }
     /*! The name of the "updated at" column. */
-    inline static const QString &UPDATED_AT() noexcept { return Orm::UPDATED_AT; }
+    static const QString &UPDATED_AT() noexcept { return Orm::UPDATED_AT; }
 
     /* Serialization */
     /*! Prepare a date for vector, map, or JSON serialization. */
@@ -195,7 +195,7 @@ private:
     };
 
     /*! The relations to eager load on every query. */
-    QVector<QString> u_with {
+    QVector<QString> u_with { // NOLINT(readability-redundant-member-init)
 //        "torrentFiles",
 //        "torrentPeer",
 //        "torrentFiles.fileProperty",
@@ -243,6 +243,8 @@ private:
 
     /*! The storage format of the model's date columns. */
 //    inline static QString u_dateFormat {"yyyy-MM-dd HH:mm:ss"};
+    /*! The storage format of the model's time columns. */
+//    inline static QString u_timeFormat {"HH:mm:ss"};
 
     /*! The attributes that should be mutated to dates. */
     inline static const QStringList u_dates {"added_on", "added_on_alt"};
