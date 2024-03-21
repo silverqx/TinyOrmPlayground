@@ -22,7 +22,7 @@ using ThreadUtils = Orm::Utils::Thread;
 
 using TinyPlay::TestOrm;
 
-int main(int /*unused*/, char */*unused*/[])
+int main(int argc, char *argv[])
 {
 #ifdef _WIN32
     SetConsoleOutputCP(CP_UTF8);
@@ -38,6 +38,12 @@ int main(int /*unused*/, char */*unused*/[])
     ThreadUtils::nameThreadForDebugging("main");
 
     qInstallMessageHandler(&TinyPlay::Support::tinyMessageHandler);
+
+    /* Needed from Qt v6.5.3 to avoid:
+       qt.core.qobject.connect: QObject::connect(QObject, Unknown): invalid nullptr parameter */
+#if QT_VERSION >= QT_VERSION_CHECK(6, 5, 3)
+    const QCoreApplication app(argc, argv);
+#endif
 
     QCoreApplication::setOrganizationName("TinyORM");
     QCoreApplication::setOrganizationDomain("tinyorm.org");
