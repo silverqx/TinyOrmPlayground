@@ -505,3 +505,397 @@ multi-threaded:
 ---
 ⚡ Total TestOrm instance execution time : 1159ms
 ---
+
+
+Performance tests TinyDrivers era 07.04.2024:
+---------------------------------------------
+
+Used DEFINES+=QT_NO_DEBUG_OUTPUT for TinyORM and also for TinyOrmPlayground Debug builds.
+
+These tests were during TinyDrivers performance tunning using KCacheGrind. There was again problem
+with __tiny_func__ and QRegularExpression.
+
+It was tested on Linux with GCC 13.2.1 with Debug and Release builds. The performance gain with
+a new code is ~40ms for tst_sqlquery_normal test case.
+
+TinyDriver (build_shared_drivers)
+---
+
+original code:
+--
+
+Debug single-threaded:
+
+-----------------------
+Application Summary
+-----------------------
+⚙ Compiler version             : GCC 13.2.1 20240210
+⚙ Qt version                   : 6.7.0
+Qt build type                : Release
+Qt full build type           : Qt 6.7.0 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 10.3.1 20210422 (Red Hat 10.3.1-1))
+
+⚙ TinyORM version              : 0.36.5
+TinyORM build type           : Debug
+TinyORM full build type      : TinyORM 0.36.5 (x86_64-little_endian-lp64 shared debug build; by GCC 13.2.1 20240210)
+⚙ TinyOrmPlayground version    : 0.6.0
+TinyOrmPlayground build type : Debug
+
+⚡ Functions Execution time : 789ms
+
+♆ Threads mode             : single-thread
+∑ Counted connections      : 3 (mysql, mysql_alt, sqlite_memory)
+⚡ Queries execution time   : 231ms
+✎ Records was modified     : yes
+⚖ Statements counters
+Normal        : 512
+Affecting     : 109
+Transaction   : 0
+Total         : 621
+---
+⚡ Total TestOrm instance execution time : 806ms
+---
+
+Debug multi-thread:
+
+-----------------------
+Application Summary
+-----------------------
+⚙ Compiler version             : GCC 13.2.1 20240210
+⚙ Qt version                   : 6.7.0
+Qt build type                : Release
+Qt full build type           : Qt 6.7.0 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 10.3.1 20210422 (Red Hat 10.3.1-1))
+
+⚙ TinyORM version              : 0.36.5
+TinyORM build type           : Debug
+TinyORM full build type      : TinyORM 0.36.5 (x86_64-little_endian-lp64 shared debug build; by GCC 13.2.1 20240210)
+⚙ TinyOrmPlayground version    : 0.6.0
+TinyOrmPlayground build type : Debug
+
+⚡ Functions Execution time : 0ms (main), 716ms (mysql)
+
+♆ Threads mode             : multi-thread
+∑ Counted connections      : 4 (mysql, mysql_alt, mysql_mainthread, sqlite_memory)
+⚡ Queries execution time   : 0ms (main), 188ms (mysql)
+✎ Records was modified     : no (main), yes (mysql)
+⚖ Statements counters
+Normal        : 510 [0 (main), 510 (mysql)]
+Affecting     : 110 [0 (main), 110 (mysql)]
+Transaction   : 0
+Total         : 620 [0 (main), 620 (mysql)]
+---
+⚡ Total TestOrm instance execution time : 732ms
+---
+
+Release single-threaded:
+
+-----------------------
+Application Summary
+-----------------------
+⚙ Compiler version             : GCC 13.2.1 20240210
+⚙ Qt version                   : 6.7.0
+Qt build type                : Release
+Qt full build type           : Qt 6.7.0 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 10.3.1 20210422 (Red Hat 10.3.1-1))
+
+⚙ TinyORM version              : 0.36.5
+TinyORM build type           : Release
+TinyORM full build type      : TinyORM 0.36.5 (x86_64-little_endian-lp64 shared release build; by GCC 13.2.1 20240210)
+⚙ TinyOrmPlayground version    : 0.6.0
+TinyOrmPlayground build type : Release
+
+⚡ Functions Execution time : 685ms
+
+♆ Threads mode             : single-thread
+∑ Counted connections      : 3 (mysql, mysql_alt, sqlite_memory)
+⚡ Queries execution time   : 241ms
+✎ Records was modified     : yes
+⚖ Statements counters
+Normal        : 512
+Affecting     : 109
+Transaction   : 0
+Total         : 621
+---
+⚡ Total TestOrm instance execution time : 701ms
+---
+
+Release multi-thread:
+
+-----------------------
+Application Summary
+-----------------------
+⚙ Compiler version             : GCC 13.2.1 20240210
+⚙ Qt version                   : 6.7.0
+Qt build type                : Release
+Qt full build type           : Qt 6.7.0 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 10.3.1 20210422 (Red Hat 10.3.1-1))
+
+⚙ TinyORM version              : 0.36.5
+TinyORM build type           : Release
+TinyORM full build type      : TinyORM 0.36.5 (x86_64-little_endian-lp64 shared release build; by GCC 13.2.1 20240210)
+⚙ TinyOrmPlayground version    : 0.6.0
+TinyOrmPlayground build type : Release
+
+⚡ Functions Execution time : 0ms (main), 622ms (mysql)
+
+♆ Threads mode             : multi-thread
+∑ Counted connections      : 4 (mysql, mysql_alt, mysql_mainthread, sqlite_memory)
+⚡ Queries execution time   : 0ms (main), 185ms (mysql)
+✎ Records was modified     : no (main), yes (mysql)
+⚖ Statements counters
+Normal        : 510 [0 (main), 510 (mysql)]
+Affecting     : 109 [0 (main), 109 (mysql)]
+Transaction   : 0
+Total         : 619 [0 (main), 619 (mysql)]
+---
+⚡ Total TestOrm instance execution time : 638ms (lowest I saw was 635ms)
+---
+
+static local variable for __tiny_func__:
+--
+
+This was one time test and the code was discarded, it's not even in stash.
+
+Debug single-threaded:
+
+-----------------------
+Application Summary
+-----------------------
+⚙ Compiler version             : GCC 13.2.1 20240210
+⚙ Qt version                   : 6.7.0
+Qt build type                : Release
+Qt full build type           : Qt 6.7.0 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 10.3.1 20210422 (Red Hat 10.3.1-1))
+
+⚙ TinyORM version              : 0.36.5
+TinyORM build type           : Debug
+TinyORM full build type      : TinyORM 0.36.5 (x86_64-little_endian-lp64 shared debug build; by GCC 13.2.1 20240210)
+⚙ TinyOrmPlayground version    : 0.6.0
+TinyOrmPlayground build type : Debug
+
+⚡ Functions Execution time : 760ms
+
+♆ Threads mode             : single-thread
+∑ Counted connections      : 3 (mysql, mysql_alt, sqlite_memory)
+⚡ Queries execution time   : 233ms
+✎ Records was modified     : yes
+⚖ Statements counters
+Normal        : 512
+Affecting     : 109
+Transaction   : 0
+Total         : 621
+---
+⚡ Total TestOrm instance execution time : 779ms
+---
+
+Debug multi-thread:
+
+- skipped
+
+Release single-threaded:
+
+-----------------------
+Application Summary
+-----------------------
+⚙ Compiler version             : GCC 13.2.1 20240210
+⚙ Qt version                   : 6.7.0
+Qt build type                : Release
+Qt full build type           : Qt 6.7.0 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 10.3.1 20210422 (Red Hat 10.3.1-1))
+
+⚙ TinyORM version              : 0.36.5
+TinyORM build type           : Release
+TinyORM full build type      : TinyORM 0.36.5 (x86_64-little_endian-lp64 shared release build; by GCC 13.2.1 20240210)
+⚙ TinyOrmPlayground version    : 0.6.0
+TinyOrmPlayground build type : Release
+
+⚡ Functions Execution time : 665ms
+
+♆ Threads mode             : single-thread
+∑ Counted connections      : 3 (mysql, mysql_alt, sqlite_memory)
+⚡ Queries execution time   : 237ms
+✎ Records was modified     : yes
+⚖ Statements counters
+Normal        : 512
+Affecting     : 109
+Transaction   : 0
+Total         : 621
+---
+⚡ Total TestOrm instance execution time : 682ms
+---
+
+Release multi-thread:
+
+- skipped
+
+
+removed __tiny_func__:
+--
+
+This is the new code that was used and commit.
+
+Debug single-threaded:
+
+-----------------------
+Application Summary
+-----------------------
+⚙ Compiler version             : GCC 13.2.1 20240210
+⚙ Qt version                   : 6.7.0
+Qt build type                : Release
+Qt full build type           : Qt 6.7.0 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 10.3.1 20210422 (Red Hat 10.3.1-1))
+
+⚙ TinyORM version              : 0.36.5
+TinyORM build type           : Debug
+TinyORM full build type      : TinyORM 0.36.5 (x86_64-little_endian-lp64 shared debug build; by GCC 13.2.1 20240210)
+⚙ TinyOrmPlayground version    : 0.6.0
+TinyOrmPlayground build type : Release
+
+⚡ Functions Execution time : 753ms
+
+♆ Threads mode             : single-thread
+∑ Counted connections      : 3 (mysql, mysql_alt, sqlite_memory)
+⚡ Queries execution time   : 257ms
+✎ Records was modified     : yes
+⚖ Statements counters
+Normal        : 512
+Affecting     : 109
+Transaction   : 0
+Total         : 621
+---
+⚡ Total TestOrm instance execution time : 770ms
+---
+
+Debug multi-thread:
+
+- skipped
+
+Release single-threaded:
+
+-----------------------
+Application Summary
+-----------------------
+⚙ Compiler version             : GCC 13.2.1 20240210
+⚙ Qt version                   : 6.7.0
+Qt build type                : Release
+Qt full build type           : Qt 6.7.0 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 10.3.1 20210422 (Red Hat 10.3.1-1))
+
+⚙ TinyORM version              : 0.36.5
+TinyORM build type           : Release
+TinyORM full build type      : TinyORM 0.36.5 (x86_64-little_endian-lp64 shared release build; by GCC 13.2.1 20240210)
+⚙ TinyOrmPlayground version    : 0.6.0
+TinyOrmPlayground build type : Release
+
+⚡ Functions Execution time : 649ms
+
+♆ Threads mode             : single-thread
+∑ Counted connections      : 3 (mysql, mysql_alt, sqlite_memory)
+⚡ Queries execution time   : 221ms
+✎ Records was modified     : yes
+⚖ Statements counters
+Normal        : 512
+Affecting     : 109
+Transaction   : 0
+Total         : 621
+---
+⚡ Total TestOrm instance execution time : 664ms
+---
+
+Release multi-thread:
+
+- skipped
+
+
+QtSql
+---
+
+original:
+--
+
+Debug single-threaded:
+Debug multi-thread:
+Release single-threaded:
+Release multi-thread:
+
+- all above skipped
+
+
+static local variable for __tiny_func__:
+--
+
+Debug single-threaded:
+Debug multi-thread:
+Release single-threaded:
+Release multi-thread:
+
+- all above skipped
+
+
+removed __tiny_func__:
+--
+
+This is the new code that was used and commit.
+
+Debug single-threaded:
+
+-----------------------
+Application Summary
+-----------------------
+⚙ Compiler version             : GCC 13.2.1 20240210
+⚙ Qt version                   : 6.7.0
+Qt build type                : Release
+Qt full build type           : Qt 6.7.0 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 10.3.1 20210422 (Red Hat 10.3.1-1))
+
+⚙ TinyORM version              : 0.36.5
+TinyORM build type           : Debug
+TinyORM full build type      : TinyORM 0.36.5 (x86_64-little_endian-lp64 shared debug build; by GCC 13.2.1 20240210)
+⚙ TinyOrmPlayground version    : 0.6.0
+TinyOrmPlayground build type : Debug
+
+⚡ Functions Execution time : 751ms
+
+♆ Threads mode             : single-thread
+∑ Counted connections      : 3 (mysql, mysql_alt, sqlite_memory)
+⚡ Queries execution time   : 240ms
+✎ Records was modified     : yes
+⚖ Statements counters
+Normal        : 512
+Affecting     : 111
+Transaction   : 0
+Total         : 623
+---
+⚡ Total TestOrm instance execution time : 772ms
+---
+
+Debug multi-thread:
+
+- skipped
+
+Release single-threaded:
+
+-----------------------
+Application Summary
+-----------------------
+⚙ Compiler version             : GCC 13.2.1 20240210
+⚙ Qt version                   : 6.7.0
+Qt build type                : Release
+Qt full build type           : Qt 6.7.0 (x86_64-little_endian-lp64 shared (dynamic) release build; by GCC 10.3.1 20210422 (Red Hat 10.3.1-1))
+
+⚙ TinyORM version              : 0.36.5
+TinyORM build type           : Release
+TinyORM full build type      : TinyORM 0.36.5 (x86_64-little_endian-lp64 shared release build; by GCC 13.2.1 20240210)
+⚙ TinyOrmPlayground version    : 0.6.0
+TinyOrmPlayground build type : Release
+
+⚡ Functions Execution time : 667ms
+
+♆ Threads mode             : single-thread
+∑ Counted connections      : 3 (mysql, mysql_alt, sqlite_memory)
+⚡ Queries execution time   : 228ms
+✎ Records was modified     : yes
+⚖ Statements counters
+Normal        : 512
+Affecting     : 111
+Transaction   : 0
+Total         : 623
+---
+⚡ Total TestOrm instance execution time : 686ms
+---
+
+Release multi-thread:
+
+- skipped
