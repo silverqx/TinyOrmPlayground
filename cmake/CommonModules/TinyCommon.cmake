@@ -97,9 +97,16 @@ ${TINY_UNPARSED_ARGUMENTS}")
             /Zc:__cplusplus
             # Standards-conforming behavior
             /Zc:strictStrings
-            /WX /W4
+            # Enable Additional Security Checks for Debug builds only
             $<$<CONFIG:Debug>:/sdl>
+            /W4
         )
+
+        # Abort compiling on warnings for Debug builds only (excluding vcpkg),
+        # Release and vcpkg builds must go on as far as possible
+        if(NOT TINY_VCPKG)
+            target_compile_options(${target} INTERFACE $<$<CONFIG:Debug>:/WX>)
+        endif()
 
         if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
             target_compile_options(${target} INTERFACE
@@ -118,6 +125,13 @@ ${TINY_UNPARSED_ARGUMENTS}")
 #                /external:templates-
                 /wd4702
             )
+
+            # Needed to suppress this because lot of new warnings on latest MSVC
+            if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "19.38.32914.95")
+                target_compile_definitions(${target} INTERFACE
+                    _SILENCE_STDEXT_ARR_ITERS_DEPRECATION_WARNING
+                )
+            endif()
         endif()
 
         target_link_options(${target} INTERFACE
@@ -125,7 +139,9 @@ ${TINY_UNPARSED_ARGUMENTS}")
             $<$<NOT:$<CONFIG:Debug>>:/OPT:REF,ICF=5>
             # /OPT:REF,ICF does not support incremental linking
             $<$<CONFIG:RelWithDebInfo>:/INCREMENTAL:NO>
-            /WX
+            # Abort linking on warnings for Debug builds only, Release builds must go on
+            # as far as possible
+            $<$<CONFIG:Debug>:/WX>
         )
     endif()
 
@@ -150,6 +166,14 @@ ${TINY_UNPARSED_ARGUMENTS}")
                 CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR
                 CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
     )
+        # Abort compiling on warnings for Debug builds only (excluding vcpkg),
+        # Release and vcpkg builds must go on as far as possible
+        if(NOT TINY_VCPKG)
+            target_compile_options(${target} INTERFACE
+                $<$<CONFIG:Debug>:-Werror -Wfatal-errors -pedantic-errors>
+            )
+        endif()
+
         target_compile_options(${target} INTERFACE
             # -fexceptions for linux is not needed, it is on by default
             -Wall
@@ -157,8 +181,7 @@ ${TINY_UNPARSED_ARGUMENTS}")
             # Weffc++ is outdated, it warnings about bullshits 🤬, even word about this
             # in docs: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=110186
             # -Weffc++
-            -Werror
-            -Wfatal-errors
+            -pedantic
             -Wcast-qual
             -Wcast-align
             -Woverloaded-virtual
@@ -171,8 +194,6 @@ ${TINY_UNPARSED_ARGUMENTS}")
             -Wconversion
             -Wzero-as-null-pointer-constant
             -Wuninitialized
-            -pedantic
-            -pedantic-errors
             # Reduce I/O operations
             -pipe
         )

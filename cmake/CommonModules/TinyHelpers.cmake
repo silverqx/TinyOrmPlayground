@@ -78,7 +78,8 @@ upgrade Clang compiler")
 endfunction()
 
 # A helper macro that calls find_package() and appends the package (if found) to the
-# TINY_PACKAGE_DEPENDENCIES list, which can be used later to generate package config file
+# TINY_PACKAGE_DEPENDENCIES list that will be used later to generate find_dependency()
+# calls for the TinyORM package configuration file
 macro(tiny_find_package package_name)
 
     find_package(${package_name} ${ARGN})
@@ -96,24 +97,32 @@ macro(tiny_find_package package_name)
         # Convert to the string
         string(REPLACE ";" " " args "${args}")
 
-        list(APPEND tiny_package_dependencies "${args}")
+        # Check if the given args are in the TINY_PACKAGE_DEPENDENCIES list
+        get_property(packageDependencies GLOBAL PROPERTY TINY_PACKAGE_DEPENDENCIES)
+
+        if(NOT args IN_LIST packageDependencies)
+            set_property(GLOBAL APPEND PROPERTY TINY_PACKAGE_DEPENDENCIES "${args}")
+        endif()
     endif()
 
     unset(args)
 
 endmacro()
 
-# Generate find_dependency calls for the TinyORM package config file
+# Generate find_dependency() calls for the TinyORM package config file
 function(tiny_generate_find_dependency_calls out_dependency_calls)
 
-    set(find_dependency_calls)
+    set(findDependencyCalls)
 
-    string(REGEX REPLACE "([^;]+)" "find_dependency(\\1)" find_dependency_calls
-        "${tiny_package_dependencies}")
+    get_property(packageDependencies GLOBAL PROPERTY TINY_PACKAGE_DEPENDENCIES)
 
-    string(REPLACE ";" "\n" find_dependency_calls "${find_dependency_calls}")
+    # The ([^;]+) regex matches every list item excluding the ; character 😮
+    string(REGEX REPLACE "([^;]+)" "find_dependency(\\1)" findDependencyCalls
+        "${packageDependencies}")
 
-    set(${out_dependency_calls} ${find_dependency_calls} PARENT_SCOPE)
+    string(REPLACE ";" "\n" findDependencyCalls "${findDependencyCalls}")
+
+    set(${out_dependency_calls} ${findDependencyCalls} PARENT_SCOPE)
 
 endfunction()
 
@@ -174,6 +183,23 @@ function(tiny_create_sqlite_db db_filepath)
     message(STATUS "Creating SQLite database at '${db_filepath}'")
 
     file(TOUCH "${db_filepath}")
+
+endfunction()
+
+# Create an empty .build_tree file in the folder where the TinyDrivers shared library is
+# located (inside the build tree)
+function(tiny_create_buildtree_tagfiles filepaths)
+
+    foreach(filepath ${filepaths})
+        # Nothing to do, .build_tree tag already exists
+        if(EXISTS ${filepath})
+            continue()
+        endif()
+
+        message(VERBOSE "Creating .build_tree tag file at '${filepath}'")
+
+        file(TOUCH "${filepath}")
+    endforeach()
 
 endfunction()
 
@@ -282,7 +308,17 @@ don't enable the INLINE_CONSTANTS cmake option :/.")
     endif()
 
     if(TINY_VCPKG AND TINY_IS_MULTI_CONFIG)
-        message(FATAL_ERROR "The multi-configuration generators are not supported in vcpkg ports.")
+        message(FATAL_ERROR "Multi-configuration generators are not supported in vcpkg \
+ports.")
+    endif()
+
+    if(TINY_VCPKG AND TINY_BUILD_LOADABLE_DRIVERS)
+        message(FATAL_ERROR "Loadable SQL drivers are not supported in vcpkg ports.")
+    endif()
+
+    if(BUILD_DRIVERS AND NOT BUILD_MYSQL_DRIVER)
+        message(FATAL_ERROR "If the BUILD_DRIVERS option is enabled, at least one \
+driver implementation must be enabled, please enable BUILD_MYSQL_DRIVER.")
     endif()
 
 endfunction()
@@ -562,3 +598,103 @@ ${TINY_UNPARSED_ARGUMENTS}")
     endforeach()
 
 endfunction()
+
+# Get target includes that contain IMPORTED targets for the TinyORM package config file
+function(tiny_generate_target_includes out_variable)
+
+    set(includeTmpl "include(\"\${CMAKE_CURRENT_LIST_DIR}/@target@.cmake\")")
+    set(includeReplaced)
+    set(result)
+
+    # The order is important here, the TinyDriversTargets must be included before
+    # the TinyOrmTargets because of the checks whether the exported targets exist
+    # at the end of the TinyOrmTargets.cmake file
+
+    # TinyDriversTargets
+    if(BUILD_DRIVERS)
+        string(REPLACE "@target@" "TinyDriversTargets" includeReplaced "${includeTmpl}")
+        list(APPEND result ${includeReplaced})
+    endif()
+
+    # TinyOrmTargets
+    string(REPLACE "@target@" "TinyOrmTargets" includeReplaced "${includeTmpl}")
+    list(APPEND result ${includeReplaced})
+
+    # No need to escape the ; character as include() statement can't contain it
+    list(JOIN result "\n" result)
+
+    set(${out_variable} ${result} PARENT_SCOPE)
+
+endfunction()
+
+# Set up package properties using the set_package_properties()
+macro(set_packages_properties)
+
+    set_package_properties(QT
+        PROPERTIES
+            URL "https://doc.qt.io/qt-${QT_VERSION_MAJOR}/"
+            DESCRIPTION "Qt is a full development framework"
+            TYPE REQUIRED
+            PURPOSE "Provides SQL database layer by the QtSql module, QVariant, and QString"
+    )
+    set_package_properties(Qt${QT_VERSION_MAJOR}
+        PROPERTIES
+            URL "https://doc.qt.io/qt-${QT_VERSION_MAJOR}/"
+            DESCRIPTION "Qt is a full development framework"
+            TYPE REQUIRED
+            PURPOSE "Provides SQL database layer by the QtSql module, QVariant, and QString"
+    )
+    set_package_properties(Qt${QT_VERSION_MAJOR}Core
+        PROPERTIES
+            URL "https://doc.qt.io/qt-${QT_VERSION_MAJOR}/qtcore-index.html"
+            DESCRIPTION "Core non-graphical classes used by other modules"
+            TYPE REQUIRED
+            PURPOSE "Provides QVariant, QString, and Qt containers"
+    )
+    if(NOT BUILD_DRIVERS)
+        set_package_properties(Qt${QT_VERSION_MAJOR}Sql
+            PROPERTIES
+                URL "https://doc.qt.io/qt-${QT_VERSION_MAJOR}/qtsql-index.html"
+                DESCRIPTION "Classes for database integration using SQL"
+                TYPE REQUIRED
+                PURPOSE "Provides SQL database layer"
+        )
+    endif()
+    set_package_properties(range-v3
+        PROPERTIES
+            URL "https://ericniebler.github.io/range-v3/"
+            DESCRIPTION "Range algorithms, views, and actions for STL"
+            TYPE REQUIRED
+            PURPOSE "Used to have a nice and clear code"
+    )
+    if(MYSQL_PING OR BUILD_MYSQL_DRIVER)
+        if(TINY_VCPKG)
+            set_package_properties(unofficial-libmysql
+                PROPERTIES
+                    URL "https://www.mysql.com"
+                    DESCRIPTION "MySQL client library (vcpkg unofficial)"
+                    TYPE REQUIRED
+                    PURPOSE "Provides low-level access to the MySQL client/server \
+protocol (used by mysql-ping or build-mysql-driver vcpkg features)"
+            )
+        else()
+            set_package_properties(MySQL
+                PROPERTIES
+                    # URL and DESCRIPTION are already set by Find-module Package (FindMySQL.cmake)
+                    TYPE REQUIRED
+                    PURPOSE "Provides low-level access to the MySQL client/server \
+protocol (used by MySqlConnection::pingDatabase() or if BUILD_MYSQL_DRIVER is enabled)"
+            )
+        endif()
+    endif()
+    if(TOM)
+        set_package_properties(tabulate
+            PROPERTIES
+                URL "https://github.com/p-ranav/tabulate"
+                DESCRIPTION "Table Maker for Modern C++"
+                TYPE REQUIRED
+                PURPOSE "Used by the Tom in the migrate:status command"
+        )
+    endif()
+
+endmacro()
