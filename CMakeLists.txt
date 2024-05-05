@@ -64,7 +64,7 @@ set(minQtVersion           5.15.2)
 # different versions of range-v3 (doesn't matter if it's vcpkg or some package manager)
 #set(minRangeV3Version      0.12.0)
 set(minNlohmannJsonVersion 3.9.1)
-set(minTinyOrmVersion      0.37.2)
+set(minTinyOrmVersion      0.37.3)
 # tabulate doesn't provide Package Version File
 #set(minTabulateVersion 1.4.0)
 
