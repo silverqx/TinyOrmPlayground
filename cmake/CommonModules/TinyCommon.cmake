@@ -25,14 +25,20 @@ ${TINY_UNPARSED_ARGUMENTS}")
     # Qt defines
     # ---
 
+    # Disable deprecated APIs up to the given Qt version
+    # TODO qt5 remove silverqx
+    if(QT_VERSION_MAJOR GREATER_EQUAL 6)
+        # Disable all the APIs deprecated up to Qt v6.9.0 (including)
+        target_compile_definitions(${target} INTERFACE QT_DISABLE_DEPRECATED_UP_TO=0x060900)
+    else()
+        # Disable all the APIs deprecated up to Qt v6.0.0 (including)
+        target_compile_definitions(${target} INTERFACE QT_DISABLE_DEPRECATED_BEFORE=0x060000)
+    endif()
+
     target_compile_definitions(${target}
         INTERFACE
-            # You can also make your code fail to compile if it uses deprecated APIs.
-            # In order to do so, uncomment the following line.
-            # You can also select to disable deprecated APIs only up to a certain version
-            # of Qt.
-            # Disables all the APIs deprecated before Qt 6.0.0
-            QT_DISABLE_DEPRECATED_BEFORE=0x060000
+            #QT_NO_DEPRECATED_WARNINGS
+            #QT_WARN_DEPRECATED_UP_TO=0x060900
 
             #QT_ASCII_CAST_WARNINGS
             #QT_NO_CAST_FROM_ASCII
@@ -51,29 +57,49 @@ ${TINY_UNPARSED_ARGUMENTS}")
     # Platform specific configurations
     # ---
 
-    if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
-        # All have to be defined because of checks at the beginning of <qt_windows.h>
-        # WINVER, _WIN32_WINNT, NTDDI_VERSION
+    # WinApi
+    # For orientation in these versions, see:
+    # https://developer.microsoft.com/en-us/windows/downloads/sdk-archive/
+    # https://microsoft.fandom.com/wiki/List_of_Windows_codenames
+    # https://en.wikipedia.org/wiki/Windows_11_version_history
+    # https://en.wikipedia.org/wiki/Microsoft_Windows_SDK
 
+    # The ideal case would be not to define these and rely on what is defined
+    # in <qt_/windows.h> but Qt uses too old values for these, eg. MSYS2 patches these and
+    # uses the latest versions, so we have to define these manually because the original
+    # Qt code doesn't maintain these correctly.
+    # All have to be defined because of checks at the beginning of <qt_windows.h> (fixed)
+    # WINVER, _WIN32_WINNT, NTDDI_VERSION
+    if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
         # MSYS2 Qt 6 already defines these macros in the Qt6Targets.cmake Qt6::Platform
+        # which is included in Package Config file. These C macros comes
+        # from the QtBaseConfigureTests.cmake#qt_internal_ensure_latest_win_nt_api(),
+        # this functions is doing compile test using the check_cxx_source_compiles(),
+        # it includes the <windows.h> and checks whether these C macros are defined and
+        # if they are not then it appends them to the QT_PLATFORM_DEFINITIONS, then
+        # the QT_PLATFORM_DEFINITIONS is set for the Qt6::Platform interface library.
+        # So these C macros are set on MSVC (in <sdkddkver.h> is advanced guess logic)
+        # and are not set on mingw-w64/MSYS2 in the <windows.h> file.
+        # What means we can't set them on MSYS2 because it throws [-Wmacro-redefined].
         # Flipped expression of : if(MINGW AND QT_VERSION_MAJOR GREATER_EQUAL 6)
         if(NOT MINGW OR NOT QT_VERSION_MAJOR GREATER_EQUAL 6)
             target_compile_definitions(${target} INTERFACE
-                # Windows 10 1903 "19H1" - 0x0A000007
+                # Windows 11 "22H2" - 0x0A00000C
                 WINVER=_WIN32_WINNT_WIN10
                 _WIN32_WINNT=_WIN32_WINNT_WIN10
             )
         endif()
 
         target_compile_definitions(${target} INTERFACE
-            # Windows 10 1903 "19H1" - 0x0A000007
-            NTDDI_VERSION=NTDDI_WIN10_19H1
+            # Windows 11 "22H2" - 0x0A00000C
+            NTDDI_VERSION=NTDDI_WIN10_NI
             # Internet Explorer 11
             _WIN32_IE=_WIN32_IE_IE110
-            UNICODE _UNICODE
             # Exclude unneeded header files
             WIN32_LEAN_AND_MEAN
             NOMINMAX
+            # Others
+            UNICODE _UNICODE
         )
     endif()
 
@@ -82,14 +108,13 @@ ${TINY_UNPARSED_ARGUMENTS}")
 
     # clang-cl.exe notes:
     # /RTC    - https://lists.llvm.org/pipermail/cfe-commits/Week-of-Mon-20130902/088105.html
-    # /bigobj - clang-cl uses it by default - https://reviews.llvm.org/D12981
-
+    # /bigobj - Clang-cl uses it by default - https://reviews.llvm.org/D12981
     if(MSVC)
-        # Common for MSVC and clang-cl
+        # Common for MSVC and Clang-cl
         target_compile_options(${target} INTERFACE
             # Suppress banner and info messages
             /nologo
-            # Is safer to provide this explicitly, qmake do it for msvc too
+            # Is safer to provide this explicitly, qmake do it for MSVC too
             /EHsc
             /utf-8
             # Has to be enabled explicitly
@@ -97,15 +122,16 @@ ${TINY_UNPARSED_ARGUMENTS}")
             /Zc:__cplusplus
             # Standards-conforming behavior
             /Zc:strictStrings
-            # Enable Additional Security Checks for Debug builds only
-            $<$<CONFIG:Debug>:/sdl>
-            /W4
         )
 
         # Abort compiling on warnings for Debug builds only (excluding vcpkg),
         # Release and vcpkg builds must go on as far as possible
         if(NOT TINY_VCPKG)
-            target_compile_options(${target} INTERFACE $<$<CONFIG:Debug>:/WX>)
+            target_compile_options(${target} INTERFACE
+                /W4
+                # Enable Additional Security Checks for Debug builds only
+                $<$<CONFIG:Debug>:/WX /sdl>
+            )
         endif()
 
         if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
@@ -113,13 +139,15 @@ ${TINY_UNPARSED_ARGUMENTS}")
                 # Set by default by c++20 but from VS 16.11, can be removed when
                 # minMsvcReqVersion will be >= 16.11
                 /permissive-
-                # clang-cl 16 throws -Wunused-command-line-argument, so provide it
+                # Clang-cl 16 throws -Wunused-command-line-argument, so provide it
                 # only for the MSVC
                 /guard:cf
                 /bigobj
                 # Standards-conforming behavior
                 /Zc:wchar_t,rvalueCast,inline
                 /Zc:throwingNew,referenceBinding,ternary
+                # C/C++ conformant preprocessor
+                /Zc:preprocessor
                 /external:anglebrackets /external:W0
                 # Enable and check it from time to time
 #                /external:templates-
@@ -175,12 +203,14 @@ ${TINY_UNPARSED_ARGUMENTS}")
         endif()
 
         target_compile_options(${target} INTERFACE
-            # -fexceptions for linux is not needed, it is on by default
+            # -fexceptions for Linux is not needed, it is on by default
             -Wall
             -Wextra
             # Weffc++ is outdated, it warnings about bullshits 🤬, even word about this
             # in docs: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=110186
             # -Weffc++
+            # CMake already defines it
+            # -Winvalid-pch
             -pedantic
             -Wcast-qual
             -Wcast-align
@@ -194,7 +224,8 @@ ${TINY_UNPARSED_ARGUMENTS}")
             -Wconversion
             -Wzero-as-null-pointer-constant
             -Wuninitialized
-            # Reduce I/O operations
+            -Wdeprecated-copy-dtor
+            # Reduce I/O operations (use pipes between commands when possible)
             -pipe
         )
 
@@ -204,9 +235,14 @@ ${TINY_UNPARSED_ARGUMENTS}")
         if(SNS_SUPPORT)
             target_compile_options(${target} INTERFACE -Wstrict-null-sentinel)
         endif()
+
+        # Has the potential to catch weird code
+        if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+            target_compile_options(${target} INTERFACE -Wdeprecated)
+        endif()
     endif()
 
-    # Use faster lld linker on Clang (target the Clang except clang-cl with MSVC)
+    # Use faster lld linker on Clang (target the Clang except Clang-cl with MSVC)
     # Don't set for MINGW to avoid duplicate setting (look a few lines above)
     # TODO use LINKER_TYPE target property when min. version will be CMake v3.29 silverqx
     if(NOT MINGW AND NOT MSVC AND CMAKE_CXX_COMPILER_ID STREQUAL "Clang")

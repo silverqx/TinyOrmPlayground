@@ -39,9 +39,9 @@ Visual Studio")
         endif()
     endif()
 
-    # clang-cl
+    # Clang-cl
     if(MSVC AND CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND
-        CMAKE_CXX_SIMULATE_ID STREQUAL "MSVC"
+            CMAKE_CXX_SIMULATE_ID STREQUAL "MSVC"
     )
         if(CMAKE_CXX_SIMULATE_VERSION VERSION_LESS TINY_MSVC)
             message(FATAL_ERROR "Minimum required MSVC version was not satisfied, \
@@ -50,7 +50,7 @@ Visual Studio")
         endif()
 
         if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS TINY_CLANG_CL)
-            message(FATAL_ERROR "Minimum required clang-cl version was not satisfied, \
+            message(FATAL_ERROR "Minimum required Clang-cl version was not satisfied, \
 required version >=${TINY_CLANG_CL}, your version is ${CMAKE_CXX_COMPILER_VERSION}, \
 upgrade LLVM")
         endif()
@@ -170,6 +170,16 @@ ${TINY_UNPARSED_ARGUMENTS}")
     if(TINY_ADVANCED)
         mark_as_advanced(${TINY_NAME})
     endif()
+
+endfunction()
+
+# Set TINYORM_LTO macro based on the INTERPROCEDURAL_OPTIMIZATION target property
+# Used by the tom about command to show if the LTO is enabled
+function(tiny_set_lto_compile_definition target)
+
+    get_target_property(tinyHasLTO ${target} INTERPROCEDURAL_OPTIMIZATION)
+
+    target_compile_definitions(${target} PRIVATE -DTINYORM_LTO=${tinyHasLTO})
 
 endfunction()
 
@@ -293,17 +303,20 @@ endmacro()
 # Throw a fatal error for unsupported environments
 function(tiny_check_unsupported_build)
 
+    # Fixed in Clang v18 🎉
     # Related issue: https://github.com/llvm/llvm-project/issues/55938
 
-    if(MINGW AND CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND NOT BUILD_SHARED_LIBS)
-        message(FATAL_ERROR "MinGW clang static build is not supported, it has problems \
-with inline constants :/.")
+    if(MINGW AND CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND NOT BUILD_SHARED_LIBS AND
+            CMAKE_CXX_COMPILER_VERSION VERSION_LESS "18"
+    )
+        message(FATAL_ERROR "MinGW Clang <18 static build is not supported, it has \
+problems with inline constants :/.")
     endif()
 
     if(MINGW AND CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND BUILD_SHARED_LIBS AND
-        INLINE_CONSTANTS
+            INLINE_CONSTANTS AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS "18"
     )
-        message(FATAL_ERROR "MinGW clang shared build crashes with inline constants, \
+        message(FATAL_ERROR "MinGW Clang <18 shared build crashes with inline constants, \
 don't enable the INLINE_CONSTANTS cmake option :/.")
     endif()
 
@@ -364,7 +377,7 @@ endfunction()
 # contains ccache/sccache (fixes for MSVC compilers)
 function(tiny_should_fix_ccache_msvc out_variable)
 
-    # Target the msvc and clang-cl with msvc compilers on Windows
+    # Target the MSVC and Clang-cl with MSVC compilers on Windows
     if(NOT WIN32 OR NOT MSVC OR MINGW OR NOT DEFINED CMAKE_CXX_COMPILER_LAUNCHER)
         set(${out_variable} FALSE PARENT_SCOPE)
         return()
@@ -378,10 +391,100 @@ function(tiny_should_fix_ccache_msvc out_variable)
 
 endfunction()
 
+# Determine whether to disable PCH based on the ccache --print-version and set
+# the internal cache variable TINY_CCACHE_VERSION (MSVC only)
+# Precompiled headers are fully supported on MSVC for ccache >=4.10, so
+# disable PCH for ccache <4.10 only.
+# The git-ref is a special value, it means that the ccache was built manually from eg.
+# master branch, in this case suppose the version is always >=4.10.
+# If the ccache isn't on the system path or parsing the version failed set to 0.
+function(tiny_should_disable_precompile_headers out_variable)
+
+    # Nothing to do, ccache version was already populated (cache hit)
+    if(DEFINED TINY_CCACHE_VERSION AND NOT TINY_CCACHE_VERSION STREQUAL "")
+        if(TINY_CCACHE_VERSION VERSION_GREATER_EQUAL "4.10" OR
+            TINY_CCACHE_VERSION STREQUAL "git-ref"
+        )
+            set(${out_variable} FALSE PARENT_SCOPE)
+        else()
+            set(${out_variable} TRUE PARENT_SCOPE)
+        endif()
+
+        return()
+    endif()
+
+    set(helpString "Ccache version used to determine whether to disable PCH (MSVC only).")
+
+    execute_process(
+        COMMAND "${CMAKE_CXX_COMPILER_LAUNCHER}" --print-version
+        RESULT_VARIABLE exitCode
+        OUTPUT_VARIABLE ccacheVersionRaw
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+        ERROR_QUIET
+    )
+
+    # ccache can't be executed, in this case don't disable PCH and even don't cache
+    # the TINY_CCACHE_VERSION because the build is gona to fail and we don't want to
+    # cache wrong value
+    if(exitCode STREQUAL "no such file or directory")
+        set(${out_variable} FALSE PARENT_SCOPE)
+        return()
+    endif()
+
+    # ccache <4.10 doesn't have the --print-version parameter, we can be pretty sure that
+    # the version is <4.10 because we know the ccache is on the system path
+    if(NOT exitCode EQUAL 0)
+        set(TINY_CCACHE_VERSION "0" CACHE INTERNAL "${helpString}")
+        set(${out_variable} TRUE PARENT_SCOPE)
+        return()
+    endif()
+
+    # Detect a manual build version (git reference).
+    # The git-ref is a special value, it means that the ccache was built manually from eg.
+    # master branch, in this case set ccache version as the git-ref string. This version
+    # will be supposed as the latest version and will be assumed it supports PCH.
+    # CMake doesn't support {x,y}. 😮
+    set(regexpGitRef
+        "^.*\.[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f]*$")
+
+    if(ccacheVersionRaw MATCHES "${regexpGitRef}")
+        set(TINY_CCACHE_VERSION "git-ref" CACHE INTERNAL "${helpString}")
+        set(${out_variable} FALSE PARENT_SCOPE)
+        return()
+    endif()
+
+    # Detect a normal tag version like eg. 4.10
+    set(regexpVersion "^[0-9]+\.[0-9]+(\.[0-9]+)?(\.[0-9]+)?$")
+
+    # This should never happen :/
+    if(NOT ccacheVersionRaw MATCHES "${regexpVersion}")
+        message(FATAL_ERROR "Parse of the 'ccache --print-version' failed \
+in tiny_should_disable_precompile_headers().")
+    endif()
+
+    set(TINY_CCACHE_VERSION "${CMAKE_MATCH_0}" CACHE INTERNAL "${helpString}")
+
+    if(TINY_CCACHE_VERSION VERSION_GREATER_EQUAL "4.10")
+        set(${out_variable} FALSE PARENT_SCOPE)
+    else()
+        set(${out_variable} TRUE PARENT_SCOPE)
+    endif()
+
+endfunction()
+
 # Disable the precompilation of header files
 function(tiny_disable_precompile_headers)
 
-    message(VERBOSE "Disabled PCH because ccache or sccache is used as compiler launcher for MSVC")
+    # Determine whether to disable PCH based on the ccache --print-version
+    set(shouldDisablePCH FALSE)
+    tiny_should_disable_precompile_headers(shouldDisablePCH)
+
+    if(NOT shouldDisablePCH)
+        return()
+    endif()
+
+    message(VERBOSE "Disabled PCH because ccache or sccache is used as compiler \
+launcher for MSVC")
 
     get_property(help_string CACHE CMAKE_DISABLE_PRECOMPILE_HEADERS
         PROPERTY HELPSTRING
@@ -432,11 +535,11 @@ function(tiny_fix_ccache_msvc_325)
 
 endfunction()
 
-# Helper function to replace /Zi by /Z7 in the CMAKE_<C|CXX>_FLAGS_<CONFIG> option
+# Helper function to replace /Zi and /ZI by /Z7 in the CMAKE_<C|CXX>_FLAGS_<CONFIG> option
 function(tiny_replace_Zi_by_Z7_for option help_string)
 
-    if(DEFINED ${option} AND ${option} MATCHES "/Zi")
-        string(REPLACE "/Zi" "/Z7" ${option} "${${option}}")
+    if(DEFINED ${option} AND ${option} MATCHES "(/|-)(Zi|ZI)")
+        string(REGEX REPLACE "(/|-)(Zi|ZI)" "/Z7" ${option} "${${option}}")
 
         get_property(help_string_property CACHE ${option} PROPERTY HELPSTRING)
         if(NOT help_string_property)
@@ -448,7 +551,7 @@ function(tiny_replace_Zi_by_Z7_for option help_string)
 
 endfunction()
 
-# Replace /Zi by /Z7 in the CMAKE_<C|CXX>_FLAGS_<CONFIG> option for the CMake <3.25
+# Replace /Zi or /ZI by /Z7 in the CMAKE_<C|CXX>_FLAGS_<CONFIG> option for the CMake <3.25
 function(tiny_fix_ccache_msvc_324)
 
     # Nothing to do, multi-configuration generators are not supported
@@ -458,7 +561,7 @@ generators or with undefined CMAKE_BUILD_TYPE on CMake <3.25")
         return()
     endif()
 
-    # Replace /Zi by /Z7 by the build config type, for the CMake <=3.24
+    # Replace /Zi and /ZI by /Z7 by the build config type, for the CMake <=3.24
     if(TINY_BUILD_TYPE_LOWER STREQUAL "debug")
         tiny_replace_Zi_by_Z7_for(CMAKE_CXX_FLAGS_DEBUG
             "Flags used by the CXX compiler during DEBUG builds.")
@@ -483,15 +586,15 @@ endfunction()
 
 # Fix CMake variables if CMAKE_CXX_COMPILER_LAUNCHER is ccache or sccache
 # It applies fixes for MSVC compiler. It disables precompiled headers as they are not
-# supported on Windows with ccache and changes the -Zi compiler option to the -Z7
-# for debug builds as the -Zi compiler option is not supported for CMake <3.25 or
+# supported on Windows with ccache and changes the -Zi and -ZI compiler options to the -Z7
+# for debug builds for CMake <3.25 as the -Zi and -ZI compiler options is not supported or
 # set up the CMAKE_MSVC_DEBUG_INFORMATION_FORMAT for CMake >=3.25
 # (https://github.com/ccache/ccache/issues/1040)
 function(tiny_fix_ccache_msvc)
 
     # I will check only the CMAKE_CXX_COMPILER_LAUNCHER and not also the
     # CMAKE_C_COMPILER_LAUNCHER as this is a pure c++ project and c compiler is not used
-    # anyway but I will replace the Zi to Z7 compiler option in both
+    # anyway but I will replace the Zi to Z7 compiler options in both
     # CMAKE_<C|CXX>_FLAGS_<CONFIG> to be consistent 🤔
 
     # Fix the MSVC debug information format by the CMake version
@@ -502,13 +605,15 @@ function(tiny_fix_ccache_msvc)
         # Support the MSVC debug information format flags added in the CMake 3.25
         tiny_fix_ccache_msvc_325()
     else()
-        # Replace /Zi by /Z7 in the CMAKE_<C|CXX>_FLAGS_<CONFIG> for the CMake <3.25
+        # Replace /Zi and /ZI by /Z7 in the CMAKE_<C|CXX>_FLAGS_<CONFIG>
+        # for the CMake <3.25
         tiny_fix_ccache_msvc_324()
     endif()
 
     # Don't disable PCH if no fixes were applied
     # The new MSVC debug information format flags method also supports multi-config generators
-    # The old replace /Zi by /Z7 method doesn't support multi-config generators
+    # The old replace (/Zi|/ZI) by /Z7 method doesn't support multi-config generators
+    # Don't remove this isNewMsvcDebugInformationFormat check, is correct!
     if(isNewMsvcDebugInformationFormat OR NOT TINY_IS_MULTI_CONFIG)
         tiny_disable_precompile_headers()
     endif()
@@ -519,8 +624,8 @@ endfunction()
 # contains ccache/sccache (fixes for Clang compilers)
 function(tiny_should_fix_ccache_clang out_variable)
 
-    # Target the Clang on Linux and MSYS2
-    if(MSVC OR NOT CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    # Target the Clang on Linux, MSYS2, and also Clang-cl with MSVC
+    if(NOT CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
         set(${out_variable} FALSE PARENT_SCOPE)
         return()
     endif()
@@ -540,17 +645,15 @@ function(tiny_fix_ccache)
 
     # MSYS2 g++ or clang++ work well with the precompiled headers but the msvc doesn't
 
-    # Fixes for the MSVC compiler (including the clang-cl with MSVC)
+    # Fixes for the MSVC compiler (including the Clang-cl with MSVC)
     set(shouldFixCcacheMsvc FALSE)
     tiny_should_fix_ccache_msvc(shouldFixCcacheMsvc)
 
     if(shouldFixCcacheMsvc)
         tiny_fix_ccache_msvc()
-
-        # The early return() can be here, but I chose not to add it
     endif()
 
-    # Fixes for the Clang compiler on Linux and MSYS2 (excluding the clang-cl with MSVC)
+    # Fixes for the Clang compiler on Linux, MSYS2, and also Clang-cl with MSVC
     # Ignore PCH timestamps if the ccache is used (recommended in ccache docs)
     set(shouldFixCcacheClang FALSE)
     tiny_should_fix_ccache_clang(shouldFixCcacheClang)
