@@ -16,7 +16,7 @@ tinyMinRecGCC     = 10.2
 tinyMinRecQt      = 5.15.2
 
 # Make minimum toolchain version a requirement
-load(tiny_toolchain_requirement)
+load(private/tiny_toolchain_requirement)
 
 # Link against TinyORM library for Tom application (also adds defines and include headers)
 # ---
@@ -62,7 +62,7 @@ include(src/src.pri)
 
 # Find version numbers in the version header file and assign them to the
 # <TARGET>_VERSION_<MAJOR,MINOR,PATCH,TWEAK> and also to the VERSION variable.
-load(tiny_version_numbers)
+load(private/tiny_version_numbers)
 tiny_version_numbers()
 
 # Windows resource and manifest files
@@ -73,7 +73,7 @@ tinyRcIncludepath = $$quote($$PWD/src/)
 # Find Windows manifest
 mingw: tinyRcIncludepath += $$quote($$PWD/resources/)
 
-load(tiny_resource_and_manifest)
+load(private/tiny_resource_and_manifest)
 tiny_resource_and_manifest($$tinyRcIncludepath)
 
 unset(tinyRcIncludepath)
@@ -95,7 +95,7 @@ CONFIG(release, debug|release) {
 # Some info output
 # ---
 
-load(tiny_info_messages)
+load(private/tiny_info_messages)
 tiny_log_info_messages()
 
 # User Configuration

@@ -17,8 +17,8 @@
 # Ubuntu - apt install ccache
 
 disable_autoconf {
-#    load(tiny_system_includepath)
-    load(tiny_find_packages)
+#    load(private/tiny_system_includepath)
+    load(private/tiny_find_packages)
 
     TINYORM_BUILDS_DIR = $$quote($$TINY_MAIN_DIR/TinyORM-builds-qmake)
 }
