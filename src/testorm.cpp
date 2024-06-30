@@ -6,6 +6,7 @@
 
 #include <orm/db.hpp>
 #include <orm/exceptions/invalidargumenterror.hpp>
+#include <orm/utils/helpers.hpp>
 #include <orm/utils/thread.hpp>
 
 #include "support/globals.hpp"

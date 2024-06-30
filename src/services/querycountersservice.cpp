@@ -406,13 +406,9 @@ void QueryCountersService::santizeConnectionsToRunInThread()
     });
 
     m_config.ConnectionsToRunInThread.erase(
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
                 // To suppress clazy warning about mixing iterator constnest
                 static_cast<QStringList::const_iterator>(removeEnd),
                 m_config.ConnectionsToRunInThread.constEnd()); // clazy:exclude=detaching-member
-#else
-                removeEnd, m_config.ConnectionsToRunInThread.end()); // clazy:exclude=detaching-member
-#endif
 }
 
 void QueryCountersService::initThreadLogging() const

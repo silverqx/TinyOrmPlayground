@@ -18,13 +18,16 @@
 #include <nlohmann/json.hpp>
 
 #include <orm/db.hpp>
+#include <orm/utils/nullvariant.hpp>
 
 #include "configuration.hpp"
 
 using json = nlohmann::json;
 
 using Orm::Constants::ID;
+
 using Orm::DB;
+using Orm::Utils::NullVariant;
 
 namespace TinyPlay::Tests
 {
@@ -59,11 +62,7 @@ void TestAllOtherTests::tinyOrmOthers() const
                 ->where("id", ">", 2)
                 .orWhereNull("note")
                 .orWhereEq("is_banned", true)
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-                .orWhereEq("name", QVariant(QMetaType(QMetaType::QString)))
-#else
-                .orWhereEq("name", QVariant(QVariant::String))
-#endif
+                .orWhereEq("name", NullVariant::QString())
                 .orWhereEq("name", QVariant())
                 .addBinding("xx")
                 .orderByDesc(ID).dump();

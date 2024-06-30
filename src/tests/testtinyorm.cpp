@@ -20,6 +20,7 @@ using Orm::DB;
 using Orm::One;
 using Orm::Tiny::Exceptions::ModelNotFoundError;
 using Orm::Tiny::Relations::Pivot;
+using Orm::Utils::NullVariant;
 
 using Models::FilePropertyProperty;
 using Models::Role;
@@ -1749,11 +1750,7 @@ void TestTinyOrm::run() const
         Torrent::find(2)->tags()->updateOrCreate(
                     {{"name", "tag4"}},
                     {{"name", "tag4"},
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-                     {"note", QVariant(QMetaType(QMetaType::QString))}},
-#else
-                     {"note", QVariant(QVariant::String)}},
-#endif
+                     {"note", NullVariant::QString()}},
                     {{"active", true}});
 
         qt_noop();
