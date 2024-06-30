@@ -101,7 +101,7 @@ const Configuration::OrmConfigurationsType &Configuration::initDBConfigurations(
                                                            QStringLiteral("true"))},
             {check_database_exists,   true},
             // Specifies what time zone all QDateTime-s will have
-            {qt_timezone,             QVariant::fromValue(Qt::UTC)},
+            {qt_timezone,             QVariant::fromValue(QTimeZone::UTC)},
             /* Return a QDateTime with the correct time zone instead of the QString,
                only works when the qt_timezone isn't set to the DontConvert. */
             {return_qdatetime,        true},
@@ -118,7 +118,7 @@ const Configuration::OrmConfigurationsType &Configuration::initDBConfigurations(
             {foreign_key_constraints, qEnvironmentVariable("DB_SQLITE_FOREIGN_KEYS",
                                                            QStringLiteral("true"))},
             // Specifies what time zone all QDateTime-s will have
-            {qt_timezone,             QVariant::fromValue(Qt::UTC)},
+            {qt_timezone,             QVariant::fromValue(QTimeZone::UTC)},
             /* Return a QDateTime with the correct time zone instead of the QString,
                only works when the qt_timezone isn't set to the DontConvert. */
             {return_qdatetime,        true},
@@ -158,7 +158,7 @@ const Configuration::OrmConfigurationsType &Configuration::initDBConfigurations(
             // I don't use timezone types in postgres anyway
             {timezone_,          UTC},
             // Specifies what time zone all QDateTime-s will have
-            {qt_timezone,        QVariant::fromValue(Qt::UTC)},
+            {qt_timezone,        QVariant::fromValue(QTimeZone::UTC)},
             {prefix_,            EMPTY},
             {prefix_indexes,     false},
             // ConnectionFactory provides a default value for this, this is only for reference
@@ -184,7 +184,7 @@ QVariantHash Configuration::initMysqlConfiguration()
         // Very important for tests
         {timezone_,       TZ00},
         // Specifies what time zone all QDateTime-s will have
-        {qt_timezone,     QVariant::fromValue(Qt::UTC)},
+        {qt_timezone,     QVariant::fromValue(QTimeZone::UTC)},
         {prefix_,         EMPTY},
         {prefix_indexes,  false},
         {strict_,         true},
@@ -215,7 +215,7 @@ QVariantHash Configuration::initMysqlLaravel8Configuration()
         // Very important for tests
         {timezone_,       TZ00},
         // Specifies what time zone all QDateTime-s will have
-        {qt_timezone,     QVariant::fromValue(Qt::UTC)},
+        {qt_timezone,     QVariant::fromValue(QTimeZone::UTC)},
         {prefix_,         EMPTY},
         {prefix_indexes,  false},
         {strict_,         true},
