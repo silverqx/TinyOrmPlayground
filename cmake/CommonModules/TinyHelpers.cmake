@@ -20,63 +20,6 @@ function(tiny_to_bool out_variable value)
 
 endfunction()
 
-# Make minimum toolchain version a requirement
-function(tiny_toolchain_requirement)
-
-    set(oneValueArgs MSVC GCC CLANG CLANG_CL)
-    cmake_parse_arguments(PARSE_ARGV 0 TINY "" "${oneValueArgs}" "")
-
-    if(DEFINED TINY_UNPARSED_ARGUMENTS)
-        message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} was passed extra arguments: \
-${TINY_UNPARSED_ARGUMENTS}")
-    endif()
-
-    if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-        if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS TINY_MSVC)
-            message(FATAL_ERROR "Minimum required MSVC version was not satisfied, \
-required version >=${TINY_MSVC}, your version is ${CMAKE_CXX_COMPILER_VERSION}, upgrade \
-Visual Studio")
-        endif()
-    endif()
-
-    # Clang-cl
-    if(MSVC AND CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND
-            CMAKE_CXX_SIMULATE_ID STREQUAL "MSVC"
-    )
-        if(CMAKE_CXX_SIMULATE_VERSION VERSION_LESS TINY_MSVC)
-            message(FATAL_ERROR "Minimum required MSVC version was not satisfied, \
-required version >=${TINY_MSVC}, your version is ${CMAKE_CXX_SIMULATE_VERSION}, upgrade \
-Visual Studio")
-        endif()
-
-        if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS TINY_CLANG_CL)
-            message(FATAL_ERROR "Minimum required Clang-cl version was not satisfied, \
-required version >=${TINY_CLANG_CL}, your version is ${CMAKE_CXX_COMPILER_VERSION}, \
-upgrade LLVM")
-        endif()
-    endif()
-
-    if(NOT MSVC AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-        if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS TINY_GCC)
-            message(STATUS "Minimum recommended GCC version was not satisfied, \
-recommended version >=${TINY_GCC}, your version is ${CMAKE_CXX_COMPILER_VERSION}, \
-upgrade the GCC compiler")
-        endif()
-    endif()
-
-    if(NOT MSVC AND
-            (CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR
-                CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
-    )
-        if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS TINY_CLANG)
-            message(STATUS "Minimum recommended Clang version was not satisfied, \
-recommended version >=${TINY_CLANG}, your version is ${CMAKE_CXX_COMPILER_VERSION}, \
-upgrade Clang compiler")
-        endif()
-    endif()
-
-endfunction()
-
 # A helper macro that calls find_package() and appends the package (if found) to the
 # TINY_PACKAGE_DEPENDENCIES list that will be used later to generate find_dependency()
 # calls for the TinyORM package configuration file
@@ -300,42 +243,6 @@ macro(tiny_set_rc_flags)
 
 endmacro()
 
-# Throw a fatal error for unsupported environments
-function(tiny_check_unsupported_build)
-
-    # Fixed in Clang v18 🎉
-    # Related issue: https://github.com/llvm/llvm-project/issues/55938
-
-    if(MINGW AND CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND NOT BUILD_SHARED_LIBS AND
-            CMAKE_CXX_COMPILER_VERSION VERSION_LESS "18"
-    )
-        message(FATAL_ERROR "MinGW Clang <18 static build is not supported, it has \
-problems with inline constants :/.")
-    endif()
-
-    if(MINGW AND CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND BUILD_SHARED_LIBS AND
-            INLINE_CONSTANTS AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS "18"
-    )
-        message(FATAL_ERROR "MinGW Clang <18 shared build crashes with inline constants, \
-don't enable the INLINE_CONSTANTS cmake option :/.")
-    endif()
-
-    if(TINY_VCPKG AND TINY_IS_MULTI_CONFIG)
-        message(FATAL_ERROR "Multi-configuration generators are not supported in vcpkg \
-ports.")
-    endif()
-
-    if(TINY_VCPKG AND TINY_BUILD_LOADABLE_DRIVERS)
-        message(FATAL_ERROR "Loadable SQL drivers are not supported in vcpkg ports.")
-    endif()
-
-    if(BUILD_DRIVERS AND NOT BUILD_MYSQL_DRIVER)
-        message(FATAL_ERROR "If the BUILD_DRIVERS option is enabled, at least one \
-driver implementation must be enabled, please enable BUILD_MYSQL_DRIVER.")
-    endif()
-
-endfunction()
-
 # Print a VERBOSE message against which library is project linking
 function(tiny_print_linking_against target)
 
@@ -423,9 +330,9 @@ function(tiny_should_disable_precompile_headers out_variable)
         ERROR_QUIET
     )
 
-    # ccache can't be executed, in this case don't disable PCH and even don't cache
+    # ccache can't be executed, don't disable PCH in this case and even don't cache
     # the TINY_CCACHE_VERSION because the build is gona to fail and we don't want to
-    # cache wrong value
+    # cache the wrong value
     if(exitCode STREQUAL "no such file or directory")
         set(${out_variable} FALSE PARENT_SCOPE)
         return()
@@ -458,8 +365,8 @@ function(tiny_should_disable_precompile_headers out_variable)
 
     # This should never happen :/
     if(NOT ccacheVersionRaw MATCHES "${regexpVersion}")
-        message(FATAL_ERROR "Parse of the 'ccache --print-version' failed \
-in tiny_should_disable_precompile_headers().")
+        message(FATAL_ERROR "Parsing of the 'ccache --print-version' failed \
+in ${CMAKE_CURRENT_FUNCTION}().")
     endif()
 
     set(TINY_CCACHE_VERSION "${CMAKE_MATCH_0}" CACHE INTERNAL "${helpString}")
