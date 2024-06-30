@@ -8,7 +8,6 @@
 #include <orm/exceptions/runtimeerror.hpp>
 #include <orm/ormtypes.hpp>
 #include <orm/utils/configuration.hpp>
-#include <orm/utils/helpers.hpp>
 #include <orm/utils/type.hpp>
 
 using Orm::Constants::EMPTY;
@@ -49,8 +48,6 @@ using Orm::Constants::search_path;
 using Orm::Constants::strict_;
 using Orm::Constants::timezone_;
 using Orm::Constants::username_;
-
-using Orm::Utils::Helpers;
 
 using ConfigUtils = Orm::Utils::Configuration;
 
@@ -262,7 +259,7 @@ void Configuration::commonMySqlOptions(QVariantHash &connectionOptions)
 
 void Configuration::throwIfMySqlOptionsNotHash(const QVariant &optionsVariant)
 {
-    if (Helpers::qVariantTypeId(optionsVariant) == QMetaType::QVariantHash)
+    if (optionsVariant.typeId() == QMetaType::QVariantHash)
         return;
 
     throw Orm::Exceptions::InvalidArgumentError(
