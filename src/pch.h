@@ -4,42 +4,40 @@
 
 #if defined __cplusplus
 /* Add C++ includes here */
-#include <QCoreApplication>
-#include <QHash>
-#include <QMap>
-#include <QStringList>
+#include <QDateTime>
+#include <QDir>
+#include <QElapsedTimer>
+#include <QFile>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QRegularExpression>
+#include <QSet>
 #include <QTimeZone>
-#include <QTimer>
-#include <QVariant>
-#include <QVector>
+#include <QVariantHash>
+#include <QVersionNumber>
+#include <QtSql/QSqlError>
+#include <QtSql/QSqlQuery>
+#include <QtSql/QSqlRecord>
+
+#ifndef QT_NO_DEBUG_STREAM
+#  include <QDebug>
+#endif
 
 #include <algorithm>
 #include <array>
-#include <bitset>
-#include <cassert>
-#include <cfloat>
-#include <cmath>
-#include <complex>
-#include <condition_variable>
-#include <cstddef>
-#include <cstdint>
-#include <cstdlib>
-#include <functional>
-#include <initializer_list>
-#include <iterator>
+#include <iostream>
 #include <map>
 #include <memory>
-#include <mutex>
-#include <numeric>
-#include <optional>
 #include <set>
 #include <span>
+#include <stack>
 #include <string>
 #include <thread>
 #include <tuple>
-#include <type_traits>
 #include <typeindex>
 #include <typeinfo>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 #endif
