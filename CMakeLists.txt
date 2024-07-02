@@ -22,7 +22,7 @@ tiny_read_version(TINY_VERSION
     HEADER_FOR "${TinyOrmPlayground_ns}"
 )
 
-# Basic project and cmake build setup
+# Basic project and CMake build setup
 # ---
 
 project(${TinyOrmPlayground_ns}
@@ -41,32 +41,32 @@ else()
 endif()
 set(CMAKE_CXX_STANDARD_REQUIRED YES)
 set(CMAKE_CXX_EXTENSIONS OFF)
-
+# Set the AUTOMOC property explicitly only when needed
 set(CMAKE_AUTOMOC ON)
 
 
 # Version requirements
 # ---
-# Older vesions may work, but you are on your own
+# Older versions may work, but you are on your own
 # Req - requirement, throws error
 # Rec - recommended, shows info message
 
 # Compilers
 # 16.10/16.11 (1929) to support pragma system_header
 set(minReqMsvcVersion    19.29)
-set(minReqClangClVersion 14.0.3)
 set(minRecGCCVersion     10.2)
 set(minRecClangVersion   12)
+set(minReqClangClVersion 14.0.3)
 # Packages
-set(minQtVersion           5.15.2)
+set(minQtVersion         6.2)
 # As the range-v3 uses exact version policy in the package config file so passing version
 # makes real problems on CI pipelines where different OS images can have installed
 # different versions of range-v3 (doesn't matter if it's vcpkg or some package manager)
-#set(minRangeV3Version      0.12.0)
+#set(minRangeV3Version     0.12.0)
 set(minNlohmannJsonVersion 3.9.1)
 set(minTinyOrmVersion      0.37.3)
 # tabulate doesn't provide Package Version File
-#set(minTabulateVersion 1.4.0)
+#set(minTabulateVersion    1.5.0)
 
 # Make minimum toolchain version a requirement
 tiny_toolchain_requirement(
@@ -74,6 +74,7 @@ tiny_toolchain_requirement(
     CLANG_CL ${minReqClangClVersion}
     GCC      ${minRecGCCVersion}
     CLANG    ${minRecClangVersion}
+    QT       ${minReqQtVersion}
 )
 
 # TinyORM build options
@@ -88,7 +89,7 @@ feature_option(BUILD_SHARED_LIBS
 feature_option_dependent(MSVC_RUNTIME_DYNAMIC
     "Use MSVC dynamic runtime library (-MD) instead of static (-MT), also considers \
 a Debug configuration (-MTd, -MDd)" ON
-    "MSVC;NOT DEFINED CMAKE_MSVC_RUNTIME_LIBRARY" MSVC_RUNTIME_DYNAMIC-NOTFOUND
+    "MSVC AND NOT DEFINED CMAKE_MSVC_RUNTIME_LIBRARY" MSVC_RUNTIME_DYNAMIC-NOTFOUND
 )
 feature_option(VERBOSE_CONFIGURE
     "Show information about PACKAGES_FOUND and PACKAGES_NOT_FOUND in the configure \
@@ -189,16 +190,6 @@ if(BUILD_SHARED_LIBS)
     )
 endif()
 
-target_compile_definitions(${TinyOrmPlayground_target}
-    PRIVATE
-        # Release build
-        $<$<NOT:$<CONFIG:Debug>>:TINYORM_NO_DEBUG>
-        $<$<NOT:$<CONFIG:Debug>>:TINYORM_NO_DEBUG_SQL>
-        # Debug build
-        $<$<CONFIG:Debug>:TINYORM_DEBUG>
-        $<$<CONFIG:Debug>:TINYORM_DEBUG_SQL>
-)
-
 # Windows resource and manifest files
 # ---
 
@@ -216,11 +207,11 @@ tiny_resource_and_manifest(${TinyOrmPlayground_target}
 # ---
 
 # Unconditional dependencies
-find_package(QT NAMES Qt5 Qt6 REQUIRED COMPONENTS Core Sql)
+find_package(QT NAMES Qt6 REQUIRED COMPONENTS Core #[[Network]] Sql)
 tiny_find_package(Qt${QT_VERSION_MAJOR} ${minQtVersion} CONFIG
     REQUIRED COMPONENTS Core #[[Network]] Sql
 )
-tiny_find_package(range-v3 ${minRangeV3Version} CONFIG REQUIRED)
+tiny_find_package(range-v3 CONFIG REQUIRED)
 tiny_find_package(nlohmann_json ${minNlohmannJsonVersion} CONFIG REQUIRED)
 tiny_find_package(TinyOrm ${minTinyOrmVersion} CONFIG REQUIRED)
 
