@@ -37,7 +37,7 @@ void TestQueryBuilder::run() const
 //    qt_noop();
 
 ////    std::vector<int> numbers = { 1, 2, 3, 4, 5, 6 };
-//    QVector<int> numbers { 1, 2, 3, 4, 5, 6 };
+//    QList<int> numbers { 1, 2, 3, 4, 5, 6 };
 
 //    auto results = numbers
 //                   | ranges::views::filter([](int n){ return n % 2 == 0; })

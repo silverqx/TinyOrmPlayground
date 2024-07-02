@@ -56,7 +56,7 @@ void TestTinyOrm::run() const
 //        TorrentPreviewableFile a;
 //        auto files = a.query()->where("torrent_id", "=", 2).get();
 //////        auto files = a.query()->where("torrent_id", "=", 261).get();
-//////        auto torrent1 = files.first().getRelation<Torrent, QVector>("torrent");
+//////        auto torrent1 = files.first().getRelation<Torrent, QList>("torrent");
 //        auto torrent1 = files.first().getRelation<Torrent, One>("torrent");
 ////        qDebug() << torrent1->getAttribute("name");
 ////        auto peer1 = torrent1->getRelation<TorrentPeer, One>("torrentPeer");
@@ -145,8 +145,8 @@ void TestTinyOrm::run() const
     }
 
 //    qMetaTypeId<KeyType>();
-//    QVector<quint64> vec {12, 6, 8, 2, 7, 8, 8};
-//    QVector<QVariant> var(vec.begin(), vec.end());
+//    QList<quint64> vec {12, 6, 8, 2, 7, 8, 8};
+//    QList<QVariant> var(vec.begin(), vec.end());
 
 //    std::sort(vec.begin(), vec.end());
 //    std::sort(var.begin(), var.end(), [](QVariant a, QVariant b) {
@@ -189,7 +189,7 @@ void TestTinyOrm::run() const
 //    qDebug() << x;
 //    qDebug() << y;
 
-//    QVector<QVariantMap> values;
+//    QList<QVariantMap> values;
 //    auto nums = views::iota(1, 1000);
 //    for (const auto &i : nums)
 //        values.append({{"id", (i + 6)}, {"torrent_id", 7}, {"file_index", 0},
@@ -507,7 +507,7 @@ void TestTinyOrm::run() const
     /* hash which manages insertion order */
 //    {
 //        QHash<QString *, std::reference_wrapper<QVariant>> hash;
-//        QVector<AttributeItem> vec;
+//        QList<AttributeItem> vec;
 
 //        using namespace Orm;
 //        AttributeItem a {"a", "one"};
@@ -1561,7 +1561,7 @@ void TestTinyOrm::run() const
         auto t2 = Torrent::query()->with({"torrentPeer", "torrentFiles"}).find(2);
         auto t3 = Torrent::query()->with({{"torrentPeer"}, {"torrentFiles"}}).find(2);
 
-        QVector<QString> w {"torrentPeer", "torrentFiles"};
+        QList<QString> w {"torrentPeer", "torrentFiles"};
         auto t4 = Torrent::query()->with(w).find(2);
 
         auto t5 = TorrentPeer().torrent()->with("torrentPeer").find(2);

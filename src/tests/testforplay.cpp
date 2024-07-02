@@ -128,7 +128,7 @@ void TestForPlay::run() const
 
     /* Ranges */
     {
-        QVector<AttributeItem> attributes {
+        QList<AttributeItem> attributes {
             {"one", 1},
             {"two", 2},
             {"three", 3},
