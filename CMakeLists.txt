@@ -69,6 +69,7 @@ set(minTinyOrmVersion      0.37.3)
 #set(minTabulateVersion    1.5.0)
 
 # Make minimum toolchain version a requirement
+include(TinyToolchainRequirement)
 tiny_toolchain_requirement(
     MSVC     ${minReqMsvcVersion}
     CLANG_CL ${minReqClangClVersion}
