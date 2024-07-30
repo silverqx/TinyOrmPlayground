@@ -160,6 +160,10 @@ target_include_directories(${TinyOrmPlayground_target} PRIVATE
 # TinyOrmPlayground compiler options
 # ---
 
+if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+    target_compile_options(${TinyOrmPlayground_target} PRIVATE /bigobj)
+endif()
+
 if(MINGW)
     target_compile_options(${TinyOrmPlayground_target}
         PRIVATE
