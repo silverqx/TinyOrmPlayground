@@ -1,0 +1,28 @@
+{
+  "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
+  "name": "tinyormplayground",
+  "version-semver": "0.6.0",
+  "maintainers": "Silver Zachara <silver.zachara@gmail.com>",
+  "description": "Playground console application for TinyORM C++ library",
+  "homepage": "https://github.com/silverqx/TinyOrmPlayground",
+  "documentation": "https://github.com/silverqx/TinyOrmPlayground",
+  "license": "MIT",
+  "supports": "!(uwp | arm | android | emscripten | osx | ios | xbox | freebsd | openbsd | wasm32)",
+  "dependencies": [
+    "nlohmann-json",
+    {
+      "name": "qtbase",
+      "default-features": false
+    },
+    "range-v3",
+    "tabulate",
+    {
+      "name": "tinyorm",
+      "default-features": false,
+      "features": [
+        "build-mysql-driver",
+        "orm"
+      ]
+    }
+  ]
+}
