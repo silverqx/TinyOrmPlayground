@@ -3,6 +3,7 @@
 //#include <QObject>
 #include <QDebug>
 #include <QElapsedTimer>
+#include <QFile>
 //#include <QHostInfo>
 
 #include <filesystem> // IWYU pragma: keep
