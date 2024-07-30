@@ -50,26 +50,60 @@ endif()
 function(cs_print_target_properties target)
 
     if(NOT TARGET ${target})
-      message(FATAL_ERROR "There is no target named '${target}'")
+        message(FATAL_ERROR "There is no target named: ${target}")
     endif()
 
     message(STATUS "Target properties for '${target}':")
 
-    # Don't use the TINY_BUILD_TYPE_UPPER here as this function can be used in contexts where
-    # the TINY_BUILD_TYPE_UPPER isn't available.
+    # Don't use the TINY_BUILD_TYPE_UPPER here as this function can be used in contexts
+    # where the TINY_BUILD_TYPE_UPPER isn't available
     string(TOUPPER "${CMAKE_BUILD_TYPE}" cmakeBuildTypeUpper)
 
     foreach(property ${CMAKE_PROPERTY_LIST})
         string(REPLACE "<CONFIG>" "${cmakeBuildTypeUpper}" property ${property})
 
-        if(property STREQUAL "LOCATION" OR property MATCHES "^LOCATION_"
-                OR property MATCHES "_LOCATION$")
+        if(property STREQUAL "LOCATION" OR property MATCHES "^LOCATION_" OR
+                property MATCHES "_LOCATION$"
+        )
             continue()
         endif()
 
         get_property(was_set TARGET ${target} PROPERTY ${property} SET)
+
         if(was_set)
             get_target_property(value ${target} ${property})
+            message("${property} = ${value}")
+        endif()
+    endforeach()
+
+endfunction()
+
+# Print all source file properties
+function(cs_print_source_properties source)
+
+    if(NOT EXISTS "${source}")
+        message(FATAL_ERROR "There is no source file named: ${source}")
+    endif()
+
+    message(STATUS "Source file properties for ${source}:")
+
+    # Don't use the TINY_BUILD_TYPE_UPPER here as this function can be used in contexts
+    # where the TINY_BUILD_TYPE_UPPER isn't available
+    string(TOUPPER "${CMAKE_BUILD_TYPE}" cmakeBuildTypeUpper)
+
+    foreach(property ${CMAKE_PROPERTY_LIST})
+        string(REPLACE "<CONFIG>" "${cmakeBuildTypeUpper}" property ${property})
+
+        if(property STREQUAL "LOCATION" OR property MATCHES "^LOCATION_" OR
+                property MATCHES "_LOCATION$"
+        )
+            continue()
+        endif()
+
+        get_property(was_set SOURCE "${source}" PROPERTY ${property} SET)
+
+        if(was_set)
+            get_source_file_property(value "${source}" ${property})
             message("${property} = ${value}")
         endif()
     endforeach()

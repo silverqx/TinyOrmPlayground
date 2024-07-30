@@ -15,14 +15,15 @@ function(tiny_sources out_headers out_sources)
         support/utils.hpp
         testorm.hpp
         tests/test.hpp
-        tests/testallothertests.hpp
-        tests/testconnection.hpp
         tests/testforplay.hpp
-        tests/testquerybuilder.hpp
-        tests/testquerybuilderdbspecific.hpp
-        tests/testschemabuilder.hpp
-        tests/testtinyorm.hpp
         version.hpp
+        # Moved down to be able quicky comment them out
+#        tests/testallothertests.hpp
+#        tests/testconnection.hpp
+#        tests/testquerybuilder.hpp
+#        tests/testquerybuilderdbspecific.hpp
+#        tests/testschemabuilder.hpp
+#        tests/testtinyorm.hpp
     )
 
     set(sources
@@ -36,17 +37,23 @@ function(tiny_sources out_headers out_sources)
         support/utils.cpp
         testorm.cpp
         tests/test.cpp
-        tests/testallothertests.cpp
-        tests/testconnection.cpp
         tests/testforplay.cpp
-        tests/testquerybuilder.cpp
-        tests/testquerybuilderdbspecific.cpp
-        tests/testschemabuilder.cpp
-        tests/testtinyorm.cpp
+        # Moved down to be able quicky comment them out
+#        tests/testallothertests.cpp
+#        tests/testconnection.cpp
+#        tests/testquerybuilder.cpp
+#        tests/testquerybuilderdbspecific.cpp
+#        tests/testschemabuilder.cpp
+#        tests/testtinyorm.cpp
     )
 
-    list(TRANSFORM headers PREPEND "src/")
-    list(TRANSFORM sources PREPEND "src/")
+    list(SORT headers)
+    list(SORT sources)
+
+    set(sourceDir "${${TinyOrmPlayground_ns}_SOURCE_DIR}/src/")
+
+    list(TRANSFORM headers PREPEND "${sourceDir}")
+    list(TRANSFORM sources PREPEND "${sourceDir}")
 
     set(${out_headers} ${headers} PARENT_SCOPE)
     set(${out_sources} ${sources} PARENT_SCOPE)

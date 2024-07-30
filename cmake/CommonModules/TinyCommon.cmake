@@ -8,7 +8,7 @@ function(tiny_common target)
     cmake_parse_arguments(PARSE_ARGV 1 TINY "${options}" "${oneValueArgs}" "")
 
     if(DEFINED TINY_UNPARSED_ARGUMENTS)
-        message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} was passed extra arguments: \
+        message(FATAL_ERROR "The ${CMAKE_CURRENT_FUNCTION}() was passed extra arguments: \
 ${TINY_UNPARSED_ARGUMENTS}")
     endif()
 
@@ -27,7 +27,20 @@ ${TINY_UNPARSED_ARGUMENTS}")
 
     # Disable deprecated APIs up to the given Qt version
     # Disable all the APIs deprecated up to Qt v6.9.0 (including)
-    target_compile_definitions(${target} INTERFACE QT_DISABLE_DEPRECATED_UP_TO=0x060900)
+    # Must be disabled with vcpkg because the qtbase port doesn't define it and it causes
+    # incompatible API, eg. QByteArray::isNull() or QString::toLongLong() is defined
+    # inline through this QT_CORE_INLINE_SINCE() deprecated macros and we end up
+    # with multiple defined symbols, what means QtCore is compiled with old API without
+    # inline because it doesn't define this QT_DISABLE_DEPRECATED_UP_TO and TinyORM has
+    # inlined symbols. It of course works with shared DLL builds but fails with static/-md
+    # triplets (builds). It's a good idea to use the same setting for this like qtbase
+    # has anyway.
+    # See: https://bugreports.qt.io/browse/QTBUG-127070
+    if(NOT TINY_VCPKG)
+        target_compile_definitions(${target} INTERFACE
+            QT_DISABLE_DEPRECATED_UP_TO=0x060900
+        )
+    endif()
 
     target_compile_definitions(${target}
         INTERFACE

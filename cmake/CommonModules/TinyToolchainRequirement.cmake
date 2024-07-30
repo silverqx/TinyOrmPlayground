@@ -9,7 +9,7 @@
 # If the QT_QMAKE_EXECUTABLE command can't be executed or it returns a non-zero exit code
 # then continue a normal execution and leave the decision logic up to the find_package()
 # function.
-function(tiny_satisfied_minimum_required_qt_version out_variable)
+function(tiny_satisfies_minimum_required_qt_version out_variable)
 
     # Nothing to do, Qt version was already populated (cache hit)
     if(DEFINED TINY_QT_VERSION AND NOT TINY_QT_VERSION STREQUAL "")
@@ -51,13 +51,13 @@ function, in ${CMAKE_CURRENT_FUNCTION}()")
 
     # This should never happen :/
     if(NOT qtVersion MATCHES "${regexpVersion}")
-        message(FATAL_ERROR "Parsing of the 'qmake -query QT_VERSION' failed, \
+        message(FATAL_ERROR "Parsing of the 'qmake -query QT_VERSION' failed \
 in ${CMAKE_CURRENT_FUNCTION}().")
     endif()
 
     set(TINY_QT_VERSION "${CMAKE_MATCH_0}" CACHE INTERNAL
         "Qt version used to determine whether a minimum required Qt version was \
-satisfied.")
+satisfied (also used by tiny_configure_test_pch()).")
 
     if(TINY_QT_VERSION VERSION_GREATER_EQUAL minReqQtVersion)
         set(${out_variable} TRUE PARENT_SCOPE)
@@ -74,7 +74,7 @@ function(tiny_toolchain_requirement)
     cmake_parse_arguments(PARSE_ARGV 0 TINY "" "${oneValueArgs}" "")
 
     if(DEFINED TINY_UNPARSED_ARGUMENTS)
-        message(FATAL_ERROR "${CMAKE_CURRENT_FUNCTION} was passed extra arguments: \
+        message(FATAL_ERROR "The ${CMAKE_CURRENT_FUNCTION}() was passed extra arguments: \
 ${TINY_UNPARSED_ARGUMENTS}")
     endif()
 
@@ -124,10 +124,10 @@ upgrade Clang compiler")
 
     # Minimum required Qt version (minReqQtVersion)
     set(satisfiedMinReqQtVersion)
-    tiny_satisfied_minimum_required_qt_version(satisfiedMinReqQtVersion)
+    tiny_satisfies_minimum_required_qt_version(satisfiedMinReqQtVersion)
 
     if(NOT satisfiedMinReqQtVersion)
-        # Should never happend that the TINY_QT_VERSION is undefined or empty
+        # Should never happen that the TINY_QT_VERSION is undefined or empty
         message(FATAL_ERROR "Minimum required Qt version was not satisfied, \
 required version >=${TINY_QT}, your version is ${TINY_QT_VERSION}, \
 upgrade Qt Framework.")
@@ -141,14 +141,14 @@ function(tiny_check_unsupported_build)
     # Fixed in Clang v18 🎉
     # Related issue: https://github.com/llvm/llvm-project/issues/55938
 
-    if(MINGW AND CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND NOT BUILD_SHARED_LIBS AND
+    if(MINGW AND NOT BUILD_SHARED_LIBS AND CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND
             CMAKE_CXX_COMPILER_VERSION VERSION_LESS "18"
     )
         message(FATAL_ERROR "MinGW Clang <18 static build is not supported, it has \
 problems with inline constants :/.")
     endif()
 
-    if(MINGW AND CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND BUILD_SHARED_LIBS AND
+    if(MINGW AND BUILD_SHARED_LIBS AND CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND
             INLINE_CONSTANTS AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS "18"
     )
         message(FATAL_ERROR "MinGW Clang <18 shared build crashes with inline constants, \
