@@ -85,7 +85,7 @@ namespace TinyPlay
         };
 
         /*! Run connections defined in the ConnectionsToRunInThread in threads. */
-        constexpr static const bool ConnectionsInThreads = true;
+        constexpr static const bool ConnectionsInThreads = false;
 
         /*! Whether log output from connections in threads to a file or to the console. */
         constexpr static const bool IsLoggingToFile = true;
@@ -101,15 +101,15 @@ namespace TinyPlay
             will be ran on. */
         /*const*/ QStringList ConnectionsToTest {
             Mysql,
-            Sqlite,
-            Postgres,
+//            Sqlite,
+//            Postgres,
         };
 
         /*! Which connections will run in separate threads, one connection per thread. */
         QStringList ConnectionsToRunInThread {
             Mysql,
-            Sqlite,
-            Postgres,
+//            Sqlite,
+//            Postgres,
         };
 
         /*! Connections to count on statements and execution times, computed

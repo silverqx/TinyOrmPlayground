@@ -1,7 +1,7 @@
 {
   "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
   "name": "tinyormplayground",
-  "version-semver": "0.6.0",
+  "version-semver": "0.6.1",
   "maintainers": "Silver Zachara <silver.zachara@gmail.com>",
   "description": "Playground console application for TinyORM C++ library",
   "homepage": "https://github.com/silverqx/TinyOrmPlayground",
