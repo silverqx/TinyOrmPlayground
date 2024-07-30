@@ -5,10 +5,10 @@
 #include <QElapsedTimer>
 //#include <QHostInfo>
 
-#include <filesystem>
-#include <iostream>
-#include <typeindex>
-#include <typeinfo>
+#include <filesystem> // IWYU pragma: keep
+#include <iostream> // IWYU pragma: keep
+#include <typeindex> // IWYU pragma: keep
+#include <typeinfo> // IWYU pragma: keep
 
 #include <range/v3/all.hpp>
 
