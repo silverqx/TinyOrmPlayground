@@ -52,6 +52,11 @@ using StringUtils    = Orm::Utils::String;    // NOLINT(misc-unused-using-decls)
 
 using AttributeUtils = Orm::Tiny::Utils::Attribute; // NOLINT(misc-unused-using-decls)
 
+std::ostream &operator<<(std::ostream &os, const QString &value)
+{
+    return os << value.toUtf8().constData();
+}
+
 namespace TinyPlay::Tests
 {
 
