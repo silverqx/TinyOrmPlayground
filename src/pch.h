@@ -16,12 +16,15 @@
 #include <QTimeZone>
 #include <QVariantHash>
 #include <QVersionNumber>
-#include <QtSql/QSqlError>
-#include <QtSql/QSqlQuery>
-#include <QtSql/QSqlRecord>
 
 #ifndef QT_NO_DEBUG_STREAM
 #  include <QDebug>
+#endif
+
+#ifdef TINYORM_USING_QTSQLDRIVERS
+#  include <QtSql/QSqlError>
+#  include <QtSql/QSqlQuery>
+#  include <QtSql/QSqlRecord>
 #endif
 
 #include <algorithm>
