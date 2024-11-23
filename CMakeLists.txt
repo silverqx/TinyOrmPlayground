@@ -1,4 +1,4 @@
-# Policies <= CMP0128 default to NEW
+# Policies <= CMP0180 default to NEW
 cmake_minimum_required(VERSION 3.22...3.31 FATAL_ERROR)
 
 list(APPEND CMAKE_MODULE_PATH
